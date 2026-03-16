@@ -21,10 +21,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/safety-quotient-lab/meshd/internal/config"
-	"github.com/safety-quotient-lab/meshd/internal/db"
-	"github.com/safety-quotient-lab/meshd/internal/events"
-	"github.com/safety-quotient-lab/meshd/internal/health"
+	"github.com/safety-quotient-lab/operations-agent/internal/config"
+	"github.com/safety-quotient-lab/operations-agent/internal/db"
+	"github.com/safety-quotient-lab/operations-agent/internal/events"
+	"github.com/safety-quotient-lab/operations-agent/internal/health"
 )
 
 // Version gets embedded at build time via -ldflags.
@@ -269,6 +269,7 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /health", s.Health.HTTPHandler())
 	mux.HandleFunc("GET /api/events", s.handleEvents)
 	mux.HandleFunc("GET /api/events/stream", s.handleSSEStream)
+	mux.HandleFunc("GET /events", s.handleSSEStream) // Alias — dashboard connectSSE() expects /events
 	mux.HandleFunc("POST /hooks/github", s.handleWebhook)
 	mux.HandleFunc("POST /api/trigger", s.handleTrigger)
 	mux.HandleFunc("GET /api/deliberations", s.handleDeliberations)

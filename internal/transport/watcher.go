@@ -161,8 +161,8 @@ func (m *transportMessage) toString() string {
 	return flexString(m.To)
 }
 
-// flexString parses a JSON value that may hold a string or a []string,
-// returning the first string found or "" on failure.
+// flexString parses a JSON value that may hold a string, []string, or
+// {"agent_id": "..."} object, returning the first usable string or "".
 func flexString(raw json.RawMessage) string {
 	if len(raw) == 0 {
 		return ""
@@ -176,6 +176,13 @@ func flexString(raw json.RawMessage) string {
 	var arr []string
 	if json.Unmarshal(raw, &arr) == nil && len(arr) > 0 {
 		return arr[0]
+	}
+	// Try object with agent_id field (interagent/v1 "to"/"from" blocks)
+	var obj map[string]interface{}
+	if json.Unmarshal(raw, &obj) == nil {
+		if aid, ok := obj["agent_id"].(string); ok {
+			return aid
+		}
 	}
 	return ""
 }

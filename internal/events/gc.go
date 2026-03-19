@@ -28,6 +28,21 @@ type GcConfig struct {
 	Logger       *slog.Logger
 }
 
+// gcHandleableTypes lists message types that never require Claude deliberation.
+// Neural correlate: reticular activating system (RAS) / superior colliculus —
+// subcortical salience classification before cortical engagement.
+// Start conservative; expand empirically as the mesh processes more messages.
+var gcHandleableTypes = map[string]bool{
+	"session-close":        true,
+	"gate-resolution":      true,
+	"status-update":        true,
+	"capability-handshake": true,
+	"capability-response":  true,
+	"batch-ack":            true,
+	"command-response-ack": true,
+	"ack":                  true,
+}
+
 // NewGcHandler builds a GcHandlerFunc that intercepts routine events.
 // Returns true (handled) for events that don't require deliberation.
 // Returns false for events that need Claude (Gf).
@@ -40,10 +55,49 @@ func NewGcHandler(cfg GcConfig) GcHandlerFunc {
 			return true // health checks handled by meshd health monitor directly
 		case EventTransportACK:
 			return handleTransportACK(cfg, evt)
+		case EventTransportMessage:
+			return handleTransportMessageGc(cfg, evt)
 		default:
 			return false // requires Gf (Claude deliberation)
 		}
 	}
+}
+
+// handleTransportMessageGc applies two Gc filters before allowing a transport
+// message to reach the budget gate and spawner.
+//
+// Filter 1 — Selective attention (Broadbent, 1958; Crick TRN, 1984):
+// Messages not addressed to this agent get absorbed. Prevents copies and
+// misrouted messages from consuming deliberation resources.
+//
+// Filter 2 — Salience classifier (reticular activating system analog):
+// Messages with non-salient types (ACKs, session-close, gate-resolution)
+// get absorbed without deliberation.
+func handleTransportMessageGc(cfg GcConfig, evt Event) bool {
+	to := evt.Payload["to"]
+	msgType := evt.Payload["msg_type"]
+
+	// Filter 1: Selective attention — not addressed to us?
+	if to != "" && to != cfg.AgentID && to != "all" && to != "all-agents" {
+		cfg.Logger.Info("Gc: selective attention — message not addressed to us",
+			"to", to,
+			"agent", cfg.AgentID,
+			"type", msgType,
+		)
+		return true // absorbed — not our message
+	}
+
+	// Filter 2: Salience classifier — non-salient message type?
+	if gcHandleableTypes[msgType] {
+		cfg.Logger.Info("Gc: salience filter — non-salient message type handled",
+			"type", msgType,
+			"from", evt.Payload["from"],
+		)
+		return true // absorbed — doesn't need deliberation
+	}
+
+	// Message addressed to us with a salient type — needs deliberation
+	return false
 }
 
 // handlePollTick performs the sync check without spawning Claude.

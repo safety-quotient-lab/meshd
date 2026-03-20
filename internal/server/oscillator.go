@@ -367,12 +367,12 @@ func (o *Oscillator) checkEscalation() float64 {
 	return 0.0
 }
 
-// ── Shadow Logging ─────────────────────────────────────────────────
+// ── Activation Trace ──────────────────────────────────────────────
 
 func (o *Oscillator) logShadow(activation, threshold float64, signals map[string]float64, wouldFire bool) {
 	logDir := filepath.Join(o.projectRoot, "transport", "sessions", "local-coordination")
 	os.MkdirAll(logDir, 0755)
-	logPath := filepath.Join(logDir, "oscillator-shadow.jsonl")
+	logPath := filepath.Join(logDir, "activation-trace.jsonl")
 
 	roundedSignals := make(map[string]float64, len(signals))
 	for k, v := range signals {

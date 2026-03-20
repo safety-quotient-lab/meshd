@@ -186,7 +186,7 @@ export function renderMedicalOscillator(osc) {
     // Status line
     const statusLine = document.getElementById("med-status-line");
     if (statusLine) {
-        const mode = osc.shadow_mode ? "Shadow" : "Active";
+        const mode = osc.sleep_mode ? "Sleep" : "Active";
         statusLine.textContent = "Oscillator: " + mode + " Mode \u00b7 Activation: " + (osc.activation || 0).toFixed(3) + " \u00b7 State: " + (osc.state || "?") + " \u00b7 Cycles: " + (osc.cycle_count || 0);
     }
 

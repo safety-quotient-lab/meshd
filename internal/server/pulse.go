@@ -129,7 +129,7 @@ func (s *Server) handleOperations(w http.ResponseWriter, r *http.Request) {
 		AgentID           string  `json:"agent_id"`
 		Spent             float64 `json:"budget_spent"`
 		Cutoff            float64 `json:"budget_cutoff"`
-		ShadowMode        bool    `json:"shadow_mode"`
+		SleepMode         bool    `json:"sleep_mode"`
 		ManualMode        bool    `json:"manual_mode"`
 		MinActionInterval float64 `json:"min_action_interval"`
 		LastAction        string  `json:"last_action"`
@@ -173,8 +173,8 @@ func (s *Server) handleOperations(w http.ResponseWriter, r *http.Request) {
 				if la, ok := budget["last_action"]; ok {
 					entry.LastAction = fmt.Sprintf("%v", la)
 				}
-				if sm, ok := budget["shadow_mode"]; ok {
-					entry.ShadowMode = sm == true || sm == "1" || sm == 1.0
+				if sm, ok := budget["sleep_mode"]; ok {
+					entry.SleepMode = sm == true || sm == "1" || sm == 1.0
 				}
 			}
 

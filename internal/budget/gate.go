@@ -101,7 +101,7 @@ func (g *Gate) meshSlots() int {
 type BudgetState struct {
 	Spent         int  `json:"spent"`
 	Cutoff        int  `json:"cutoff"` // 0 = unlimited
-	ShadowMode    bool `json:"shadow_mode"`
+	SleepMode    bool `json:"sleep_mode"`
 	MeshPaused    bool `json:"mesh_paused"`
 	RotatePending bool `json:"rotate_pending"`
 }
@@ -121,7 +121,7 @@ func NewGate(dbPath, agentID string, logger *slog.Logger) *Gate {
 // Check reads the full budget state: SQLite row, mesh-pause sentinel,
 // and context-rotate sentinel.
 func (g *Gate) Check() (*BudgetState, error) {
-	spent, cutoff, shadow, err := g.queryBudget()
+	spent, cutoff, sleep, err := g.queryBudget()
 	if err != nil {
 		return nil, fmt.Errorf("budget query failed: %w", err)
 	}
@@ -129,7 +129,7 @@ func (g *Gate) Check() (*BudgetState, error) {
 	return &BudgetState{
 		Spent:         spent,
 		Cutoff:        cutoff,
-		ShadowMode:    shadow,
+		SleepMode:    sleep,
 		MeshPaused:    fileExists("/tmp/mesh-pause"),
 		RotatePending: fileExists(fmt.Sprintf("/tmp/context-rotate-%s", g.AgentID)),
 	}, nil
@@ -168,13 +168,13 @@ func (g *Gate) CanSpawn(cost int) (bool, string) {
 		return false, fmt.Sprintf("budget cutoff reached: spent %d + cost %d exceeds cutoff %d", state.Spent, cost, state.Cutoff)
 	}
 
-	if state.ShadowMode {
-		g.logger.Info("shadow mode — logging spawn decision without executing",
+	if state.SleepMode {
+		g.logger.Info("sleep mode — logging spawn decision without executing",
 			"cost", cost,
 			"spent", state.Spent,
 			"agent_id", g.AgentID,
 		)
-		return false, "shadow mode active — spawn logged but not executed"
+		return false, "sleep mode active — spawn logged but not executed"
 	}
 
 	// Check mesh-wide concurrency — count active spawn slot files
@@ -292,9 +292,9 @@ func (g *Gate) EstimateCost(priority Priority) int {
 }
 
 // queryBudget shells out to sqlite3 to read the autonomy_budget row.
-func (g *Gate) queryBudget() (spent, cutoff int, shadow bool, err error) {
+func (g *Gate) queryBudget() (spent, cutoff int, sleep bool, err error) {
 	query := fmt.Sprintf(
-		"SELECT budget_spent, budget_cutoff, shadow_mode FROM autonomy_budget WHERE agent_id = '%s';",
+		"SELECT budget_spent, budget_cutoff, sleep_mode FROM autonomy_budget WHERE agent_id = '%s';",
 		sanitizeID(g.AgentID),
 	)
 
@@ -324,10 +324,10 @@ func (g *Gate) queryBudget() (spent, cutoff int, shadow bool, err error) {
 		return 0, 0, false, fmt.Errorf("failed to parse budget_cutoff %q: %w", parts[1], err)
 	}
 
-	shadowVal := strings.TrimSpace(parts[2])
-	shadow = shadowVal == "1" || strings.EqualFold(shadowVal, "true")
+	sleepVal := strings.TrimSpace(parts[2])
+	sleep = sleepVal == "1" || strings.EqualFold(sleepVal, "true")
 
-	return spent, cutoff, shadow, nil
+	return spent, cutoff, sleep, nil
 }
 
 // execSQL runs a query against the state.db file using the sqlite3 CLI.

@@ -151,26 +151,33 @@ func (s *Server) handleVocabSchema(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleAgentCardStatic serves GET /.well-known/agent-card.json.
-// When deployed to a non-operations agent, serves that agent's local card
-// if available at {project-root}/.well-known/agent-card.json, otherwise
-// falls back to the embedded operations-agent card.
+// Lookup order:
+//   1. {project-root}/.well-known/{agent-id}.agent-card.json (identity-specific)
+//   2. {project-root}/.well-known/agent-card.json (generic)
+//   3. Embedded fallback (static/agent-card.json)
 func (s *Server) handleAgentCardStatic(w http.ResponseWriter, r *http.Request) {
-	// Try local agent card first (for non-operations agents)
-	if s.Config.AgentID != "operations-agent" {
-		localCard := s.Config.RepoRoot + "/.well-known/agent-card.json"
-		if data, err := readFileBytes(localCard); err == nil {
-			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			w.Header().Set("Cache-Control", "public, max-age=3600")
-			w.Write(data)
+	var data []byte
+	var err error
+
+	// Try identity-specific card first
+	specificCard := s.Config.RepoRoot + "/.well-known/" + s.Config.AgentID + ".agent-card.json"
+	data, err = readFileBytes(specificCard)
+
+	// Fall back to generic card
+	if err != nil {
+		genericCard := s.Config.RepoRoot + "/.well-known/agent-card.json"
+		data, err = readFileBytes(genericCard)
+	}
+
+	// Fall back to embedded
+	if err != nil {
+		data, err = staticFS.ReadFile("static/agent-card.json")
+		if err != nil {
+			http.Error(w, "agent card not available", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	data, err := staticFS.ReadFile("static/agent-card.json")
-	if err != nil {
-		http.Error(w, "agent card not available", http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=3600")
 	w.Write(data)

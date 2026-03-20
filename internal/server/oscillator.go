@@ -37,7 +37,7 @@ type OscillatorState struct {
 	LastTier           string             `json:"last_tier,omitempty"`
 	FireHistory        []FireEvent        `json:"fire_history"`
 	SignalBreakdown    map[string]float64 `json:"signal_breakdown"`
-	ShadowMode         bool               `json:"shadow_mode"`
+	SleepMode          bool               `json:"sleep_mode"`
 	CycleCount         int64              `json:"cycle_count"`
 	WouldFireCount     int64              `json:"would_fire_count"`
 }
@@ -71,7 +71,7 @@ func NewOscillator(agentID, dbPath, projectRoot string) *Oscillator {
 		stopCh:      make(chan struct{}),
 		state: OscillatorState{
 			State:           "monitoring",
-			ShadowMode:      true,
+			SleepMode:      true,
 			SignalBreakdown: make(map[string]float64),
 			FireHistory:     make([]FireEvent, 0, 20),
 		},
@@ -196,8 +196,12 @@ func (o *Oscillator) cycle() {
 	o.state.MonitorIntervalMs = intervalMs
 	o.mu.Unlock()
 
-	// Shadow log (append to JSONL)
+	// Activation trace (append to JSONL)
 	o.logShadow(activation, threshold, signals, wouldFire)
+
+	// Emit mesh-state file — keeps peer_heartbeat_stale signal fresh.
+	// Peers read this file's mtime to detect liveness (20-minute threshold).
+	o.emitMeshState(activation, threshold, signals)
 }
 
 // checkSignals reads all 6 activation signals.
@@ -399,6 +403,31 @@ func (o *Oscillator) logShadow(activation, threshold float64, signals map[string
 	}
 	defer f.Close()
 	f.Write(append(data, '\n'))
+}
+
+// emitMeshState writes a mesh-state JSON file to local-coordination.
+// Peers check this file's modification time to assess liveness —
+// the checkPeerHeartbeatStale signal reads mesh-state-*.json mtime.
+// Writing on every oscillator cycle keeps the file fresh.
+func (o *Oscillator) emitMeshState(activation, threshold float64, signals map[string]float64) {
+	localCoord := filepath.Join(o.projectRoot, "transport", "sessions", "local-coordination")
+	os.MkdirAll(localCoord, 0755)
+	statePath := filepath.Join(localCoord, fmt.Sprintf("mesh-state-%s.json", o.agentID))
+
+	state := map[string]any{
+		"schema":     "mesh-state/v1",
+		"timestamp":  time.Now().UTC().Format(time.RFC3339),
+		"agent_id":   o.agentID,
+		"activation": math.Round(activation*1000) / 1000,
+		"threshold":  math.Round(threshold*1000) / 1000,
+		"signals":    signals,
+	}
+
+	data, err := json.Marshal(state)
+	if err != nil {
+		return
+	}
+	os.WriteFile(statePath, data, 0644)
 }
 
 // ── HTTP Handler ───────────────────────────────────────────────────

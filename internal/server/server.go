@@ -434,7 +434,7 @@ func (s *Server) buildStatusPayload() map[string]interface{} {
 
 	// Budget from state.db (budget_spent/budget_cutoff counter model, cutoff 0 = unlimited)
 	budgetRows, _ := db.QueryJSON(dbPath,
-		"SELECT agent_id, budget_spent, budget_cutoff, shadow_mode, consecutive_blocks, last_audit, updated_at, min_action_interval, last_action FROM autonomy_budget WHERE agent_id='"+db.SanitizeID(s.Config.AgentID)+"'")
+		"SELECT agent_id, budget_spent, budget_cutoff, sleep_mode, consecutive_blocks, last_audit, updated_at, min_action_interval, last_action FROM autonomy_budget WHERE agent_id='"+db.SanitizeID(s.Config.AgentID)+"'")
 	var budget interface{}
 	if len(budgetRows) > 0 {
 		budget = budgetRows[0]

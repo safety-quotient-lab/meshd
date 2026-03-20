@@ -55,7 +55,7 @@ var costTable = map[Priority]int{
 // DefaultMeshMaxConcurrent caps total simultaneous Claude spawns across the entire mesh.
 // File locks in /tmp/mesh-spawn-slot-{N} enforce the limit.
 // Override via Gate.MeshMaxConcurrent field (loaded from MAX_CONCURRENT_SPAWNS config).
-const DefaultMeshMaxConcurrent = 1
+const DefaultMeshMaxConcurrent = 3
 
 // DefaultMeshReserveSlots defines extra slots available when reserve mode
 // activates. Touch /tmp/mesh-reserve-unlock to pull reserve slots in.
@@ -326,6 +326,20 @@ func (g *Gate) queryBudget() (spent, cutoff int, sleep bool, err error) {
 
 	sleepVal := strings.TrimSpace(parts[2])
 	sleep = sleepVal == "1" || strings.EqualFold(sleepVal, "true")
+
+	// Dynamically read max_concurrent_spawns from state.db (meshctl writes this)
+	slotsQuery := fmt.Sprintf(
+		"SELECT max_concurrent_spawns FROM autonomy_budget WHERE agent_id = '%s';",
+		sanitizeID(g.AgentID),
+	)
+	slotsOutput, slotsErr := g.execSQL(slotsQuery)
+	if slotsErr == nil {
+		slotsOutput = strings.TrimSpace(slotsOutput)
+		if slots, parseErr := strconv.Atoi(slotsOutput); parseErr == nil && slots > 0 {
+			g.MeshMaxConcurrent = slots
+		}
+	}
+	// Column may not exist yet — silently fall back to config value
 
 	return spent, cutoff, sleep, nil
 }

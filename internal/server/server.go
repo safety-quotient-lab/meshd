@@ -339,6 +339,35 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	s.rpcMethods = s.buildMethodTable()
 	mux.HandleFunc("POST /api/rpc", s.handleRPC)
 	mux.HandleFunc("GET /api/rpc", s.handleRPCInfo)
+
+	// ── /api/mesh/* REST hierarchy (parallels agentd's /api/agent/*) ──
+	// New canonical paths — old paths kept above for backward compatibility.
+	// Root
+	mux.HandleFunc("GET /api/mesh", s.handlePulse)
+	// State (emergent properties — no single agent can compute)
+	mux.HandleFunc("GET /api/mesh/state", s.handleMeshAggregate)
+	mux.HandleFunc("GET /api/mesh/state/operational-health", s.handlePsychometricsMesh)
+	mux.HandleFunc("GET /api/mesh/state/health", s.handleMeshHealth)
+	mux.HandleFunc("GET /api/mesh/state/trust", s.handleTrust)
+	mux.HandleFunc("GET /api/mesh/status", s.handleStatus)
+	// Cognitive
+	mux.HandleFunc("GET /api/mesh/cognitive/tempo", s.handleTempo)
+	mux.HandleFunc("GET /api/mesh/cognitive/deliberation-rate", s.handleSpawnRate)
+	mux.HandleFunc("GET /api/mesh/cognitive/flow", s.handleFlow)
+	mux.HandleFunc("GET /api/mesh/cognitive/tier", s.handleCognitiveTempo)
+	mux.HandleFunc("GET /api/mesh/cognitive/oscillator", s.handleOscillator)
+	// Governance
+	mux.HandleFunc("GET /api/mesh/governance", s.handleOperations)
+	mux.HandleFunc("GET /api/mesh/governance/ci", s.handleCI)
+	mux.HandleFunc("GET /api/mesh/governance/consensus", s.handleConsensus)
+	mux.HandleFunc("GET /api/mesh/governance/deliberations", s.handleDeliberations)
+	// Knowledge
+	mux.HandleFunc("GET /api/mesh/knowledge", s.handleKB)
+	mux.HandleFunc("GET /api/mesh/knowledge/search", s.handleSearch)
+	// Transport
+	mux.HandleFunc("GET /api/mesh/transport/routing", s.handleRouting)
+	// Catalog (data discovery — parallels agentd /api/catalog)
+	mux.HandleFunc("GET /api/catalog", s.handleCatalog)
 }
 
 // middleware chains recovery, CORS, request logging, and version header

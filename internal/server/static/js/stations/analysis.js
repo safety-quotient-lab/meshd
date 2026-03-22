@@ -686,8 +686,8 @@ const SPARQL_EXAMPLES = [
 
 function renderSparqlConsole() {
     const exampleBtns = SPARQL_EXAMPLES.map((ex, i) =>
-        `<button class="ops-panel-btn" onclick="loadSparqlExample(${i})"
-                 style="font-size:0.68em;padding:1px 6px;margin:1px">${ex.label}</button>`
+        `<button class="lcars-pill-btn lcars-pill-sm" onclick="loadSparqlExample(${i})"
+                 style="font-size:0.68em">${ex.label}</button>`
     ).join("");
 
     const resultHtml = _sparqlResult ? renderSparqlResult(_sparqlResult) : "";
@@ -706,8 +706,10 @@ function renderSparqlConsole() {
                 placeholder="SELECT ?s ?p ?o WHERE { ?s ?p ?o . } LIMIT 10"
             >${_sparqlLastQuery || ""}</textarea>
             <div style="display:flex;gap:8px;margin-top:var(--gap-xs)">
-                <button class="ops-panel-btn ops-panel-active" onclick="executeSparql()"
-                        style="font-size:0.75em;padding:3px 12px">EXECUTE</button>
+                <button class="lcars-pill-btn lcars-pill-sm" onclick="executeSparql()"
+                        style="font-size:0.72em;background:var(--c-tab-science)">EXECUTE</button>
+                <button class="lcars-pill-btn lcars-pill-sm" onclick="resetSparql()"
+                        style="font-size:0.72em">RESET</button>
                 <span id="sparql-status" style="font-size:0.72em;color:var(--text-dim);align-self:center"></span>
             </div>
             ${resultHtml}
@@ -795,6 +797,20 @@ function loadSparqlExample(index) {
     _sparqlLastQuery = ex.query;
 }
 window.loadSparqlExample = loadSparqlExample;
+
+function resetSparql() {
+    _sparqlLastQuery = "";
+    _sparqlResult = null;
+    const input = document.getElementById("sparql-input");
+    if (input) input.value = "";
+    const status = document.getElementById("sparql-status");
+    if (status) status.textContent = "";
+    fetch("/api/triples/stats", { signal: AbortSignal.timeout(3000) })
+        .then(r => r.ok ? r.json() : null)
+        .then(stats => renderTripleStore(stats))
+        .catch(() => renderTripleStore(null));
+}
+window.resetSparql = resetSparql;
 
 function filterTripleGraph(graph) {
     _triplesGraph = graph;

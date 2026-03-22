@@ -9,7 +9,9 @@
 package triplestore
 
 import (
-	"github.com/safety-quotient-lab/meshd/internal/db"
+	"fmt"
+	"os/exec"
+	"strings"
 )
 
 // CreateSchema initializes the triples and prefixes tables with indexes.
@@ -67,6 +69,18 @@ INSERT OR IGNORE INTO prefixes (prefix, uri) VALUES
     ('transport', 'https://safety-quotient.dev/ns/transport/'),
     ('vocab',     'https://psychology-agent.safety-quotient.dev/vocab/');
 COMMIT;`
-	_, err := db.Exec(dbPath, schema)
-	return err
+	return execPiped(dbPath, schema)
+}
+
+// execPiped runs SQL through sqlite3 via stdin pipe rather than command-line
+// argument. Required because sqlite3 dot-commands (.timeout) only work
+// when reading from stdin, not from CLI arguments.
+func execPiped(dbPath, sql string) error {
+	cmd := exec.Command("sqlite3", dbPath)
+	cmd.Stdin = strings.NewReader(sql)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("sqlite3: %w: %s", err, string(out))
+	}
+	return nil
 }

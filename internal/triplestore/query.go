@@ -32,7 +32,7 @@ func (s *Store) QueryGraph(graph string) (QueryResult, error) {
 
 // CountByGraph returns triple counts per named graph (current only).
 func (s *Store) CountByGraph() (map[string]int, error) {
-	query := ".timeout 5000\nSELECT graph, COUNT(*) as cnt FROM triples WHERE valid_until IS NULL GROUP BY graph ORDER BY cnt DESC;"
+	query := "SELECT graph, COUNT(*) as cnt FROM triples WHERE valid_until IS NULL GROUP BY graph ORDER BY cnt DESC;"
 	rows, err := db.QueryJSON(s.DBPath, query)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (s *Store) query(subject, predicate, object, graph string, currentOnly bool
 		where = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query := ".timeout 5000\nSELECT subject, predicate, object, object_type, datatype, graph, temporal, created_at, COALESCE(valid_until, '') as valid_until FROM triples" + where + " ORDER BY created_at DESC"
+	query := "SELECT subject, predicate, object, object_type, datatype, graph, temporal, created_at, COALESCE(valid_until, '') as valid_until FROM triples" + where + " ORDER BY created_at DESC"
 
 	if limit > 0 {
 		query += fmt.Sprintf(" LIMIT %d", limit)

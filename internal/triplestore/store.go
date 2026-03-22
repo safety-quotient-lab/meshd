@@ -74,7 +74,7 @@ func (s *Store) Assert(t Triple) error {
 			db.EscapeString(t.Predicate),
 			db.EscapeString(t.Graph),
 		)
-		if _, err := db.Exec(s.DBPath, supersede); err != nil {
+		if err := execPiped(s.DBPath, supersede); err != nil {
 			s.Logger.Warn("triplestore: supersede failed", "subject", t.Subject, "predicate", t.Predicate, "error", err)
 		}
 	}
@@ -90,8 +90,7 @@ func (s *Store) Assert(t Triple) error {
 		db.EscapeString(t.Temporal),
 		now,
 	)
-	_, err := db.Exec(s.DBPath, insert)
-	return err
+	return execPiped(s.DBPath, insert)
 }
 
 // AssertBatch inserts multiple triples in a single transaction.
@@ -141,8 +140,7 @@ func (s *Store) AssertBatch(triples []Triple) error {
 	}
 
 	b.WriteString("COMMIT;")
-	_, err := db.Exec(s.DBPath, b.String())
-	return err
+	return execPiped(s.DBPath, b.String())
 }
 
 // Retract removes all current triples matching subject+predicate in a graph.
@@ -156,8 +154,7 @@ func (s *Store) Retract(subject, predicate, graph string) error {
 		db.EscapeString(predicate),
 		db.EscapeString(graph),
 	)
-	_, err := db.Exec(s.DBPath, query)
-	return err
+	return execPiped(s.DBPath, query)
 }
 
 // RetractGraph marks all current triples in a graph as superseded.
@@ -169,8 +166,7 @@ func (s *Store) RetractGraph(graph string) error {
 		now,
 		db.EscapeString(graph),
 	)
-	_, err := db.Exec(s.DBPath, query)
-	return err
+	return execPiped(s.DBPath, query)
 }
 
 // ReplaceGraph atomically replaces all current triples in a graph.

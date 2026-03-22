@@ -4,7 +4,7 @@ let analysisFetchPending = false;
 let _vocabData = null;
 
 // ── Science Subsystem Switcher ──────────────────────────────
-function switchSciSubsystem(subsys, updateUrl = true) {
+function switchAnalysisSubsystem(subsys, updateUrl = true) {
     document.querySelectorAll(".sci-panel").forEach(p => {
         p.style.display = p.id === "sci-" + subsys ? "" : "none";
         p.classList.toggle("sci-panel-active", p.id === "sci-" + subsys);
@@ -26,7 +26,7 @@ function switchSciSubsystem(subsys, updateUrl = true) {
         history.replaceState(null, "", url);
     }
 }
-window.switchSciSubsystem = switchSciSubsystem;
+window.switchAnalysisSubsystem = switchAnalysisSubsystem;
 
 // Show inline definition for a vocab term
 window.showTermDefinition = function(index) {

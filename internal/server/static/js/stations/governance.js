@@ -1,23 +1,23 @@
 // ═══ RENDER: OPERATIONS ═════════════════════════════════════
-function renderOperations() {
+function renderGovernance() {
     // Symmetric capsule bars (Ohniaka A1 §5.4)
     renderOpsCapsuleBars();
     // Zone A: dense number grid (three-zone layout §1.2)
     renderNumberGrid("gov-zone-a", opsZoneAMetrics());
-    renderOpsBudget();
-    renderOpsActivity();
-    renderOpsSchedule();
-    renderOpsVitals();
+    renderGovBudget();
+    renderGovActivity();
+    renderGovSchedule();
+    renderGovVitals();
     renderOpsAutonomyReadout();
     renderOpsTransportReadout();
     renderOpsCapacityReadout();
     // Topology mirrors from Pulse (already rendered)
     mirrorToLcars("topology-svg", "lcars-topology-svg");
     // Governance — populate from KB decisions data
-    renderOpsGovernance();
+    renderGovGovernance();
 }
 
-function renderOpsGovernance() {
+function renderGovGovernance() {
     const el = document.getElementById("gov-governance-decisions");
     if (!el) return;
     // Collect decisions from all agents' KB data
@@ -48,7 +48,7 @@ function renderOpsGovernance() {
 }
 
 // Coordination ratio inline in Activity section
-function renderOpsActivity() {
+function renderGovActivity() {
     const el = document.getElementById("gov-deliberations-coordination");
     if (el && _meshAggData) {
         const co = _meshAggData.coordination || {};
@@ -59,11 +59,11 @@ function renderOpsActivity() {
     } else if (el) {
         fetchMeshAgg(); // fire once — no recursive retry
     }
-    renderOpsActions();
+    renderGovActions();
 }
 
 // ── Status Monologue ─────────────────────────────────────
-function renderOpsMonologue() {
+function renderGovMonologue() {
     const el = document.getElementById("gov-pulse-monologue");
     if (!el) return;
 
@@ -135,7 +135,7 @@ async function fetchMeshAgg() {
     return _meshAggPromise;
 }
 
-function renderOpsAggIndicators() {
+function renderGovAggIndicators() {
     if (!_meshAggData || Date.now() - _meshAggTs > 30000) {
         fetchMeshAgg(); // fire once — no recursive retry
         if (!_meshAggData) return;
@@ -155,7 +155,7 @@ function renderOpsAggIndicators() {
 
 let _psychCache = null;
 let _psychFetchPromise = null; // Dedup concurrent fetches
-async function fetchPsychForOps() {
+async function fetchPsychForGov() {
     // Return existing in-flight promise if already fetching
     if (_psychFetchPromise) return _psychFetchPromise;
     // Return cache if fresh (< 30s)
@@ -173,7 +173,7 @@ function renderResourceModel() {
     const container = document.getElementById("gov-resources-psychometric");
     if (!container) return;
     if (!_psychCache) {
-        fetchPsychForOps(); // fire once — no recursive retry
+        fetchPsychForGov(); // fire once — no recursive retry
         container.innerHTML = '<div style="opacity:0.5;padding:8px;font-size:0.85em">Loading...</div>';
         return;
     }
@@ -208,7 +208,7 @@ function renderResourceModel() {
     }).join("") + '</div>';
 }
 
-function renderOpsVitals() {
+function renderGovVitals() {
     const online = Object.values(agentData).filter(a => a.status === "online");
 
     // Autonomy: deliberations via counter helpers
@@ -263,7 +263,7 @@ function renderOpsVitals() {
     setTrackedValue("gov-agents-syncing", syncing, { suffix: `/${AGENTS.length}` });
 }
 
-function renderOpsBudget() {
+function renderGovBudget() {
     // TODO: Add domain grouping filter (domain/interactive/all) for mesh overview
     // Ohniaka B3 "Starship Mission Status" pattern — structured table
     // with colored text columns (purple names, yellow IDs, white status).
@@ -471,7 +471,7 @@ function renderOpsAlphaMatrix() {
     if (ovFtr) ovFtr.textContent = ` · ${online.length} online · ${totalDelib} deliberations`;
 }
 
-function renderOpsActions() {
+function renderGovActions() {
     // Collect actions from all agents — check both recent_actions and recent_deliberations
     const allActions = [];
     for (const agent of AGENTS) {
@@ -495,10 +495,10 @@ function renderOpsActions() {
     allActions.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
 
     tableState.actions.data = allActions;
-    renderActionsTable();
+    renderGovActionsTable();
 }
 
-function renderActionsTable() {
+function renderGovActionsTable() {
     const wrap = document.getElementById("gov-deliberations-table");
     if (!wrap) return;
 
@@ -572,7 +572,7 @@ function renderActionsTable() {
         <button onclick="pageTable('actions',1)" ${st.page >= totalPages-1 ? "disabled" : ""}>▶</button>` : "";
 }
 
-function renderOpsSchedule() {
+function renderGovSchedule() {
     const el = document.getElementById("gov-schedule");
     if (!el) return;
 
@@ -684,7 +684,7 @@ function renderOpsCapacityReadout() {
     if (!el) return;
     const online = Object.values(agentData).filter(a => a.status === "online");
     const totalGf = online.reduce((s, a) => s + getDeliberations(a.data?.autonomy_budget), 0);
-    // Gc estimation (same logic as renderOpsVitals)
+    // Gc estimation (same logic as renderGovVitals)
     const gcFromApi = online.reduce((s, a) => {
         const gc = a.data?.gc_metrics;
         return gc ? s + (gc.hooks_fired ?? 0) + (gc.triggers_checked ?? 0) + (gc.cron_cycles ?? 0) : s;

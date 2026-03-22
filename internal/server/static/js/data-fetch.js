@@ -92,7 +92,7 @@ async function refreshAll() {
         _failedAgents.delete(aid);
     }
     try { renderOverview(); } catch(e) { console.error("renderOverview failed:", e); }
-    try { renderOperations(); } catch(e) { console.error("renderOperations failed:", e); }
+    try { renderGovernance(); } catch(e) { console.error("renderGovernance failed:", e); }
 
     // Refresh active station tab — fetch + render for whichever tab the user views
     refreshActiveStation();
@@ -132,7 +132,7 @@ async function refreshAll() {
 // renderAll — re-render all tabs from cached agentData (no fetch)
 function renderAll() {
     try { renderOverview(); } catch(e) {}
-    try { renderOperations(); } catch(e) {}
+    try { renderGovernance(); } catch(e) {}
     refreshActiveStation();
     if (document.body.classList.contains("theme-lcars")) {
         updateLcarsHeaderData();

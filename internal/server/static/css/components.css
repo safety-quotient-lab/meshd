@@ -76,8 +76,24 @@
 }
 /* Capped panel height with internal scroll */
 .lcars-panel-body.scrollable {
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: 420px;
+    overflow-y: scroll !important;
+    scrollbar-width: thin;
+    scrollbar-color: #cc9966 #1a1a2e;
+}
+.lcars-panel-body.scrollable::-webkit-scrollbar {
+    width: 10px;
+    display: block !important;
+}
+.lcars-panel-body.scrollable::-webkit-scrollbar-track {
+    background: #1a1a2e;
+}
+.lcars-panel-body.scrollable::-webkit-scrollbar-thumb {
+    background: #cc9966;
+    border-radius: 5px;
+}
+.lcars-panel-body.scrollable::-webkit-scrollbar-thumb:hover {
+    background: #ff9966;
 }
 
 /* LCARS scrollbar — visible on all scrollable areas */

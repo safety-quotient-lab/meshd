@@ -21,10 +21,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/safety-quotient-lab/operations-agent/internal/config"
-	"github.com/safety-quotient-lab/operations-agent/internal/db"
-	"github.com/safety-quotient-lab/operations-agent/internal/events"
-	"github.com/safety-quotient-lab/operations-agent/internal/health"
+	"github.com/safety-quotient-lab/meshd/internal/config"
+	"github.com/safety-quotient-lab/meshd/internal/db"
+	"github.com/safety-quotient-lab/meshd/internal/events"
+	"github.com/safety-quotient-lab/meshd/internal/health"
 )
 
 // Version gets embedded at build time via -ldflags.

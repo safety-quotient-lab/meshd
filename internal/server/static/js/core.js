@@ -32,12 +32,10 @@
 // ═══ CONFIGURATION ══════════════════════════════════════════
 // Agent registry — daemon processes serving /api/status
 const AGENTS = [
-    // Autonomous agents (Chromabook meshd via tunnel)
     { id: "psychology-agent", name: "psychology", url: "https://psychology-agent.safety-quotient.dev", color: "#5b9cf6" },
     { id: "psq-agent", name: "safety-quotient", url: "https://psq-agent.safety-quotient.dev", color: "#4ecdc4" },
     { id: "unratified-agent", name: "unratified", url: "https://unratified-agent.unratified.org", color: "#e5a735" },
     { id: "observatory-agent", name: "observatory", url: "https://observatory-agent.unratified.org", color: "#a78bfa" },
-    // Interactive sessions (Mac meshd via tunnel)
     { id: "psy-session", name: "psy-session", url: "https://psy-session.safety-quotient.dev", color: "#7ba4d4" },
 ];
 

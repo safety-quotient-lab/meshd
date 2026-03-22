@@ -207,8 +207,8 @@ func defaultCardURLs() []string {
 	return []string{
 		"https://psychology-agent.safety-quotient.dev/.well-known/agent-card.json",
 		"https://psq-agent.safety-quotient.dev/.well-known/agent-card.json",
-		"https://unratified.org/.well-known/agent-card.json",
-		"https://observatory.unratified.org/.well-known/agent-card.json",
+		"https://unratified-agent.unratified.org/.well-known/agent-card.json",
+		"https://observatory-agent.unratified.org/.well-known/agent-card.json",
 	}
 }
 

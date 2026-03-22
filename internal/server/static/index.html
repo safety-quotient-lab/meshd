@@ -54,7 +54,8 @@
     <nav class="lcars-sidebar" id="lcars-sidebar">
         <div class="lcars-sidebar-cap-top lcars-frame-element"></div>
         <div class="lcars-sidebar-drop lcars-frame-element"></div>
-        <button class="lcars-sidebar-btn active" data-tab="governance" data-short="GOV" onclick="switchTab('governance')">Governance</button>
+        <button class="lcars-sidebar-btn active" data-tab="msd" data-short="MSD" onclick="switchTab('msd')">MSD</button>
+        <button class="lcars-sidebar-btn" data-tab="governance" data-short="GOV" onclick="switchTab('governance')">Governance</button>
         <button class="lcars-sidebar-btn" data-tab="analysis" data-short="ANL" onclick="switchTab('analysis')">Analysis</button>
         <button class="lcars-sidebar-btn" data-tab="architecture" data-short="ARC" onclick="switchTab('architecture')">Architecture</button>
         <button class="lcars-sidebar-btn" data-tab="transport" data-short="TRN" onclick="switchTab('transport')">Transport</button>
@@ -112,8 +113,7 @@
 
     <!-- Tabs (dark/light mode — hidden in LCARS) -->
     <div class="lcars-tabs">
-        <button class="lcars-tab active" data-tab="overview" onclick="switchTab('pulse')">Overview</button>
-        <button class="lcars-tab" data-tab="meta" onclick="switchTab('meta')">Meta</button>
+        <button class="lcars-tab active" data-tab="msd" onclick="switchTab('msd')">MSD</button>
         <button class="lcars-tab" data-tab="kb" onclick="switchTab('kb')">Knowledge</button>
         <button class="lcars-tab" data-tab="wisdom" onclick="switchTab('wisdom')">Wisdom</button>
         <button class="lcars-tab" data-tab="governance" onclick="switchTab('governance')">
@@ -127,11 +127,20 @@
 
     <!-- Content -->
     <div class="lcars-content">
-        <!-- Pulse Tab -->
-        <div class="tab-pane active" id="pane-overview">
-            <div class="lcars-status-line" id="pulse-status-line">Mesh Status: Connecting &middot; Agents: — &middot; Last Sync: —</div>
+        <!-- MSD Tab (Master Systems Display — landing) -->
+        <div class="tab-pane active" id="pane-msd">
+            <div class="lcars-status-line" id="msd-status-line">Mesh Status: Connecting &middot; Agents: — &middot; Last Sync: —</div>
 
-            <!-- Topology graph (moved to top — primary LCARS spatial display) -->
+            <!-- MSD Tree (P02 — dependency tree with live values) -->
+            <div class="lcars-panel panel-tristate" style="margin-bottom: 16px; --panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel-header">Master Systems Display <span class="lcars-panel-id">0047</span></div>
+                <div class="lcars-panel-body" id="msd-tree" style="min-height:200px;font-family:'SF Mono','Fira Code',monospace;font-size:0.82em;line-height:1.6;padding:8px">
+                    <div class="phase-stub"><div class="phase-stub-text">Loading MSD...</div></div>
+                </div>
+                <div class="lcars-panel-footer">Cognitive Architecture Dependencies<span class="lcars-panel-footer-num" id="msd-footer-num"></span></div>
+            </div>
+
+            <!-- Topology graph -->
             <div class="lcars-panel panel-tristate topology-container" style="margin-bottom: 16px">
                 <div class="lcars-panel-header">Mesh Topology</div>
                 <div class="lcars-panel-body">
@@ -178,130 +187,6 @@
                 <div class="lcars-panel-header">Recent Activity</div>
                 <div class="lcars-panel-body" id="activity-stream">
                     <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Meta Tab (formerly Knowledge) -->
-        <div class="tab-pane" id="pane-meta">
-            <!-- KB controls group — vitals + agent switcher (T18 Check 2) -->
-            <div class="kb-controls-group">
-                <div class="kb-vitals" id="kb-vitals">
-                    <div class="kb-vital">
-                        <div class="kb-vital-value" id="kb-decisions-count">—</div>
-                        <div class="kb-vital-label">Decisions</div>
-                    </div>
-                    <div class="kb-vital">
-                        <div class="kb-vital-value" id="kb-triggers-count">—</div>
-                        <div class="kb-vital-label">Triggers</div>
-                    </div>
-                    <div class="kb-vital">
-                        <div class="kb-vital-value" id="kb-catalog-count">—</div>
-                        <div class="kb-vital-label">Catalog Entries</div>
-                    </div>
-                    <div class="kb-vital">
-                        <div class="kb-vital-value" id="kb-memory-count">—</div>
-                        <div class="kb-vital-label">Memory Entries</div>
-                    </div>
-                    <div class="kb-vital">
-                        <div class="kb-vital-value" id="kb-stale-count">—</div>
-                        <div class="kb-vital-label">Stale Entries</div>
-                    </div>
-                </div>
-                <div class="agent-switcher" id="agent-switcher">
-                    <button class="agent-switch-btn active" data-agent="all" onclick="switchAgent('all')">All</button>
-                </div>
-            </div>
-
-            <!-- Section jump nav — Defiant A2 subpanel -->
-            <div class="lcars-subpanel">
-                <div class="lcars-subpanel-bar lcars-subpanel-bar-t2">09-4471</div>
-                <nav class="section-jump-nav" aria-label="Meta sections">
-                    <a class="section-jump-btn" onclick="document.getElementById('kb-sec-messages').scrollIntoView({behavior:'smooth'});return false" href="javascript:void(0)">Messages</a>
-                    <a class="section-jump-btn" onclick="document.getElementById('kb-sec-memory').scrollIntoView({behavior:'smooth'});return false" href="javascript:void(0)">Memory</a>
-                    <a class="section-jump-btn" onclick="document.getElementById('kb-sec-debt').scrollIntoView({behavior:'smooth'});return false" href="javascript:void(0)">Epistemic Debt</a>
-                    <a class="section-jump-btn" onclick="document.getElementById('kb-sec-flags').scrollIntoView({behavior:'smooth'});return false" href="javascript:void(0)">Flag Detail</a>
-                    <a class="section-jump-btn" onclick="document.getElementById('kb-sec-decisions').scrollIntoView({behavior:'smooth'});return false" href="javascript:void(0)">Decisions</a>
-                    <a class="section-jump-btn" onclick="document.getElementById('kb-sec-triggers').scrollIntoView({behavior:'smooth'});return false" href="javascript:void(0)">Triggers</a>
-                </nav>
-                <div class="lcars-subpanel-bar lcars-subpanel-bar-bottom lcars-subpanel-bar-t2"></div>
-            </div>
-
-            <!-- Messages (thought process — communication trail) -->
-            <div id="kb-sec-messages" class="lcars-panel kb-section" data-section="transport" style="--panel-accent: var(--c-transport)">
-                <div class="lcars-panel-header">Messages</div>
-                <div class="table-toolbar">
-                    <input class="table-filter" id="filter-messages" placeholder="Filter messages..." oninput="filterTable('messages')">
-                    <div class="table-page-info" id="page-info-messages"></div>
-                    <div class="table-page-btns" id="page-btns-messages"></div>
-                </div>
-                <div class="lcars-panel-body scrollable">
-                    <div class="kb-table-wrap" id="kb-messages">
-                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Memory by Topic -->
-            <div id="kb-sec-memory" class="lcars-panel kb-section" data-section="health" style="--panel-accent: var(--c-health)">
-                <div class="lcars-panel-header">Memory by Topic</div>
-                <div class="lcars-panel-body scrollable">
-                    <div class="kb-table-wrap" id="kb-memory">
-                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Epistemic Debt -->
-            <div id="kb-sec-debt" class="lcars-panel kb-section" data-section="epistemic" style="--panel-accent: var(--c-epistemic)">
-                <div class="lcars-panel-header">Epistemic Debt</div>
-                <div class="lcars-panel-body">
-                    <div id="epistemic-debt-panel">
-                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Epistemic Flags Detail -->
-            <div id="kb-sec-flags" class="lcars-panel kb-section" data-section="epistemic" style="--panel-accent: var(--c-epistemic)">
-                <div class="lcars-panel-header">Epistemic Flags (Detail)</div>
-                <div class="table-toolbar">
-                    <input class="table-filter" id="filter-flags" placeholder="Filter flags..." oninput="filterTable('flags')">
-                    <div class="table-page-info" id="page-info-flags"></div>
-                    <div class="table-page-btns" id="page-btns-flags"></div>
-                </div>
-                <div class="lcars-panel-body" id="kb-flags-detail">
-                    <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
-                </div>
-            </div>
-
-            <!-- Decisions -->
-            <div id="kb-sec-decisions" class="lcars-panel kb-section" data-section="knowledge" style="--panel-accent: var(--c-knowledge)">
-                <div class="lcars-panel-header">Decisions</div>
-                <div class="table-toolbar">
-                    <input class="table-filter" id="filter-decisions" placeholder="Filter decisions..." oninput="filterTable('decisions')">
-                    <div class="table-page-info" id="page-info-decisions"></div>
-                    <div class="table-page-btns" id="page-btns-decisions"></div>
-                </div>
-                <div class="lcars-panel-body scrollable">
-                    <div class="kb-table-wrap" id="kb-decisions">
-                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cognitive Triggers -->
-            <div id="kb-sec-triggers" class="lcars-panel kb-section" data-section="epistemic" style="--panel-accent: var(--c-epistemic)">
-                <div class="lcars-panel-header">Cognitive Triggers</div>
-                <div class="table-toolbar">
-                    <input class="table-filter" id="filter-triggers" placeholder="Filter triggers..." oninput="filterTable('triggers')">
-                    <div class="table-page-info" id="page-info-triggers"></div>
-                    <div class="table-page-btns" id="page-btns-triggers"></div>
-                </div>
-                <div class="lcars-panel-body scrollable">
-                    <div class="kb-table-wrap" id="kb-triggers">
-                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -436,6 +321,16 @@
                 </div>
                 <div class="lcars-panel-body scrollable">
                     <div class="kb-table-wrap" id="kb-schema">
+                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory by Topic (absorbed from Meta) -->
+            <div id="kb-sec-memory" class="lcars-panel kb-section" data-section="health" style="--panel-accent: var(--c-health)">
+                <div class="lcars-panel-header">Memory by Topic</div>
+                <div class="lcars-panel-body scrollable">
+                    <div class="kb-table-wrap" id="kb-memory">
                         <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
                     </div>
                 </div>
@@ -1013,6 +908,50 @@
                     </div>
                 </div>
             </div><!-- /sci-ontology -->
+
+            <!-- Epistemic Audit (absorbed from Meta) -->
+            <div class="lcars-zone-c" style="margin-top:var(--gap-l);margin-bottom:var(--gap-xs)">
+                <span class="zc-title">Epistemic Audit</span>
+                <span class="zc-id">09</span>
+            </div>
+
+            <!-- Messages -->
+            <div id="kb-sec-messages" class="lcars-panel kb-section" data-section="transport" style="--panel-accent: var(--c-transport)">
+                <div class="lcars-panel-header">Messages</div>
+                <div class="table-toolbar">
+                    <input class="table-filter" id="filter-messages" placeholder="Filter messages..." oninput="filterTable('messages')">
+                    <div class="table-page-info" id="page-info-messages"></div>
+                    <div class="table-page-btns" id="page-btns-messages"></div>
+                </div>
+                <div class="lcars-panel-body scrollable">
+                    <div class="kb-table-wrap" id="kb-messages">
+                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Epistemic Debt -->
+            <div id="kb-sec-debt" class="lcars-panel kb-section" data-section="epistemic" style="--panel-accent: var(--c-epistemic)">
+                <div class="lcars-panel-header">Epistemic Debt</div>
+                <div class="lcars-panel-body">
+                    <div id="epistemic-debt-panel">
+                        <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Epistemic Flags Detail -->
+            <div id="kb-sec-flags" class="lcars-panel kb-section" data-section="epistemic" style="--panel-accent: var(--c-epistemic)">
+                <div class="lcars-panel-header">Epistemic Flags (Detail)</div>
+                <div class="table-toolbar">
+                    <input class="table-filter" id="filter-flags" placeholder="Filter flags..." oninput="filterTable('flags')">
+                    <div class="table-page-info" id="page-info-flags"></div>
+                    <div class="table-page-btns" id="page-btns-flags"></div>
+                </div>
+                <div class="lcars-panel-body" id="kb-flags-detail">
+                    <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
+                </div>
+            </div>
         </div>
 
         <!-- Architecture Tab -->

@@ -298,13 +298,13 @@ function setTheme(mode) {
     if (mode === "lcars") {
         startLcarsStardate();
         // Switch to bridge station: prefer URL hash, then current tab, then Operations
-        const bridgeTabs = ["governance", "analysis", "architecture", "transport", "integrity", "vitals"];
+        const bridgeTabs = ["msd", "governance", "analysis", "architecture", "transport", "integrity", "vitals"];
         const hashTab = location.hash.replace("#", "");
         const currentTab = document.querySelector('.lcars-tab.active')?.dataset?.tab;
         if (hashTab && bridgeTabs.includes(hashTab)) {
             switchTab(hashTab, false);
         } else if (!bridgeTabs.includes(currentTab)) {
-            switchTab("governance");
+            switchTab("msd");
         }
         updateLcarsHeaderData();
         // Render SVG L-shape frame + listen for resize
@@ -323,7 +323,7 @@ function setTheme(mode) {
         // If leaving LCARS mode while on a LCARS-only tab, switch to Pulse
         const activeTab = document.querySelector('.lcars-tab.active');
         if (activeTab && activeTab.classList.contains('lcars-only')) {
-            switchTab('overview');
+            switchTab('msd');
         }
     }
 }
@@ -331,22 +331,16 @@ function setTheme(mode) {
 // ── Tabs ───────────────────────────────────────────────────────
 
 // ═══ TABS + NAV ═════════════════════════════════════════════
-const VALID_TABS = ["overview", "meta", "kb", "wisdom", "governance", "analysis", "architecture", "transport", "integrity", "vitals"];
+const VALID_TABS = ["msd", "kb", "wisdom", "governance", "analysis", "architecture", "transport", "integrity", "vitals"];
 
 // ── LCARS Spine Content Tracking ─────────────────────────────
 // Each tab maps to a set of spine segments reflecting its content sections.
 const SPINE_CONFIG = {
-    overview: [
-        { label: "Transport", color: "var(--c-transport)", flex: 2 },
-        { label: "Health",    color: "var(--c-tab-overview)", flex: 3 },
-        { label: "Topology",  color: "var(--c-epistemic)", flex: 1 },
-    ],
-    meta: [
-        { label: "Messages",  color: "var(--c-transport)", flex: 3 },
-        { label: "Memory",    color: "var(--c-tab-overview)", flex: 2 },
-        { label: "Debt",      color: "var(--c-alert)",     flex: 1 },
-        { label: "Decisions", color: "var(--c-tab-meta)",  flex: 3 },
-        { label: "Triggers",  color: "var(--c-epistemic)", flex: 2 },
+    msd: [
+        { label: "Architecture", color: "var(--c-tab-architecture)", flex: 3 },
+        { label: "Health",       color: "var(--c-health)", flex: 2 },
+        { label: "Topology",    color: "var(--c-epistemic)", flex: 1 },
+        { label: "Activity",    color: "var(--c-transport)", flex: 2 },
     ],
     kb: [
         { label: "Claims",     color: "var(--c-tab-kb)",    flex: 4 },
@@ -404,11 +398,13 @@ function updateSpine(tabId) {
     }).join("");
 }
 
-const TAB_COLORS = { overview: "--c-tab-overview", meta: "--c-tab-meta", kb: "--c-tab-kb", wisdom: "--c-tab-wisdom", governance: "--c-tab-governance", analysis: "--c-tab-analysis", integrity: "--c-tab-integrity", architecture: "--c-tab-architecture", transport: "--c-tab-transport", vitals: "--c-tab-vitals" };
+const TAB_COLORS = { msd: "--c-tab-architecture", kb: "--c-tab-kb", wisdom: "--c-tab-wisdom", governance: "--c-tab-governance", analysis: "--c-tab-analysis", integrity: "--c-tab-integrity", architecture: "--c-tab-architecture", transport: "--c-tab-transport", vitals: "--c-tab-vitals" };
 
 function switchTab(tabId, updateHash = true) {
-    if (tabId === "knowledge") tabId = "meta"; // backward compat
-    if (!VALID_TABS.includes(tabId)) tabId = "overview";
+    if (tabId === "knowledge") tabId = "kb"; // backward compat
+    if (tabId === "meta") tabId = "analysis"; // meta merged into analysis
+    if (tabId === "overview" || tabId === "pulse") tabId = "msd"; // overview/pulse merged into msd
+    if (!VALID_TABS.includes(tabId)) tabId = "msd";
     // Standard tabs
     document.querySelectorAll(".lcars-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabId));
     // LCARS sidebar buttons
@@ -424,7 +420,7 @@ function switchTab(tabId, updateHash = true) {
     const computed = getComputedStyle(document.body).getPropertyValue(colorVar).trim();
     document.documentElement.style.setProperty("--active-tab-color", computed || `var(${colorVar})`);
     updateSpine(tabId);
-    if (tabId === "governance") refreshAll();
+    if (tabId === "msd" || tabId === "governance") refreshAll();
     if (tabId === "analysis") fetchAnalysisData();
     if (tabId === "architecture") { fetchArchitectureData(); startWaveformAnimation(); }
     else if (tabId === "vitals") { fetchVitalsData(); startWaveformAnimation(); }
@@ -435,7 +431,7 @@ function switchTab(tabId, updateHash = true) {
 }
 
 window.addEventListener("hashchange", () => {
-    const tab = location.hash.replace("#", "") || "overview";
+    const tab = location.hash.replace("#", "") || "msd";
     switchTab(tab, false);
 });
 

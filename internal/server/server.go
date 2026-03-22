@@ -29,6 +29,7 @@ import (
 	"github.com/safety-quotient-lab/meshd/internal/db"
 	"github.com/safety-quotient-lab/meshd/internal/events"
 	"github.com/safety-quotient-lab/meshd/internal/health"
+	"github.com/safety-quotient-lab/meshd/internal/triplestore"
 )
 
 // Version gets embedded at build time via -ldflags.
@@ -108,6 +109,10 @@ type Server struct {
 	// rpcMethods maps JSON-RPC method names to HTTP handlers.
 	// Built once during route registration via buildMethodTable().
 	rpcMethods map[string]methodRoute
+
+	// TripleStore provides the RDF triple store for structured queries.
+	// Initialized during server startup via initTripleStore().
+	TripleStore *triplestore.Store
 }
 
 // New constructs a Server with the provided dependencies.
@@ -223,6 +228,7 @@ func (s *Server) ListenAndServe() error {
 // cancels. Active requests get up to 5 seconds to drain before forced
 // termination. The caller controls shutdown through context cancellation.
 func (s *Server) ListenAndServeContext(ctx context.Context) error {
+	s.initTripleStore()
 	mux := http.NewServeMux()
 	s.registerRoutes(mux)
 
@@ -405,6 +411,10 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/mesh/transport/routing", s.handleRouting)
 	// Catalog (data discovery — parallels agentd /api/catalog)
 	mux.HandleFunc("GET /api/catalog", s.handleCatalog)
+	// Triple store (RDF knowledge graph — ontology-driven)
+	mux.HandleFunc("GET /api/triples", s.handleTriples)
+	mux.HandleFunc("GET /api/triples/stats", s.handleTripleStats)
+	mux.HandleFunc("GET /ns/mesh/ontology.jsonld", s.handleOntologyFile)
 
 	// Proxy endpoints — server-side aggregation from all agents.
 	// Eliminates cross-origin overhead for the dashboard.

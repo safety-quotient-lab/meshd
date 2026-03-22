@@ -1,0 +1,236 @@
+{
+  "@context": {
+    "schema": "https://schema.org/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "sosa": "http://www.w3.org/ns/sosa/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "as": "https://www.w3.org/ns/activitystreams#",
+    "sh": "http://www.w3.org/ns/shacl#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "mesh": "https://safety-quotient.dev/ns/mesh/",
+    "agent": "https://safety-quotient.dev/ns/agent/",
+    "transport": "https://safety-quotient.dev/ns/transport/",
+    "vocab": "https://psychology-agent.safety-quotient.dev/vocab/"
+  },
+
+  "@graph": [
+
+    {
+      "@id": "mesh:",
+      "@type": "schema:WebAPI",
+      "schema:name": "Mesh Ontology",
+      "schema:version": "1.0.0",
+      "schema:description": "Triple schema for the Safety Quotient Lab multi-agent mesh. Standards-first: schema.org + PROV-O + SOSA + AS2. Custom mesh: predicates only where no standard fits.",
+      "dcterms:modified": "2026-03-22",
+      "dcterms:creator": "psychology-agent"
+    },
+
+
+    {
+      "@id": "mesh:sessionState",
+      "@type": "rdf:Property",
+      "schema:name": "sessionState",
+      "schema:description": "5-state lifecycle for transport sessions: open, active, closing, closed, archived. schema:eventStatus covers different semantics (scheduled/cancelled/postponed).",
+      "schema:domainIncludes": "schema:Event",
+      "schema:rangeIncludes": "xsd:string",
+      "mesh:temporalClass": "event",
+      "mesh:validValues": ["open", "active", "closing", "closed", "archived"]
+    },
+
+    {
+      "@id": "mesh:urgency",
+      "@type": "rdf:Property",
+      "schema:name": "urgency",
+      "schema:description": "Priority level for transport messages. No standard priority enum in schema.org, AS2, or PROV-O.",
+      "schema:domainIncludes": "schema:Message",
+      "schema:rangeIncludes": "xsd:string",
+      "mesh:temporalClass": "event",
+      "mesh:validValues": ["immediate", "high", "normal", "low"]
+    },
+
+    {
+      "@id": "mesh:bottleneckAgent",
+      "@type": "rdf:Property",
+      "schema:name": "bottleneckAgent",
+      "schema:description": "Agent with lowest cognitive reserve in the mesh. Computed emergent property from Stern (2002) cognitive reserve model.",
+      "schema:domainIncludes": "schema:Dataset",
+      "schema:rangeIncludes": "schema:SoftwareApplication",
+      "mesh:temporalClass": "dynamic"
+    },
+
+    {
+      "@id": "mesh:trustScore",
+      "@type": "rdf:Property",
+      "schema:name": "trustScore",
+      "schema:description": "Links agent to its trust assessment observation set. No standard trust ontology covers agent-to-agent computational trust.",
+      "schema:domainIncludes": "schema:SoftwareApplication",
+      "schema:rangeIncludes": "sosa:Observation",
+      "mesh:temporalClass": "dynamic"
+    },
+
+    {
+      "@id": "mesh:hasPsychometrics",
+      "@type": "rdf:Property",
+      "schema:name": "hasPsychometrics",
+      "schema:description": "Links agent to psychometric observation set (A2A-Psychology constructs: PAD affect, NASA-TLX load, cognitive reserve, engagement, flow).",
+      "schema:domainIncludes": "schema:SoftwareApplication",
+      "schema:rangeIncludes": "sosa:Observation",
+      "mesh:temporalClass": "dynamic"
+    },
+
+    {
+      "@id": "mesh:available",
+      "@type": "rdf:Property",
+      "schema:name": "available",
+      "schema:description": "Binary liveness indicator. schema:actionStatus approximates but carries wrong semantics (action lifecycle vs agent liveness).",
+      "schema:domainIncludes": "schema:SoftwareApplication",
+      "schema:rangeIncludes": "xsd:boolean",
+      "mesh:temporalClass": "dynamic"
+    },
+
+    {
+      "@id": "mesh:collectiveCoherence",
+      "@type": "rdf:Property",
+      "schema:name": "collectiveCoherence",
+      "schema:description": "Mesh-level integration metric. Weighted average of peer photonic coherence fields. No standard for distributed system coherence. Reference: Tononi (2004) phi.",
+      "schema:domainIncludes": "schema:Dataset",
+      "schema:rangeIncludes": "xsd:decimal",
+      "mesh:temporalClass": "dynamic"
+    },
+
+    {
+      "@id": "mesh:collectiveIntelligence",
+      "@type": "rdf:Property",
+      "schema:name": "collectiveIntelligence",
+      "schema:description": "Woolley c-factor aggregate — collective intelligence proxy from message distribution equality (Gini coefficient). Reference: Woolley et al. (2010).",
+      "schema:domainIncludes": "schema:Dataset",
+      "schema:rangeIncludes": "xsd:decimal",
+      "mesh:temporalClass": "dynamic"
+    },
+
+
+    {
+      "@id": "mesh:AgentShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "schema:SoftwareApplication" },
+      "sh:property": [
+        {
+          "sh:path": { "@id": "schema:name" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:name": "Agent name"
+        },
+        {
+          "sh:path": { "@id": "schema:version" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:name": "Agent version"
+        },
+        {
+          "sh:path": { "@id": "mesh:available" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:name": "Agent liveness"
+        }
+      ]
+    },
+
+    {
+      "@id": "mesh:MessageShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "schema:Message" },
+      "sh:property": [
+        {
+          "sh:path": { "@id": "schema:sender" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:name": "Message sender"
+        },
+        {
+          "sh:path": { "@id": "schema:recipient" },
+          "sh:minCount": 1,
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:name": "Message recipient"
+        },
+        {
+          "sh:path": { "@id": "schema:dateSent" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:name": "Send timestamp"
+        },
+        {
+          "sh:path": { "@id": "schema:position" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:name": "Turn number"
+        },
+        {
+          "sh:path": { "@id": "schema:isPartOf" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:name": "Session membership"
+        }
+      ]
+    },
+
+    {
+      "@id": "mesh:SessionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "schema:Event" },
+      "sh:property": [
+        {
+          "sh:path": { "@id": "schema:name" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:name": "Session name"
+        },
+        {
+          "sh:path": { "@id": "mesh:sessionState" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["open", "active", "closing", "closed", "archived"] },
+          "sh:name": "Session lifecycle state"
+        }
+      ]
+    },
+
+    {
+      "@id": "mesh:ObservationShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "sosa:Observation" },
+      "sh:property": [
+        {
+          "sh:path": { "@id": "sosa:observedProperty" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:name": "Observed property (vocab concept)"
+        },
+        {
+          "sh:path": { "@id": "sosa:hasSimpleResult" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:name": "Observation value"
+        },
+        {
+          "sh:path": { "@id": "sosa:resultTime" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:name": "Observation timestamp"
+        }
+      ]
+    }
+  ]
+}

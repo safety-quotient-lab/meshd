@@ -47,6 +47,9 @@ type Config struct {
 	CFAPIToken     string // Cloudflare API token
 	KVNamespaceID  string // AUTH_KV namespace ID
 
+	// Triple store
+	OntologyPath   string // path to ns/mesh/ontology.jsonld
+
 	// Notification channel
 	NotifyChannel       string // "null", "file", "zulip", "webhook"
 	NotifyFilePath      string // file channel output path
@@ -145,6 +148,7 @@ func Load() (*Config, error) {
 	// Paths that derive from RepoRoot when no explicit value appears
 	cfg.BudgetDBPath = resolve("BUDGET_DB_PATH", filepath.Join(repoRoot, "state.db"))
 	cfg.TransportDir = resolve("TRANSPORT_DIR", filepath.Join(repoRoot, "transport", "sessions"))
+	cfg.OntologyPath = resolve("ONTOLOGY_PATH", filepath.Join(repoRoot, "ns", "mesh", "ontology.jsonld"))
 
 	// Notification channel
 	cfg.NotifyChannel = resolve("NOTIFY_CHANNEL", "null")

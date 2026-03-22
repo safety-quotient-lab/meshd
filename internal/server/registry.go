@@ -85,6 +85,10 @@ type AgentRegistry struct {
 	httpClient        *http.Client
 	agentFetchTimeout time.Duration
 	cardFetchTimeout  time.Duration
+
+	// onRefresh callbacks fire after each successful registry refresh.
+	// Used by the triple store to emit agent triples without tight coupling.
+	onRefresh []func([]AgentInfo)
 }
 
 // NewAgentRegistry creates a registry with bootstrap card URLs.
@@ -168,6 +172,16 @@ func (r *AgentRegistry) Refresh() {
 		"agents", len(agents),
 		"available", countAvailable(agents),
 	)
+
+	// Fire refresh callbacks (e.g., triple store emission)
+	for _, cb := range r.onRefresh {
+		cb(agents)
+	}
+}
+
+// OnRefresh registers a callback invoked after each registry refresh.
+func (r *AgentRegistry) OnRefresh(fn func([]AgentInfo)) {
+	r.onRefresh = append(r.onRefresh, fn)
 }
 
 // StartBackgroundRefresh runs Refresh on an interval until ctx cancels.

@@ -63,6 +63,11 @@ func (s *Server) handleMeshAggregate(w http.ResponseWriter, r *http.Request) {
 		"collected_at":     time.Now().UTC().Format(time.RFC3339),
 	}
 
+	// Emit mesh-state triples (fire-and-forget)
+	if s.TripleStore != nil {
+		go s.emitMeshStateTriples(affect, bottleneck, coordination, immune, distribution, len(statuses))
+	}
+
 	w.Header().Set("Cache-Control", "public, max-age=30")
 	writeJSON(w, http.StatusOK, resp, s.logger)
 }

@@ -66,6 +66,11 @@ func (s *Server) handlePsychometrics(w http.ResponseWriter, r *http.Request) {
 		"flow":                flow,
 	}
 
+	// Emit psychometric observations to triple store (fire-and-forget)
+	if s.TripleStore != nil {
+		go s.emitPsychometricTriples(pad, tlx, resources, wm, engagement, flow)
+	}
+
 	writeJSON(w, http.StatusOK, resp, s.logger)
 }
 

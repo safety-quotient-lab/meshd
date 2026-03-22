@@ -480,6 +480,22 @@ function renderOntology() {
 }
 
 // ── Knowledge Graph (triple store query interface) ────────────
+
+// Graph → station color mapping (visual provenance)
+const GRAPH_COLORS = {
+    "agent-registry": "var(--c-tab-science, #9999ff)",
+    "agent-status":   "var(--c-tab-medical, #66ccaa)",
+    "mesh-state":     "var(--c-tab-engineering, #ff9944)",
+    "transport":      "var(--c-tab-helm, #66aacc)",
+    "trust":          "var(--c-tab-integrity, #cc6666)",
+    "vocabulary":     "var(--c-tab-science, #9999ff)",
+    "decisions":      "var(--c-tab-governance, #cc9966)",
+    "events":         "var(--c-tab-analysis, #cc99cc)",
+};
+
+let _tripleViewMode = "entity"; // "entity" or "table"
+let _tripleSelectedSubject = null;
+
 async function renderTripleStore(stats) {
     const el = document.getElementById("onto-triples");
     if (!el) return;
@@ -488,25 +504,31 @@ async function renderTripleStore(stats) {
     const total = stats?.total || 0;
     const graphs = Object.keys(graphCounts).sort();
 
-    // Build graph filter pills + triple count
-    const pills = graphs.map(g =>
-        `<button class="ops-panel-btn${_triplesGraph === g ? " ops-panel-active" : ""}"
+    // Graph filter pills with station colors
+    const pills = graphs.map(g => {
+        const color = GRAPH_COLORS[g] || "var(--lcars-secondary)";
+        const active = _triplesGraph === g;
+        return `<button class="ops-panel-btn${active ? " ops-panel-active" : ""}"
                  data-graph="${g}" onclick="filterTripleGraph('${g}')"
-                 style="font-size:0.72em;padding:2px 8px;margin:2px">${g}
+                 style="font-size:0.72em;padding:2px 8px;margin:2px;${active ? "" : "border-left:3px solid " + color}">${g}
             <span style="opacity:0.6;margin-left:4px">${graphCounts[g]}</span>
-        </button>`
-    ).join("");
+        </button>`;
+    }).join("");
 
     const allActive = _triplesGraph === "" ? " ops-panel-active" : "";
+    const viewToggle = `<button class="ops-panel-btn" onclick="toggleTripleView()"
+        style="font-size:0.72em;padding:2px 8px;margin-left:auto">${_tripleViewMode === "entity" ? "TABLE" : "ENTITY"}</button>`;
+
     const header = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:var(--gap-s)">
         <button class="ops-panel-btn${allActive}" onclick="filterTripleGraph('')"
                 style="font-size:0.72em;padding:2px 8px;margin:2px">ALL
             <span style="opacity:0.6;margin-left:4px">${total}</span>
         </button>
         ${pills}
+        ${viewToggle}
     </div>`;
 
-    // Fetch triples for the selected graph (or all)
+    // Fetch triples
     const url = _triplesGraph
         ? `/api/triples?graph=${encodeURIComponent(_triplesGraph)}`
         : "/api/triples";
@@ -517,37 +539,134 @@ async function renderTripleStore(stats) {
             const data = await resp.json();
             triples = data.triples || [];
         }
-    } catch { /* silent — show empty state */ }
+    } catch { /* silent */ }
 
     if (triples.length === 0 && total === 0) {
         el.innerHTML = header + '<div style="color:var(--text-dim);font-size:0.82em;padding:12px">No triples in store. Triple emission activates after agent registry refresh.</div>';
         return;
     }
 
-    // Render triple table (P28 data listing)
+    if (_tripleViewMode === "entity") {
+        el.innerHTML = header + renderEntityView(triples);
+    } else {
+        el.innerHTML = header + renderTableView(triples);
+    }
+}
+
+// Entity-centric view — group by subject, show as LCARS record cards
+function renderEntityView(triples) {
+    // Group by subject
+    const bySubject = {};
+    for (const t of triples) {
+        if (!bySubject[t.subject]) bySubject[t.subject] = [];
+        bySubject[t.subject].push(t);
+    }
+
+    const subjects = Object.keys(bySubject).sort();
+
+    // If a subject is selected, show only that entity's detail
+    if (_tripleSelectedSubject && bySubject[_tripleSelectedSubject]) {
+        return renderEntityDetail(_tripleSelectedSubject, bySubject[_tripleSelectedSubject]);
+    }
+
+    // Entity cards grid
+    const cards = subjects.filter(s => !s.startsWith("_:")).slice(0, 30).map(subject => {
+        const props = bySubject[subject];
+        const rdfType = props.find(p => p.predicate === "rdf:type")?.object || "";
+        const name = props.find(p => p.predicate === "schema:name")?.object || "";
+        const graph = props[0]?.graph || "";
+        const color = GRAPH_COLORS[graph] || "var(--lcars-secondary)";
+        const typeShort = shortenURI(rdfType);
+        const subjectShort = shortenURI(subject);
+
+        // Count properties (excluding rdf:type)
+        const propCount = props.filter(p => p.predicate !== "rdf:type").length;
+
+        return `<div onclick="selectTripleSubject('${escapeAttr(subject)}')"
+                     style="cursor:pointer;padding:8px 12px;border-left:3px solid ${color};
+                            background:var(--bg-inset);margin-bottom:4px;
+                            transition:background 0.15s"
+                     onmouseenter="this.style.background='var(--bg-hover,rgba(255,255,255,0.05))'"
+                     onmouseleave="this.style.background='var(--bg-inset)'">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="color:var(--lcars-accent);font-family:monospace;font-size:0.85em">${subjectShort}</span>
+                <span style="color:var(--text-dim);font-size:0.72em">${typeShort}</span>
+            </div>
+            ${name ? `<div style="color:var(--text-primary);font-size:0.82em;margin-top:2px">${truncate(name, 60)}</div>` : ""}
+            <div style="color:var(--text-dim);font-size:0.72em;margin-top:2px">
+                <span style="color:${color}">${graph}</span>
+                <span style="margin-left:8px">${propCount} properties</span>
+            </div>
+        </div>`;
+    }).join("");
+
+    const blankCount = subjects.filter(s => s.startsWith("_:")).length;
+    const blankNote = blankCount > 0
+        ? `<div style="color:var(--text-dim);font-size:0.72em;padding:4px 0">${blankCount} observation nodes (blank nodes)</div>`
+        : "";
+
+    return `<div style="max-height:400px;overflow-y:auto">${cards}</div>${blankNote}`;
+}
+
+// Entity detail — LCARS record retrieval pattern (P15)
+function renderEntityDetail(subject, props) {
+    const rdfType = props.find(p => p.predicate === "rdf:type")?.object || "";
+    const graph = props[0]?.graph || "";
+    const color = GRAPH_COLORS[graph] || "var(--lcars-secondary)";
+
+    const rows = props.filter(p => p.predicate !== "rdf:type").map(t => {
+        const predShort = shortenURI(t.predicate);
+        const isURI = t.object_type === "uri";
+        const objDisplay = isURI ? shortenURI(t.object) : truncate(t.object, 60);
+        const objClick = isURI && !t.object.startsWith("_:")
+            ? ` onclick="selectTripleSubject('${escapeAttr(t.object)}')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted"`
+            : "";
+        return `<tr>
+            <td style="color:var(--lcars-secondary);font-family:monospace;font-size:0.82em;white-space:nowrap;padding-right:12px">${predShort}</td>
+            <td style="color:var(--text-primary);font-size:0.82em"${objClick} title="${t.object}">${objDisplay}</td>
+            <td style="color:var(--text-dim);font-size:0.72em">${t.datatype ? shortenURI(t.datatype) : ""}</td>
+        </tr>`;
+    }).join("");
+
+    return `<div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--gap-s)">
+            <button class="ops-panel-btn" onclick="selectTripleSubject(null)"
+                    style="font-size:0.72em;padding:2px 8px">← BACK</button>
+            <span style="color:${color};font-size:0.72em">${graph}</span>
+        </div>
+        <div style="border-left:3px solid ${color};padding:8px 12px;background:var(--bg-inset)">
+            <div style="color:var(--lcars-accent);font-family:monospace;font-size:0.9em;margin-bottom:2px">${shortenURI(subject)}</div>
+            <div style="color:var(--text-dim);font-size:0.78em;margin-bottom:var(--gap-s)">rdf:type ${shortenURI(rdfType)}</div>
+            <table style="width:100%;border-collapse:collapse">
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
+// Flat table view (original P28 listing)
+function renderTableView(triples) {
     const rows = triples.slice(0, 100).map(t => {
         const subjectShort = shortenURI(t.subject);
         const predShort = shortenURI(t.predicate);
         const objShort = t.object_type === "uri" ? shortenURI(t.object) : truncate(t.object, 40);
-        const graphBadge = t.graph && t.graph !== "default"
-            ? `<span style="background:var(--bg-inset);padding:1px 4px;border-radius:3px;font-size:0.85em;color:var(--text-dim)">${t.graph}</span>`
-            : "";
+        const graph = t.graph || "";
+        const color = GRAPH_COLORS[graph] || "var(--text-dim)";
         return `<tr>
-            <td style="color:var(--lcars-accent);font-family:monospace;font-size:0.85em" title="${t.subject}">${subjectShort}</td>
-            <td style="color:var(--lcars-secondary);font-family:monospace;font-size:0.85em" title="${t.predicate}">${predShort}</td>
-            <td style="color:var(--text-primary);font-size:0.85em" title="${t.object}">${objShort}</td>
-            <td>${graphBadge}</td>
-            <td style="color:var(--text-dim);font-size:0.78em">${t.created_at || ""}</td>
+            <td style="color:var(--lcars-accent);font-family:monospace;font-size:0.82em;cursor:pointer"
+                onclick="selectTripleSubject('${escapeAttr(t.subject)}')" title="${t.subject}">${subjectShort}</td>
+            <td style="color:var(--lcars-secondary);font-family:monospace;font-size:0.82em" title="${t.predicate}">${predShort}</td>
+            <td style="color:var(--text-primary);font-size:0.82em" title="${t.object}">${objShort}</td>
+            <td><span style="color:${color};font-size:0.72em">${graph}</span></td>
         </tr>`;
     }).join("");
 
     const overflow = triples.length > 100
-        ? `<div style="color:var(--text-dim);font-size:0.78em;padding:8px">Showing 100 of ${triples.length} triples</div>`
-        : "";
+        ? `<div style="color:var(--text-dim);font-size:0.72em;padding:4px">Showing 100 of ${triples.length}</div>` : "";
 
-    el.innerHTML = header + `<div class="lcars-data-table-wrap" style="--panel-accent:var(--c-tab-science)">
+    return `<div class="lcars-data-table-wrap" style="--panel-accent:var(--c-tab-science)">
         <table class="lcars-data-table">
-            <thead><tr><th>SUBJECT</th><th>PREDICATE</th><th>OBJECT</th><th>GRAPH</th><th>TIME</th></tr></thead>
+            <thead><tr><th>SUBJECT</th><th>PREDICATE</th><th>OBJECT</th><th>GRAPH</th></tr></thead>
             <tbody>${rows}</tbody>
         </table>
     </div>` + overflow;
@@ -555,7 +674,7 @@ async function renderTripleStore(stats) {
 
 function filterTripleGraph(graph) {
     _triplesGraph = graph;
-    // Re-render with current stats (refetch triples for new graph)
+    _tripleSelectedSubject = null;
     fetch("/api/triples/stats", { signal: AbortSignal.timeout(3000) })
         .then(r => r.ok ? r.json() : null)
         .then(stats => renderTripleStore(stats))
@@ -563,16 +682,33 @@ function filterTripleGraph(graph) {
 }
 window.filterTripleGraph = filterTripleGraph;
 
+function selectTripleSubject(subject) {
+    _tripleSelectedSubject = subject;
+    if (subject) _tripleViewMode = "entity";
+    fetch("/api/triples/stats", { signal: AbortSignal.timeout(3000) })
+        .then(r => r.ok ? r.json() : null)
+        .then(stats => renderTripleStore(stats))
+        .catch(() => renderTripleStore(null));
+}
+window.selectTripleSubject = selectTripleSubject;
+
+function toggleTripleView() {
+    _tripleViewMode = _tripleViewMode === "entity" ? "table" : "entity";
+    _tripleSelectedSubject = null;
+    fetch("/api/triples/stats", { signal: AbortSignal.timeout(3000) })
+        .then(r => r.ok ? r.json() : null)
+        .then(stats => renderTripleStore(stats))
+        .catch(() => renderTripleStore(null));
+}
+window.toggleTripleView = toggleTripleView;
+
 function shortenURI(uri) {
     if (!uri) return "?";
-    const prefixes = [
-        ["agent:", "agent:"], ["transport:", "transport:"], ["mesh:", "mesh:"],
-        ["vocab:", "vocab:"], ["schema:", "schema:"], ["sosa:", "sosa:"],
-        ["prov:", "prov:"], ["as:", "as:"], ["rdf:", "rdf:"],
-        ["skos:", "skos:"], ["_:", "_:"],
-    ];
-    for (const [prefix, display] of prefixes) {
-        if (uri.startsWith(prefix)) return uri;
+    // Known prefixes stay as-is (already compact)
+    const knownPrefixes = ["agent:", "transport:", "mesh:", "vocab:", "schema:",
+        "sosa:", "prov:", "as:", "rdf:", "skos:", "_:"];
+    for (const p of knownPrefixes) {
+        if (uri.startsWith(p)) return uri;
     }
     // Full URI — show last segment
     const parts = uri.split(/[/#]/);
@@ -582,6 +718,10 @@ function shortenURI(uri) {
 function truncate(str, max) {
     if (!str || str.length <= max) return str || "";
     return str.slice(0, max) + "…";
+}
+
+function escapeAttr(s) {
+    return (s || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
 
 // ── agentd Session 95: Fleet Cognitive Panels ─────────────────

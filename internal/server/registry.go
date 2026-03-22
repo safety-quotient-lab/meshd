@@ -74,26 +74,38 @@ type AgentInfo struct {
 
 // AgentRegistry fetches and caches agent cards from bootstrap URLs.
 type AgentRegistry struct {
-	agents      []AgentInfo
-	mu          sync.RWMutex
-	logger      *slog.Logger
-	cardURLs    []string
-	selfID      string
-	selfCardURL string
-	cacheTTL    time.Duration
-	lastRefresh time.Time
-	httpClient  *http.Client
+	agents            []AgentInfo
+	mu                sync.RWMutex
+	logger            *slog.Logger
+	cardURLs          []string
+	selfID            string
+	selfCardURL       string
+	cacheTTL          time.Duration
+	lastRefresh       time.Time
+	httpClient        *http.Client
+	agentFetchTimeout time.Duration
+	cardFetchTimeout  time.Duration
 }
 
 // NewAgentRegistry creates a registry with bootstrap card URLs.
-func NewAgentRegistry(selfID string, cardURLs []string, ttl time.Duration, logger *slog.Logger) *AgentRegistry {
+// agentTimeout: per-agent /api/status fetch timeout.
+// cardTimeout: agent card discovery timeout.
+func NewAgentRegistry(selfID string, cardURLs []string, ttl time.Duration, logger *slog.Logger, agentTimeout, cardTimeout int) *AgentRegistry {
+	if agentTimeout <= 0 {
+		agentTimeout = 10
+	}
+	if cardTimeout <= 0 {
+		cardTimeout = 5
+	}
 	return &AgentRegistry{
-		selfID:   selfID,
-		cardURLs: cardURLs,
-		cacheTTL: ttl,
-		logger:   logger,
+		selfID:            selfID,
+		cardURLs:          cardURLs,
+		cacheTTL:          ttl,
+		logger:            logger,
+		agentFetchTimeout: time.Duration(agentTimeout) * time.Second,
+		cardFetchTimeout:  time.Duration(cardTimeout) * time.Second,
 		httpClient: &http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: time.Duration(cardTimeout) * time.Second,
 		},
 	}
 }
@@ -182,7 +194,7 @@ func (r *AgentRegistry) FetchAgentStatus(agent AgentInfo) (map[string]any, error
 		return nil, fmt.Errorf("no status URL for %s", agent.ID)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), r.agentFetchTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, agent.StatusURL, nil)

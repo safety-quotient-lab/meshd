@@ -33,6 +33,10 @@ type Config struct {
 	ReserveSlots   int    // extra slots unlocked via /tmp/mesh-reserve-unlock
 	DeliberationModel     string // model override for spawns (e.g. "sonnet", "opus", "" = CLI default)
 
+	// Timeouts (seconds) — configurable via env vars
+	AgentFetchTimeout int // per-agent /api/status fetch timeout (default 10)
+	CardFetchTimeout  int // agent card discovery timeout (default 5)
+
 	// Compositor (ported from CF Worker)
 	AgentCardURLs  []string // bootstrap agent card URLs for discovery
 	GitHubToken    string   // PAT for PR creation (relay/redirect)
@@ -131,6 +135,12 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	cfg.DeliberationModel = resolve("DELIBERATION_MODEL", "")
+	if cfg.AgentFetchTimeout, err = resolveInt("AGENT_FETCH_TIMEOUT", 10); err != nil {
+		return nil, err
+	}
+	if cfg.CardFetchTimeout, err = resolveInt("CARD_FETCH_TIMEOUT", 5); err != nil {
+		return nil, err
+	}
 
 	// Paths that derive from RepoRoot when no explicit value appears
 	cfg.BudgetDBPath = resolve("BUDGET_DB_PATH", filepath.Join(repoRoot, "state.db"))

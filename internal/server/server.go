@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
@@ -291,7 +292,8 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /vocab/schema", s.handleVocabSchema)
 	mux.HandleFunc("GET /vocab/schema.json", s.handleVocabSchema)
 	mux.HandleFunc("GET /.well-known/agent-card.json", s.handleAgentCardStatic)
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+	staticSub, _ := fs.Sub(staticFS, "static")
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSub))))
 
 	// Discovery
 	mux.HandleFunc("GET /.well-known/agents", s.handleAgents)

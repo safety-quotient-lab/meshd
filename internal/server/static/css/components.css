@@ -80,6 +80,27 @@
     overflow-y: auto;
 }
 
+/* Science subsystem panels — constrained scroll with LCARS scrollbar */
+.sci-panel {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-transport, #cc9966) transparent;
+}
+.sci-panel::-webkit-scrollbar {
+    width: 8px;
+}
+.sci-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sci-panel::-webkit-scrollbar-thumb {
+    background: var(--c-transport, #cc9966);
+    border-radius: 4px;
+}
+.sci-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--lcars-accent, #ff9966);
+}
+
 /* ── Table Toolbar — filter + pagination ─────────────────────── */
 .table-toolbar {
     display: flex;

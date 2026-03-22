@@ -576,8 +576,8 @@ function renderEntityView(triples) {
         const name = props.find(p => p.predicate === "schema:name")?.object || "";
         const graph = props[0]?.graph || "";
         const color = GRAPH_COLORS[graph] || "var(--lcars-secondary)";
-        const typeShort = shortenURI(rdfType);
-        const subjectShort = shortenURI(subject);
+        const typeHuman = humanize(rdfType);
+        const subjectHuman = humanize(subject);
 
         // Count properties (excluding rdf:type)
         const propCount = props.filter(p => p.predicate !== "rdf:type").length;
@@ -589,8 +589,8 @@ function renderEntityView(triples) {
                      onmouseenter="this.style.background='var(--bg-hover,rgba(255,255,255,0.05))'"
                      onmouseleave="this.style.background='var(--bg-inset)'">
             <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span style="color:var(--lcars-accent);font-family:monospace;font-size:0.85em">${subjectShort}</span>
-                <span style="color:var(--text-dim);font-size:0.72em">${typeShort}</span>
+                <span style="color:var(--lcars-accent);font-size:0.85em" title="${subject}">${subjectHuman}</span>
+                <span style="color:var(--text-dim);font-size:0.72em" title="${rdfType}">${typeHuman}</span>
             </div>
             ${name ? `<div style="color:var(--text-primary);font-size:0.82em;margin-top:2px">${truncate(name, 60)}</div>` : ""}
             <div style="color:var(--text-dim);font-size:0.72em;margin-top:2px">
@@ -605,7 +605,7 @@ function renderEntityView(triples) {
         ? `<div style="color:var(--text-dim);font-size:0.72em;padding:4px 0">${blankCount} observation nodes (blank nodes)</div>`
         : "";
 
-    return `<div style="max-height:400px;overflow-y:auto">${cards}</div>${blankNote}`;
+    return `<div>${cards}</div>${blankNote}`;
 }
 
 // Entity detail — LCARS record retrieval pattern (P15)
@@ -615,16 +615,16 @@ function renderEntityDetail(subject, props) {
     const color = GRAPH_COLORS[graph] || "var(--lcars-secondary)";
 
     const rows = props.filter(p => p.predicate !== "rdf:type").map(t => {
-        const predShort = shortenURI(t.predicate);
+        const predHuman = humanize(t.predicate);
         const isURI = t.object_type === "uri";
-        const objDisplay = isURI ? shortenURI(t.object) : truncate(t.object, 60);
+        const objDisplay = isURI ? humanize(t.object) : truncate(t.object, 60);
         const objClick = isURI && !t.object.startsWith("_:")
             ? ` onclick="selectTripleSubject('${escapeAttr(t.object)}')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted"`
             : "";
         return `<tr>
-            <td style="color:var(--lcars-secondary);font-family:monospace;font-size:0.82em;white-space:nowrap;padding-right:12px">${predShort}</td>
+            <td style="color:var(--lcars-secondary);font-size:0.82em;white-space:nowrap;padding-right:12px" title="${t.predicate}">${predHuman}</td>
             <td style="color:var(--text-primary);font-size:0.82em"${objClick} title="${t.object}">${objDisplay}</td>
-            <td style="color:var(--text-dim);font-size:0.72em">${t.datatype ? shortenURI(t.datatype) : ""}</td>
+            <td style="color:var(--text-dim);font-size:0.72em">${t.datatype ? humanize(t.datatype) : ""}</td>
         </tr>`;
     }).join("");
 
@@ -635,8 +635,8 @@ function renderEntityDetail(subject, props) {
             <span style="color:${color};font-size:0.72em">${graph}</span>
         </div>
         <div style="border-left:3px solid ${color};padding:8px 12px;background:var(--bg-inset)">
-            <div style="color:var(--lcars-accent);font-family:monospace;font-size:0.9em;margin-bottom:2px">${shortenURI(subject)}</div>
-            <div style="color:var(--text-dim);font-size:0.78em;margin-bottom:var(--gap-s)">rdf:type ${shortenURI(rdfType)}</div>
+            <div style="color:var(--lcars-accent);font-size:0.9em;margin-bottom:2px" title="${subject}">${humanize(subject)}</div>
+            <div style="color:var(--text-dim);font-size:0.78em;margin-bottom:var(--gap-s)">${humanize(rdfType)}</div>
             <table style="width:100%;border-collapse:collapse">
                 <tbody>${rows}</tbody>
             </table>
@@ -647,16 +647,16 @@ function renderEntityDetail(subject, props) {
 // Flat table view (original P28 listing)
 function renderTableView(triples) {
     const rows = triples.slice(0, 100).map(t => {
-        const subjectShort = shortenURI(t.subject);
-        const predShort = shortenURI(t.predicate);
-        const objShort = t.object_type === "uri" ? shortenURI(t.object) : truncate(t.object, 40);
+        const subjectHuman = humanize(t.subject);
+        const predHuman = humanize(t.predicate);
+        const objHuman = t.object_type === "uri" ? humanize(t.object) : truncate(t.object, 40);
         const graph = t.graph || "";
         const color = GRAPH_COLORS[graph] || "var(--text-dim)";
         return `<tr>
-            <td style="color:var(--lcars-accent);font-family:monospace;font-size:0.82em;cursor:pointer"
-                onclick="selectTripleSubject('${escapeAttr(t.subject)}')" title="${t.subject}">${subjectShort}</td>
-            <td style="color:var(--lcars-secondary);font-family:monospace;font-size:0.82em" title="${t.predicate}">${predShort}</td>
-            <td style="color:var(--text-primary);font-size:0.82em" title="${t.object}">${objShort}</td>
+            <td style="color:var(--lcars-accent);font-size:0.82em;cursor:pointer"
+                onclick="selectTripleSubject('${escapeAttr(t.subject)}')" title="${t.subject}">${subjectHuman}</td>
+            <td style="color:var(--lcars-secondary);font-size:0.82em" title="${t.predicate}">${predHuman}</td>
+            <td style="color:var(--text-primary);font-size:0.82em" title="${t.object}">${objHuman}</td>
             <td><span style="color:${color};font-size:0.72em">${graph}</span></td>
         </tr>`;
     }).join("");
@@ -702,15 +702,77 @@ function toggleTripleView() {
 }
 window.toggleTripleView = toggleTripleView;
 
+// Humanize URIs — "schema:SoftwareApplication" → "Software Application"
+const HUMAN_LABELS = {
+    "schema:SoftwareApplication": "Software Application",
+    "schema:Message": "Message",
+    "schema:Event": "Event",
+    "schema:EntryPoint": "Entry Point",
+    "schema:Dataset": "Dataset",
+    "schema:ChooseAction": "Decision",
+    "schema:Claim": "Claim",
+    "schema:Comment": "Comment",
+    "schema:Action": "Action",
+    "schema:SuspendAction": "Gated Action",
+    "schema:LearningResource": "Lesson",
+    "schema:HowToStep": "Trigger",
+    "sosa:Observation": "Observation",
+    "skos:Concept": "Concept",
+    "rdf:type": "type",
+    "schema:name": "name",
+    "schema:version": "version",
+    "schema:url": "url",
+    "schema:urlTemplate": "url template",
+    "schema:potentialAction": "action endpoint",
+    "schema:roleName": "role",
+    "schema:numberOfItems": "skill count",
+    "schema:sender": "from",
+    "schema:recipient": "to",
+    "schema:dateSent": "sent",
+    "schema:position": "turn",
+    "schema:isPartOf": "session",
+    "schema:participant": "participant",
+    "schema:identifier": "content ID",
+    "schema:about": "subject",
+    "schema:additionalType": "message type",
+    "schema:actionStatus": "status",
+    "schema:codeRepository": "repository",
+    "mesh:available": "available",
+    "mesh:sessionState": "session state",
+    "mesh:urgency": "urgency",
+    "mesh:bottleneckAgent": "bottleneck",
+    "mesh:trustScore": "trust score",
+    "mesh:hasPsychometrics": "psychometrics",
+    "mesh:collectiveCoherence": "coherence",
+    "mesh:collectiveIntelligence": "collective intelligence",
+    "sosa:madeBySensor": "sensor",
+    "sosa:observedProperty": "property",
+    "sosa:hasSimpleResult": "value",
+    "sosa:resultTime": "observed at",
+    "prov:wasDerivedFrom": "derived from",
+    "as:context": "thread",
+};
+
+function humanize(uri) {
+    if (!uri) return "?";
+    if (HUMAN_LABELS[uri]) return HUMAN_LABELS[uri];
+    // Strip prefix, split camelCase/PascalCase, lowercase
+    const short = shortenURI(uri);
+    const local = short.includes(":") ? short.split(":").pop() : short;
+    return local
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase())
+        .trim() || short;
+}
+
 function shortenURI(uri) {
     if (!uri) return "?";
-    // Known prefixes stay as-is (already compact)
     const knownPrefixes = ["agent:", "transport:", "mesh:", "vocab:", "schema:",
         "sosa:", "prov:", "as:", "rdf:", "skos:", "_:"];
     for (const p of knownPrefixes) {
         if (uri.startsWith(p)) return uri;
     }
-    // Full URI — show last segment
     const parts = uri.split(/[/#]/);
     return parts[parts.length - 1] || uri;
 }

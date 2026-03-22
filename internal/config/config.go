@@ -194,8 +194,8 @@ func loadAgentCardURLs(repoRoot string) []string {
 		}
 	}
 
-	// Add self
-	urls = append(urls, "https://operations-agent.safety-quotient.dev/.well-known/agent-card.json")
+	// Add mesh coordinator
+	urls = append(urls, "https://mesh.safety-quotient.dev/.well-known/agent-card.json")
 
 	if len(urls) == 0 {
 		return defaultCardURLs()
@@ -207,7 +207,6 @@ func defaultCardURLs() []string {
 	return []string{
 		"https://psychology-agent.safety-quotient.dev/.well-known/agent-card.json",
 		"https://psq-agent.safety-quotient.dev/.well-known/agent-card.json",
-		"https://operations-agent.safety-quotient.dev/.well-known/agent-card.json",
 		"https://unratified.org/.well-known/agent-card.json",
 		"https://observatory.unratified.org/.well-known/agent-card.json",
 	}

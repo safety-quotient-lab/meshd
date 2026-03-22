@@ -56,10 +56,6 @@ window.switchGovSubsystem = switchGovSubsystem;
         restoreSub(15);
     }
 
-    // Reveal content now that the correct tab is active
-    const contentEl = document.querySelector(".lcars-content");
-    if (contentEl) contentEl.style.visibility = "";
-
     buildAgentSwitcher();
     await refreshAll();
 

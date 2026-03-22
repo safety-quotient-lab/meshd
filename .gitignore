@@ -1,8 +1,12 @@
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
+.env
+!.env.example
 state.db
 state.db-wal
 state.db-shm
 meshd
+meshd-linux
+meshd-darwin
 .DS_Store

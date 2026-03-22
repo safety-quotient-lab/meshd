@@ -193,7 +193,7 @@ function renderVitals() {
 
     // Update ops badge
     if (pending > 0) {
-        const badge = document.getElementById("ops-badge");
+        const badge = document.getElementById("gov-badge");
         badge.textContent = pending;
         badge.style.display = "inline";
     }
@@ -310,7 +310,7 @@ function renderAgentCards() {
 
         grid.appendChild(card);
     }
-    mirrorToLcars("agents-grid", "lcars-ops-pulse-agents");
+    mirrorToLcars("agents-grid", "lcars-gov-pulse-agents");
 }
 
 // ── Render: Topology ───────────────────────────────────────────
@@ -453,7 +453,7 @@ function renderActivity() {
             <span class="activity-type">${m.type}</span>
         </a>`;
     }).join("");
-    mirrorToLcars("activity-stream", "lcars-ops-activity");
+    mirrorToLcars("activity-stream", "lcars-gov-activity");
 }
 
 // ── Render: Combined ───────────────────────────────────────────

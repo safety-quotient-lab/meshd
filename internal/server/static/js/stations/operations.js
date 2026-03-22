@@ -3,7 +3,7 @@ function renderOperations() {
     // Symmetric capsule bars (Ohniaka A1 §5.4)
     renderOpsCapsuleBars();
     // Zone A: dense number grid (three-zone layout §1.2)
-    renderNumberGrid("gov-zone-a", opsZoneAMetrics());
+    renderNumberGrid("ops-zone-a", opsZoneAMetrics());
     renderOpsBudget();
     renderOpsActivity();
     renderOpsSchedule();
@@ -18,7 +18,7 @@ function renderOperations() {
 }
 
 function renderOpsGovernance() {
-    const el = document.getElementById("gov-governance-decisions");
+    const el = document.getElementById("ops-governance-decisions");
     if (!el) return;
     // Collect decisions from all agents' KB data
     const decisions = [];
@@ -43,13 +43,13 @@ function renderOpsGovernance() {
         </div>`;
     }).join("");
     // Update footer number
-    const govFtr = document.getElementById("gov-governance-footer-num");
+    const govFtr = document.getElementById("ops-governance-footer-num");
     if (govFtr) govFtr.textContent = decisions.length;
 }
 
 // Coordination ratio inline in Activity section
 function renderOpsActivity() {
-    const el = document.getElementById("gov-deliberations-coordination");
+    const el = document.getElementById("ops-deliberations-coordination");
     if (el && _meshAggData) {
         const co = _meshAggData.coordination || {};
         if (co.ratio != null) {
@@ -64,7 +64,7 @@ function renderOpsActivity() {
 
 // ── Status Monologue ─────────────────────────────────────
 function renderOpsMonologue() {
-    const el = document.getElementById("gov-pulse-monologue");
+    const el = document.getElementById("ops-pulse-monologue");
     if (!el) return;
 
     // Guard: if no agent data yet, show loading state
@@ -146,11 +146,11 @@ function renderOpsAggIndicators() {
     const im = _meshAggData.immune || {};
     const set = (id, t, c) => { const e = document.getElementById(id); if (e) { e.textContent = t; if (c) e.style.color = c; } };
     const cat = (aff.category || "unknown").replace("mesh-", "");
-    set("gov-agg-affect", cat, cat === "healthy" ? "var(--c-health)" : cat === "stressed" ? "var(--c-error)" : "");
-    if (bn.bottleneck_agent) set("gov-agg-bottleneck", agentName(bn.bottleneck_agent) + " (" + bn.bottleneck_reserve + ")", bn.status === "depleted" ? "var(--c-error)" : "");
-    else set("gov-agg-bottleneck", bn.status || "\u2014", "");
-    set("gov-agg-coordination", co.ratio != null ? co.ratio.toFixed(1) + "x" : "\u2014", co.status === "over-coordinated" ? "var(--c-error)" : "");
-    set("gov-agg-immune", im.composite != null ? Math.round(im.composite * 100) + "%" : "\u2014", im.status === "compromised" ? "var(--c-error)" : "");
+    set("ops-agg-affect", cat, cat === "healthy" ? "var(--c-health)" : cat === "stressed" ? "var(--c-error)" : "");
+    if (bn.bottleneck_agent) set("ops-agg-bottleneck", agentName(bn.bottleneck_agent) + " (" + bn.bottleneck_reserve + ")", bn.status === "depleted" ? "var(--c-error)" : "");
+    else set("ops-agg-bottleneck", bn.status || "\u2014", "");
+    set("ops-agg-coordination", co.ratio != null ? co.ratio.toFixed(1) + "x" : "\u2014", co.status === "over-coordinated" ? "var(--c-error)" : "");
+    set("ops-agg-immune", im.composite != null ? Math.round(im.composite * 100) + "%" : "\u2014", im.status === "compromised" ? "var(--c-error)" : "");
 }
 
 let _psychCache = null;
@@ -170,7 +170,7 @@ async function fetchPsychForOps() {
 }
 
 function renderResourceModel() {
-    const container = document.getElementById("gov-resources-psychometric");
+    const container = document.getElementById("ops-resources-psychometric");
     if (!container) return;
     if (!_psychCache) {
         fetchPsychForOps(); // fire once — no recursive retry
@@ -187,7 +187,7 @@ function renderResourceModel() {
         return;
     }
     const colorMap = { "psychology-agent": "#5b9cf6", "psq-agent": "#4ecdc4", "unratified-agent": "#e5a735", "observatory-agent": "#a78bfa", "mesh": "#6b7280" };
-    container.innerHTML = '<div class="gov-budget-grid">' + entries.map(([agentId, data]) => {
+    container.innerHTML = '<div class="ops-budget-grid">' + entries.map(([agentId, data]) => {
         const rm = data.resource_model || {};
         const eng = data.engagement || {};
         const reserve = rm.cognitive_reserve ?? 0;
@@ -198,11 +198,11 @@ function renderResourceModel() {
         const color = colorMap[agentId] || "var(--text-primary)";
         const reservePct = Math.min(100, reserve * 100);
         const reserveColor = reserve > 0.6 ? "#6aab8e" : reserve > 0.3 ? "#d4944a" : "#c47070";
-        return '<div class="gov-budget-card" style="--card-accent: ' + color + '">' +
-            '<div class="gov-budget-agent">' + label + '</div>' +
-            '<div class="gov-budget-credit" style="font-size:1.4em">' + (reserve * 100).toFixed(0) + '%</div>' +
-            '<div class="gov-budget-bar"><div class="gov-budget-fill" style="width:' + reservePct + '%;background:' + reserveColor + '"></div></div>' +
-            '<div class="gov-budget-values" style="font-size:0.75em"><span>Self-reg: ' + (selfReg * 100).toFixed(0) + '%</span> <span>Allostatic: ' + allostatic.toFixed(2) + '</span></div>' +
+        return '<div class="ops-budget-card" style="--card-accent: ' + color + '">' +
+            '<div class="ops-budget-agent">' + label + '</div>' +
+            '<div class="ops-budget-credit" style="font-size:1.4em">' + (reserve * 100).toFixed(0) + '%</div>' +
+            '<div class="ops-budget-bar"><div class="ops-budget-fill" style="width:' + reservePct + '%;background:' + reserveColor + '"></div></div>' +
+            '<div class="ops-budget-values" style="font-size:0.75em"><span>Self-reg: ' + (selfReg * 100).toFixed(0) + '%</span> <span>Allostatic: ' + allostatic.toFixed(2) + '</span></div>' +
             (burnout > 0.3 ? '<div style="color:var(--c-alert);font-size:0.7em;margin-top:2px">BURNOUT: ' + (burnout * 100).toFixed(0) + '%</div>' : '') +
             '</div>';
     }).join("") + '</div>';
@@ -225,7 +225,7 @@ function renderOpsVitals() {
         return sched.cron_entry || sched.last_sync;
     }).length;
 
-    setTrackedValue("gov-total-credits", totalDelibOps, {
+    setTrackedValue("ops-total-credits", totalDelibOps, {
         suffix: totalCutoffOps > 0 ? `/${totalCutoffOps}` : ""
     });
 
@@ -258,9 +258,9 @@ function renderOpsVitals() {
     setTrackedValue("mesh-total-gf", Math.round(totalDelibOps));
     setTrackedValue("mesh-total-gc", totalGc || null);
     setTrackedValue("mesh-total-processing", totalGc > 0 ? Math.round(totalDelibOps) + totalGc : Math.round(totalDelibOps));
-    setTrackedValue("gov-total-actions", totalActions);
-    setTrackedValue("gov-active-gates", gates);
-    setTrackedValue("gov-agents-syncing", syncing, { suffix: `/${AGENTS.length}` });
+    setTrackedValue("ops-total-actions", totalActions);
+    setTrackedValue("ops-active-gates", gates);
+    setTrackedValue("ops-agents-syncing", syncing, { suffix: `/${AGENTS.length}` });
 }
 
 function renderOpsBudget() {
@@ -268,7 +268,7 @@ function renderOpsBudget() {
     // Ohniaka B3 "Starship Mission Status" pattern — structured table
     // with colored text columns (purple names, yellow IDs, white status).
     // No pill backgrounds — spacing + color creates structure.
-    const grid = document.getElementById("gov-pulse-agents");
+    const grid = document.getElementById("ops-pulse-agents");
     if (!grid) return;
 
 
@@ -365,7 +365,7 @@ function renderOpsBudget() {
 }
 
 function renderMobilePills() {
-    const container = document.getElementById("gov-pulse-agents-mobile");
+    const container = document.getElementById("ops-pulse-agents-mobile");
     if (!container) return;
 
     // Group by domain
@@ -430,7 +430,7 @@ function renderMobilePills() {
 }
 
 function renderOpsAlphaMatrix() {
-    const el = document.getElementById("gov-alpha-matrix");
+    const el = document.getElementById("ops-alpha-matrix");
     if (!el) return;
 
     const online = Object.values(agentData).filter(a => a.status === "online");
@@ -467,7 +467,7 @@ function renderOpsAlphaMatrix() {
     </div>`;
 
     // Update overview footer
-    const ovFtr = document.getElementById("gov-record-num");
+    const ovFtr = document.getElementById("ops-record-num");
     if (ovFtr) ovFtr.textContent = ` · ${online.length} online · ${totalDelib} deliberations`;
 }
 
@@ -499,7 +499,7 @@ function renderOpsActions() {
 }
 
 function renderActionsTable() {
-    const wrap = document.getElementById("gov-deliberations-table");
+    const wrap = document.getElementById("ops-deliberations-table");
     if (!wrap) return;
 
     const st = tableState.actions;
@@ -542,9 +542,9 @@ function renderActionsTable() {
             ${th("Delib.", "budget_after")}
         </tr></thead><tbody>${pageRows.map(r => {
             const tier = r.evaluator_tier || 1;
-            const tierClass = `gov-tier-${Math.min(tier, 4)}`;
-            const resultClass = r.evaluator_result === "approved" ? "gov-result-approved"
-                : "gov-result-blocked";
+            const tierClass = `ops-tier-${Math.min(tier, 4)}`;
+            const resultClass = r.evaluator_result === "approved" ? "ops-result-approved"
+                : "ops-result-blocked";
             const time = (r.created_at || "").substring(5, 16).replace("T", " ");
             const agentLabel = agentName(r.agent_id || "");
             const budgetDelta = r.budget_before != null && r.budget_after != null
@@ -554,7 +554,7 @@ function renderActionsTable() {
             return `<tr>
                 <td style="color:var(--text-dim)">${time}</td>
                 <td style="color:var(--lcars-secondary)">${agentLabel}</td>
-                <td><span class="gov-action-tier ${tierClass}">${tier}</span></td>
+                <td><span class="ops-action-tier ${tierClass}">${tier}</span></td>
                 <td class="${resultClass}">${r.evaluator_result || "\u2014"}</td>
                 <td style="color:var(--lcars-title)">${r.action_type || "\u2014"}</td>
                 <td title="${(r.description || "").replace(/"/g, "&quot;")}">${(r.description || "").substring(0, 60)}${(r.description || "").length > 60 ? "\u2026" : ""}</td>
@@ -573,7 +573,7 @@ function renderActionsTable() {
 }
 
 function renderOpsSchedule() {
-    const el = document.getElementById("gov-schedule");
+    const el = document.getElementById("ops-schedule");
     if (!el) return;
 
     let html = "";
@@ -608,7 +608,7 @@ function renderOpsSchedule() {
 // ── Subsystem Readouts ──────────────────────────────────────────
 
 function renderOpsAutonomyReadout() {
-    const el = document.getElementById("gov-resources-budget");
+    const el = document.getElementById("ops-resources-budget");
     if (!el) return;
     const online = Object.values(agentData).filter(a => a.status === "online");
     if (online.length === 0) { el.innerHTML = '<div class="phase-stub"><div class="phase-stub-text">No agents online</div></div>'; return; }
@@ -638,7 +638,7 @@ function renderOpsAutonomyReadout() {
 }
 
 function renderOpsTransportReadout() {
-    const el = document.getElementById("gov-transport-sessions");
+    const el = document.getElementById("ops-transport-sessions");
     if (!el) return;
     const online = Object.values(agentData).filter(a => a.status === "online");
     const totalMsgs = online.reduce((s, a) => s + (a.data?.recent_messages?.length || 0), 0);
@@ -680,7 +680,7 @@ function renderOpsTransportReadout() {
 }
 
 function renderOpsCapacityReadout() {
-    const el = document.getElementById("gov-resources-operations");
+    const el = document.getElementById("ops-resources-operations");
     if (!el) return;
     const online = Object.values(agentData).filter(a => a.status === "online");
     const totalGf = online.reduce((s, a) => s + getDeliberations(a.data?.autonomy_budget), 0);
@@ -720,7 +720,7 @@ function renderOpsCapacityReadout() {
 
 // ── Operations Record Data Grid (Button 52 pattern) ─────────────
 function renderOpsCapsuleBars() {
-    const grid = document.getElementById("gov-data-grid");
+    const grid = document.getElementById("ops-data-grid");
     if (!grid) return;
 
     const online = Object.values(agentData).filter(a => a.status === "online");

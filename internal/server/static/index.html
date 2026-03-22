@@ -54,12 +54,12 @@
     <nav class="lcars-sidebar" id="lcars-sidebar">
         <div class="lcars-sidebar-cap-top lcars-frame-element"></div>
         <div class="lcars-sidebar-drop lcars-frame-element"></div>
-        <button class="lcars-sidebar-btn active" data-tab="governance" data-short="GOV" onclick="switchTab('governance')">Governance</button>
-        <button class="lcars-sidebar-btn" data-tab="analysis" data-short="ANL" onclick="switchTab('analysis')">Analysis</button>
-        <button class="lcars-sidebar-btn" data-tab="architecture" data-short="ARC" onclick="switchTab('architecture')">Architecture</button>
-        <button class="lcars-sidebar-btn" data-tab="transport" data-short="TRN" onclick="switchTab('transport')">Transport</button>
-        <button class="lcars-sidebar-btn" data-tab="integrity" data-short="INT" onclick="switchTab('integrity')">Integrity</button>
-        <button class="lcars-sidebar-btn" data-tab="vitals" data-short="VTL" onclick="switchTab('vitals')">Vitals</button>
+        <button class="lcars-sidebar-btn active" data-tab="operations" data-short="GOV" onclick="switchTab('operations')">Governance</button>
+        <button class="lcars-sidebar-btn" data-tab="science" data-short="ANL" onclick="switchTab('science')">Analysis</button>
+        <button class="lcars-sidebar-btn" data-tab="engineering" data-short="ARC" onclick="switchTab('engineering')">Architecture</button>
+        <button class="lcars-sidebar-btn" data-tab="helm" data-short="TRN" onclick="switchTab('helm')">Transport</button>
+        <button class="lcars-sidebar-btn" data-tab="tactical" data-short="INT" onclick="switchTab('tactical')">Integrity</button>
+        <button class="lcars-sidebar-btn" data-tab="medical" data-short="VTL" onclick="switchTab('medical')">Vitals</button>
         <div class="lcars-sidebar-arm lcars-frame-element"></div>
         <button class="lcars-sidebar-exit lcars-frame-element" onclick="setTheme('system')" title="Exit LCARS mode">&#x2716;</button>
     </nav>
@@ -116,13 +116,13 @@
         <button class="lcars-tab" data-tab="meta" onclick="switchTab('meta')">Meta</button>
         <button class="lcars-tab" data-tab="kb" onclick="switchTab('kb')">Knowledge</button>
         <button class="lcars-tab" data-tab="wisdom" onclick="switchTab('wisdom')">Wisdom</button>
-        <button class="lcars-tab" data-tab="governance" onclick="switchTab('governance')">
-            Governance<span class="tab-badge" id="gov-badge" style="display:none">0</span>
+        <button class="lcars-tab" data-tab="operations" onclick="switchTab('operations')">
+            Governance<span class="tab-badge" id="ops-badge" style="display:none">0</span>
         </button>
-        <button class="lcars-tab lcars-only" data-tab="analysis" onclick="switchTab('analysis')">Analysis</button>
-        <button class="lcars-tab lcars-only" data-tab="architecture" onclick="switchTab('architecture')">Architecture</button>
-        <button class="lcars-tab lcars-only" data-tab="transport" onclick="switchTab('transport')">Transport</button>
-        <button class="lcars-tab lcars-only" data-tab="integrity" onclick="switchTab('integrity')">Integrity</button>
+        <button class="lcars-tab lcars-only" data-tab="science" onclick="switchTab('science')">Analysis</button>
+        <button class="lcars-tab lcars-only" data-tab="engineering" onclick="switchTab('engineering')">Architecture</button>
+        <button class="lcars-tab lcars-only" data-tab="helm" onclick="switchTab('helm')">Transport</button>
+        <button class="lcars-tab lcars-only" data-tab="tactical" onclick="switchTab('tactical')">Integrity</button>
     </div>
 
     <!-- Content -->
@@ -484,104 +484,104 @@
         </div>
 
         <!-- Governance Tab — Defiant Bridge subsystem switcher pattern -->
-        <div class="tab-pane" id="pane-governance">
+        <div class="tab-pane" id="pane-operations">
 
             <!-- Subsystem mode selector — Defiant Engineering A2 subpanel -->
             <div class="lcars-subpanel">
                 <div class="lcars-subpanel-bar lcars-subpanel-bar-accent">47-0912</div>
-                <div class="gov-panel-selector">
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn gov-panel-active" data-subsys="pulse-status" onclick="switchGovSubsystem('pulse-status')">STATUS</button>
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn" data-subsys="resources-autonomy" onclick="switchGovSubsystem('resources-autonomy')">AUTONOMY</button>
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn" data-subsys="transport-overview" onclick="switchGovSubsystem('transport-overview')">TRANSPORT</button>
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn" data-subsys="resources-capacity" onclick="switchGovSubsystem('resources-capacity')">CAPACITY</button>
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn" data-subsys="deliberations-log" onclick="switchGovSubsystem('deliberations-log')">ACTIVITY</button>
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn" data-subsys="governance-record" onclick="switchGovSubsystem('governance-record')">GOVERNANCE</button>
+                <div class="ops-panel-selector">
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn ops-panel-active" data-subsys="pulse-status" onclick="switchOpsSubsystem('pulse-status')">STATUS</button>
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn" data-subsys="resources-autonomy" onclick="switchOpsSubsystem('resources-autonomy')">AUTONOMY</button>
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn" data-subsys="transport-overview" onclick="switchOpsSubsystem('transport-overview')">TRANSPORT</button>
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn" data-subsys="resources-capacity" onclick="switchOpsSubsystem('resources-capacity')">CAPACITY</button>
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn" data-subsys="deliberations-log" onclick="switchOpsSubsystem('deliberations-log')">ACTIVITY</button>
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn" data-subsys="governance-record" onclick="switchOpsSubsystem('governance-record')">GOVERNANCE</button>
                 </div>
             </div>
 
             <!-- STATUS subsystem (default) — mesh overview + monologue -->
-            <div class="gov-panel gov-panel-active" id="gov-pulse-status">
+            <div class="ops-panel ops-panel-active" id="ops-pulse-status">
                 <!-- Zone A: dense number grid (above header — canonical §1.2) -->
-                <div class="lcars-data-grid" id="gov-zone-a"></div>
+                <div class="lcars-data-grid" id="ops-zone-a"></div>
                 <!-- Header bar separates numbers from table -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-governance)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-ops)">
                     <div class="lcars-panel-header">Mesh Status <span class="lcars-panel-id">44712</span></div>
                     <!-- Zone B: mesh overview table -->
                     <div class="lcars-panel-body" style="overflow-x:auto">
-                        <div class="lcars-subsystem-grid" id="gov-pulse-agents"></div>
+                        <div class="lcars-subsystem-grid" id="ops-pulse-agents"></div>
                     </div>
                     <!-- Zone B mobile: pill strip (portrait only) -->
-                    <div class="lcars-panel-body lcars-mobile-pills" id="gov-pulse-agents-mobile"></div>
+                    <div class="lcars-panel-body lcars-mobile-pills" id="ops-pulse-agents-mobile"></div>
                     <!-- Zone C + capsule bars moved to top of Operations tab -->
                 </div>
             </div>
 
             <!-- AUTONOMY subsystem — pause/resume + per-agent budget -->
-            <div class="gov-panel" id="gov-resources-autonomy">
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-governance)">
+            <div class="ops-panel" id="ops-resources-autonomy">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-ops)">
                     <div class="lcars-panel-header">Autonomy Control</div>
                     <div class="lcars-panel-body">
                         <div style="display:flex;gap:var(--gap-m);margin-bottom:var(--gap-l);flex-wrap:wrap">
-                            <button class="lcars-pill-btn gov-ctrl lcars-pill-red" onclick="meshControl('pause-all')" id="btn-pause">PAUSE</button>
-                            <button class="lcars-pill-btn gov-ctrl gov-ctrl-active lcars-pill-green" onclick="meshControl('resume-all')" id="btn-resume">RESUME</button>
+                            <button class="lcars-pill-btn ops-ctrl lcars-pill-red" onclick="meshControl('pause-all')" id="btn-pause">PAUSE</button>
+                            <button class="lcars-pill-btn ops-ctrl ops-ctrl-active lcars-pill-green" onclick="meshControl('resume-all')" id="btn-resume">RESUME</button>
                         </div>
-                        <div id="gov-resources-budget"></div>
+                        <div id="ops-resources-budget"></div>
                     </div>
                 </div>
             </div>
 
             <!-- TRANSPORT subsystem — sync + message stats -->
-            <div class="gov-panel" id="gov-transport-overview">
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-governance)">
+            <div class="ops-panel" id="ops-transport-overview">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-ops)">
                     <div class="lcars-panel-header">Transport</div>
                     <div class="lcars-panel-body">
                         <div style="margin-bottom:var(--gap-l)">
-                            <button class="lcars-pill-btn gov-ctrl lcars-pill-teal" onclick="refreshAll()">SYNC NOW</button>
+                            <button class="lcars-pill-btn ops-ctrl lcars-pill-teal" onclick="refreshAll()">SYNC NOW</button>
                         </div>
-                        <div id="gov-transport-sessions"></div>
+                        <div id="ops-transport-sessions"></div>
                     </div>
                 </div>
             </div>
 
             <!-- CAPACITY subsystem — model tier + reserve -->
-            <div class="gov-panel" id="gov-resources-capacity">
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-governance)">
+            <div class="ops-panel" id="ops-resources-capacity">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-ops)">
                     <div class="lcars-panel-header">Capacity</div>
                     <div class="lcars-panel-body">
                         <div style="display:flex;gap:var(--gap-m);margin-bottom:var(--gap-l);flex-wrap:wrap">
-                            <div class="gov-ctrl-group">
-                                <button class="lcars-pill-btn gov-ctrl gov-model-btn" onclick="meshControl('model-haiku')" id="btn-haiku">HAIKU</button>
-                                <button class="lcars-pill-btn gov-ctrl gov-model-btn gov-ctrl-active lcars-pill-orange" onclick="meshControl('model-sonnet')" id="btn-sonnet">SONNET</button>
-                                <button class="lcars-pill-btn gov-ctrl gov-model-btn" onclick="meshControl('model-opus')" id="btn-opus">OPUS</button>
+                            <div class="ops-ctrl-group">
+                                <button class="lcars-pill-btn ops-ctrl ops-model-btn" onclick="meshControl('model-haiku')" id="btn-haiku">HAIKU</button>
+                                <button class="lcars-pill-btn ops-ctrl ops-model-btn ops-ctrl-active lcars-pill-orange" onclick="meshControl('model-sonnet')" id="btn-sonnet">SONNET</button>
+                                <button class="lcars-pill-btn ops-ctrl ops-model-btn" onclick="meshControl('model-opus')" id="btn-opus">OPUS</button>
                             </div>
-                            <div class="gov-ctrl-group">
-                                <button class="lcars-pill-btn gov-ctrl lcars-pill-blue" onclick="meshControl('reserve-unlock')" id="btn-reserve">UNLOCK RESERVE</button>
-                                <button class="lcars-pill-btn gov-ctrl gov-ctrl-active" onclick="meshControl('reserve-lock')" id="btn-reserve-lock">LOCK RESERVE</button>
+                            <div class="ops-ctrl-group">
+                                <button class="lcars-pill-btn ops-ctrl lcars-pill-blue" onclick="meshControl('reserve-unlock')" id="btn-reserve">UNLOCK RESERVE</button>
+                                <button class="lcars-pill-btn ops-ctrl ops-ctrl-active" onclick="meshControl('reserve-lock')" id="btn-reserve-lock">LOCK RESERVE</button>
                             </div>
                         </div>
-                        <div id="gov-resources-operations"></div>
+                        <div id="ops-resources-operations"></div>
                     </div>
                 </div>
             </div>
 
             <!-- ACTIVITY subsystem — recent deliberations -->
-            <div class="gov-panel" id="gov-deliberations-log">
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-governance)">
+            <div class="ops-panel" id="ops-deliberations-log">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-ops)">
                     <div class="lcars-panel-header">Activity</div>
                     <div class="lcars-panel-body">
-                        <div id="gov-deliberations-coordination" style="font-size:0.82em;opacity:0.8;margin-bottom:8px;padding:0 4px"></div>
-                        <div class="kb-table-wrap" id="gov-deliberations-table">
+                        <div id="ops-deliberations-coordination" style="font-size:0.82em;opacity:0.8;margin-bottom:8px;padding:0 4px"></div>
+                        <div class="kb-table-wrap" id="ops-deliberations-table">
                             <div class="phase-stub"><div class="phase-stub-text">Loading...</div></div>
                         </div>
                     </div>
             </div>
 
             <!-- GOVERNANCE subsystem -->
-            <div class="gov-panel" id="gov-governance-record">
+            <div class="ops-panel" id="ops-governance-record">
                 <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-epistemic)">
                     <div class="lcars-panel-header">Governance</div>
-                    <div class="lcars-panel-body scrollable" id="gov-governance-decisions"></div>
-                    <div class="lcars-panel-footer">Governance Record<span class="lcars-panel-footer-num" id="gov-governance-footer-num"></span></div>
+                    <div class="lcars-panel-body scrollable" id="ops-governance-decisions"></div>
+                    <div class="lcars-panel-footer">Governance Record<span class="lcars-panel-footer-num" id="ops-governance-footer-num"></span></div>
                 </div>
                 <!-- Topology sits inside governance as secondary viz -->
                 <div class="lcars-panel panel-tristate topology-container" style="--panel-accent: var(--c-health); margin-top:var(--gap-m)">
@@ -596,14 +596,14 @@
             <!-- Operations Record — dense data pill grid (Button 52 pattern) -->
             <div class="lcars-zone-c" style="margin-top:var(--gap-l);margin-bottom:var(--gap-xs)">
                 <span class="zc-title">Governance Record</span>
-                <span class="zc-id" id="gov-record-num"></span>
+                <span class="zc-id" id="ops-record-num"></span>
             </div>
-            <div class="lcars-data-grid" id="gov-data-grid"></div>
+            <div class="lcars-data-grid" id="ops-data-grid"></div>
 
-        </div><!-- /pane-governance -->
+        </div><!-- /pane-operations -->
 
         <!-- Analysis Tab -->
-        <div class="tab-pane" id="pane-analysis">
+        <div class="tab-pane" id="pane-science">
             <!-- Science Record — zone-c title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
                 <span class="zc-title" id="science-zone-c-title">Psychometric Analysis</span>
@@ -613,10 +613,10 @@
             <!-- Subsystem selector -->
             <div class="lcars-subpanel" style="margin-bottom:var(--gap-m)">
                 <div class="lcars-subpanel-bar lcars-subpanel-bar-accent">03-4710</div>
-                <div class="gov-panel-selector">
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn gov-panel-active" data-subsys="psychometrics" onclick="switchSciSubsystem('psychometrics')">PSYCHOMETRICS</button>
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn" data-subsys="linguistics" onclick="switchSciSubsystem('linguistics')">LINGUISTICS</button>
-                    <button class="lcars-pill-btn lcars-pill-sm gov-panel-btn" data-subsys="ontology" onclick="switchSciSubsystem('ontology')">ONTOLOGY</button>
+                <div class="ops-panel-selector">
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn ops-panel-active" data-subsys="psychometrics" onclick="switchSciSubsystem('psychometrics')">PSYCHOMETRICS</button>
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn" data-subsys="linguistics" onclick="switchSciSubsystem('linguistics')">LINGUISTICS</button>
+                    <button class="lcars-pill-btn lcars-pill-sm ops-panel-btn" data-subsys="ontology" onclick="switchSciSubsystem('ontology')">ONTOLOGY</button>
                 </div>
             </div>
 
@@ -638,7 +638,7 @@
 
             <div class="science-grid">
                 <!-- Panel B: Agent Affect Grid (per-agent PAD projection) -->
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Agent Affect Grid <span class="lcars-panel-id">5894</span></div>
                     <div class="lcars-panel-body">
                         <!-- PAD projection selector — subpanel frame -->
@@ -663,7 +663,7 @@
                 </div>
 
                 <!-- Panel C: Generator Balance -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Generator Balance <span class="lcars-panel-id">7741</span></div>
                     <div class="lcars-panel-body" id="science-generators-balance">
                         <div class="gen-balance-row" id="gen-g2g3">
@@ -688,7 +688,7 @@
                 </div>
 
                 <!-- Panel D: Flow State -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Flow State <span class="lcars-panel-id">1990</span></div>
                     <div class="lcars-panel-body" id="science-flow-state">
                         <ul class="flow-checklist" id="science-flow-checklist">
@@ -703,7 +703,7 @@
                 </div>
 
                 <!-- Panel E: Degradation Early Warning (DEW) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Degradation Early Warning</div>
                     <div class="lcars-panel-body">
                         <div class="dew-gauge" id="dew-gauge">
@@ -717,7 +717,7 @@
                 </div>
 
                 <!-- Panel F: Supervisory Control -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Supervisory Control</div>
                     <div class="lcars-panel-body" id="loa-panel">
                         <div class="loa-ladder" id="loa-ladder">
@@ -737,7 +737,7 @@
                 </div>
 
                 <!-- Panel G: Cognitive Load (NASA-TLX) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Cognitive Load (NASA-TLX)</div>
                     <div class="lcars-panel-body">
                         <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; padding:8px 0" id="cogload-gauges">
@@ -774,7 +774,7 @@
                 </div>
 
                 <!-- Panel H: Working Memory -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Working Memory (Baddeley + Yerkes-Dodson)</div>
                     <div class="lcars-panel-body" id="workmem-panel">
                         <div style="text-align:center; padding:12px 0">
@@ -782,7 +782,7 @@
                             <div style="font-size:0.72em;color:var(--text-secondary);margin-top:4px">CAPACITY LOAD</div>
                             <div style="margin:12px auto; max-width:240px">
                                 <div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:var(--bg-panel, #111122)">
-                                    <div style="width:15%;background:var(--c-tab-transport, #66aacc);opacity:0.4" title="Understimulated"></div>
+                                    <div style="width:15%;background:var(--c-tab-helm, #66aacc);opacity:0.4" title="Understimulated"></div>
                                     <div style="width:45%;background:var(--lcars-medical, #6aab8e);opacity:0.4" title="Optimal"></div>
                                     <div style="width:40%;background:var(--lcars-alert, #c47070);opacity:0.4" title="Overwhelmed"></div>
                                 </div>
@@ -801,7 +801,7 @@
                 </div>
 
                 <!-- Panel I: Resources -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Resources (Reserve + Regulatory + Allostatic)</div>
                     <div class="lcars-panel-body" id="resources-panel">
                         <div style="margin-bottom:12px">
@@ -838,7 +838,7 @@
                 </div>
 
                 <!-- Panel J: Engagement (UWES) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                     <div class="lcars-panel-header">Engagement (UWES + JD-R)</div>
                     <div class="lcars-panel-body">
                         <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; padding:8px 0" id="engagement-gauges">
@@ -888,7 +888,7 @@
             <!-- agentd Session 95: Fleet-Level Cognitive Panels -->
             <div class="science-grid" style="margin-top:var(--gap-l)">
                 <!-- Photonic Field Coherence -->
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-analysis)" title="CS: Fleet-wide inter-agent message coherence + signaling quality">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-science)" title="CS: Fleet-wide inter-agent message coherence + signaling quality">
                     <div class="lcars-panel-header">Photonic Field <span class="lcars-panel-id">8001</span></div>
                     <div class="lcars-panel-body" id="sci-photonic-field">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading fleet photonic data...</div>
@@ -896,7 +896,7 @@
                 </div>
 
                 <!-- Spectral Profile Comparison -->
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-analysis)" title="CS: Fleet neuromodulator balance — processing style signatures per agent">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-science)" title="CS: Fleet neuromodulator balance — processing style signatures per agent">
                     <div class="lcars-panel-header">Spectral Profiles <span class="lcars-panel-id">8002</span></div>
                     <div class="lcars-panel-body" id="sci-spectral-profiles">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading spectral data...</div>
@@ -904,7 +904,7 @@
                 </div>
 
                 <!-- Trait Accumulation -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis); grid-column: 1 / -1" title="CS: Processing mode usage statistics + learning curve metrics">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science); grid-column: 1 / -1" title="CS: Processing mode usage statistics + learning curve metrics">
                     <div class="lcars-panel-header">Trait Accumulation <span class="lcars-panel-id">8003</span></div>
                     <div class="lcars-panel-body" id="sci-traits">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading trait data...</div>
@@ -921,7 +921,7 @@
 
                 <div class="science-grid">
                     <!-- Vocabulary Governance -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                         <div class="lcars-panel-header">Shared Vocabulary <span class="lcars-panel-id">3001</span></div>
                         <div class="lcars-panel-body" id="ling-vocabulary">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading vocabulary...</div>
@@ -929,7 +929,7 @@
                     </div>
 
                     <!-- E-Prime Compliance -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                         <div class="lcars-panel-header">E-Prime Violations <span class="lcars-panel-id">3002</span></div>
                         <div class="lcars-panel-body" id="ling-eprime">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading E-Prime data...</div>
@@ -937,7 +937,7 @@
                     </div>
 
                     <!-- Cross-Agent Terminology Divergence -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                         <div class="lcars-panel-header">Terminology Divergence <span class="lcars-panel-id">3005</span></div>
                         <div class="lcars-panel-body" id="ling-divergence">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Scanning agents...</div>
@@ -945,7 +945,7 @@
                     </div>
 
                     <!-- Term Governance -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis); grid-column: 1 / -1">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science); grid-column: 1 / -1">
                         <div class="lcars-panel-header">Term Governance <span class="lcars-panel-id">3006</span></div>
                         <div class="lcars-panel-body" id="ling-governance">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading governance data...</div>
@@ -953,7 +953,7 @@
                     </div>
 
                     <!-- Terminology Map -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis); grid-column: 1 / -1">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science); grid-column: 1 / -1">
                         <div class="lcars-panel-header">Terminology Map <span class="lcars-panel-id">3003</span></div>
                         <div class="lcars-panel-body" id="ling-terminology">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading terminology...</div>
@@ -961,7 +961,7 @@
                     </div>
                 </div>
                     <!-- Mesh Vocabulary (moved from psychometrics) -->
-                    <div class="lcars-panel panel-tristate panel-expanded kb-section" style="--panel-accent: var(--c-tab-analysis); grid-column: 1 / -1">
+                    <div class="lcars-panel panel-tristate panel-expanded kb-section" style="--panel-accent: var(--c-tab-science); grid-column: 1 / -1">
                         <div class="lcars-panel-header">Mesh Vocabulary <span class="lcars-panel-id">3004</span></div>
                         <div class="lcars-panel-body" id="lcars-sci-vocab"></div>
                     </div>
@@ -983,13 +983,13 @@
 
                 <div class="science-grid">
                     <!-- Discipline Catalog (PSH) -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis); grid-column: 1 / -1">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science); grid-column: 1 / -1">
                         <div class="lcars-panel-header">Discipline Catalog (PSH) <span class="lcars-panel-id">4001</span></div>
                         <div class="lcars-panel panel-tristate-body" id="lcars-sci-catalog"></div>
                     </div>
 
                     <!-- Claims Taxonomy -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                         <div class="lcars-panel-header">Claims Taxonomy <span class="lcars-panel-id">4002</span></div>
                         <div class="lcars-panel-body" id="onto-claims">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Awaiting claims data...</div>
@@ -997,7 +997,7 @@
                     </div>
 
                     <!-- Universal Facets -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis)">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science)">
                         <div class="lcars-panel-header">Universal Facets <span class="lcars-panel-id">4003</span></div>
                         <div class="lcars-panel-body" id="onto-facets">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Awaiting facet data...</div>
@@ -1005,7 +1005,7 @@
                     </div>
 
                     <!-- Decisions -->
-                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-analysis); grid-column: 1 / -1">
+                    <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-science); grid-column: 1 / -1">
                         <div class="lcars-panel-header">Decisions <span class="lcars-panel-id">4004</span></div>
                         <div class="lcars-panel-body" id="onto-graph">
                             <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Awaiting decisions data...</div>
@@ -1016,7 +1016,7 @@
         </div>
 
         <!-- Architecture Tab -->
-        <div class="tab-pane" id="pane-architecture">
+        <div class="tab-pane" id="pane-engineering">
             <!-- Engineering Record — zone-c title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
                 <span class="zc-title">Cognitive Architecture</span>
@@ -1030,7 +1030,7 @@
             </div>
 
             <!-- Timing Hierarchy — 5-layer status (psy-session arch synthesis) -->
-            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture); margin-bottom: var(--gap-l)">
+            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering); margin-bottom: var(--gap-l)">
                 <div class="lcars-panel-header">Timing Hierarchy <span class="lcars-panel-id">1963</span></div>
                 <div class="lcars-panel-body" id="engineering-timing-hierarchy">
                     <div style="display:grid;grid-template-columns:auto 1fr auto;gap:var(--gap-xs) var(--gap-m);font-size:0.78em;align-items:center">
@@ -1048,7 +1048,7 @@
 
             <div class="engineering-grid">
                 <!-- Panel A: Deliberation Cascade -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Deliberation Cascade (Gf) <span class="lcars-panel-id">4847</span></div>
                     <div class="lcars-panel-body" id="deliberation-cascade">
                         <div class="engineering-placeholder" id="deliberation-placeholder">Awaiting engineering data...</div>
@@ -1056,7 +1056,7 @@
                 </div>
 
                 <!-- Panel A2: Crystallization Cascade (Gc) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Crystallization Cascade (Gc) <span class="lcars-panel-id">7741</span></div>
                     <div class="lcars-panel-body" id="gc-cascade">
                         <div class="engineering-placeholder" id="gc-placeholder">Awaiting Gc metrics...</div>
@@ -1064,7 +1064,7 @@
                 </div>
 
                 <!-- Panel C: Gf Tempo (fluid intelligence — deliberation rhythm) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Gf Tempo <span class="lcars-panel-id">1963</span></div>
                     <div class="lcars-panel-body">
                         <div id="tempo-gf-waveform" style="margin-bottom:6px"></div>
@@ -1080,7 +1080,7 @@
                 </div>
 
                 <!-- Panel C2: Gc Tempo (crystallized intelligence — processing throughput) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Gc Tempo <span class="lcars-panel-id">7741</span></div>
                     <div class="lcars-panel-body">
                         <div id="tempo-gc-waveform" style="margin-bottom:6px"></div>
@@ -1095,7 +1095,7 @@
                 </div>
 
                 <!-- Panel B: Utilization Gauge (after tempo) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Utilization <span class="lcars-panel-id">2018</span></div>
                     <div class="lcars-panel-body">
                         <div style="display:flex;gap:16px;align-items:center;">
@@ -1112,7 +1112,7 @@
                 </div>
 
                 <!-- Panel D: Cost Accumulator -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Cost Accumulator <span class="lcars-panel-id">3847</span></div>
                     <div class="lcars-panel-body">
                         <div class="cost-display" id="cost-display">
@@ -1124,7 +1124,7 @@
                 </div>
 
                 <!-- Panel E: Cognitive Load (A2A-Psychology) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Cognitive Load (TLX) <span class="lcars-panel-id">1988</span></div>
                     <div class="lcars-panel-body" id="eng-cognitive-load">
                         <div class="engineering-placeholder">Awaiting psychometrics data...</div>
@@ -1132,7 +1132,7 @@
                 </div>
 
                 <!-- Panel F: Yerkes-Dodson Zones (A2A-Psychology) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Yerkes-Dodson Zones <span class="lcars-panel-id">1908</span></div>
                     <div class="lcars-panel-body" id="eng-yd-zones">
                         <div class="engineering-placeholder">Awaiting psychometrics data...</div>
@@ -1140,7 +1140,7 @@
                 </div>
 
                 <!-- Panel G: Concurrency Slots (full width) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture); grid-column: 1 / -1;">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering); grid-column: 1 / -1;">
                     <div class="lcars-panel-header">Concurrency Slots <span class="lcars-panel-id">5894</span></div>
                     <div class="lcars-panel-body">
                         <div class="concurrency-slots" id="concurrency-slots">
@@ -1163,13 +1163,13 @@
 
             <!-- Alpha Heartbeat + Gc Learning (T22 metabolic cooling + basal ganglia) -->
             <div class="engineering-grid" style="margin-bottom:var(--gap-m)">
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Alpha Heartbeat <span class="lcars-panel-id">2244</span></div>
                     <div class="lcars-panel-body" id="eng-alpha-heartbeat">
                         <div class="phase-stub"><div class="phase-stub-text">Awaiting heartbeat data...</div></div>
                     </div>
                 </div>
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                     <div class="lcars-panel-header">Gc Reinforcement Learning <span class="lcars-panel-id">2245</span></div>
                     <div class="lcars-panel-body" id="eng-gc-learning">
                         <div class="phase-stub"><div class="phase-stub-text">Awaiting Gc learning data...</div></div>
@@ -1179,7 +1179,7 @@
 
             <!-- Mode Transition Speed (agentd Session 95) -->
             <div class="engineering-grid" style="margin-bottom:var(--gap-m)">
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-architecture); grid-column: 1 / -1" title="CS: Context switch latency between processing modes">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-engineering); grid-column: 1 / -1" title="CS: Context switch latency between processing modes">
                     <div class="lcars-panel-header">Mode Transitions <span class="lcars-panel-id">9001</span></div>
                     <div class="lcars-panel-body" id="eng-mode-transitions">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading transition data...</div>
@@ -1188,7 +1188,7 @@
             </div>
 
             <!-- Diagnostic Levels (TNG Technical Manual) -->
-            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-architecture)">
+            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-engineering)">
                 <div class="lcars-panel-header">System Diagnostics</div>
                 <div class="lcars-panel-body" id="diag-levels-panel" style="display:flex;flex-direction:column;gap:4px">
                     <div class="diag-level-row" onclick="runDiagnostic(1)" style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -1221,7 +1221,7 @@
         </div>
 
         <!-- Transport Tab -->
-        <div class="tab-pane" id="pane-transport">
+        <div class="tab-pane" id="pane-helm">
             <!-- Zone C: title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
                 <span class="zc-title">Transport Navigation</span>
@@ -1231,7 +1231,7 @@
             <div class="lcars-data-grid" id="helm-zone-a" style="margin-bottom:var(--gap-m)"></div>
             <div class="helm-grid">
                 <!-- Panel A: Session Timeline -->
-                <div class="lcars-panel panel-tristate helm-full-width" style="--panel-accent: var(--c-tab-transport)">
+                <div class="lcars-panel panel-tristate helm-full-width" style="--panel-accent: var(--c-tab-helm)">
                     <div class="lcars-panel-header">Session Timeline <span class="lcars-panel-id">5001</span></div>
                     <div class="lcars-panel-body" id="helm-session-timeline">
                         <div class="helm-placeholder">Awaiting session data...</div>
@@ -1239,7 +1239,7 @@
                 </div>
 
                 <!-- Panel B: Routing Table -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-transport)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-helm)">
                     <div class="lcars-panel-header">Routing Table <span class="lcars-panel-id">5002</span></div>
                     <div class="lcars-panel-body" id="helm-routing-table-body">
                         <table class="helm-routing-table">
@@ -1267,7 +1267,7 @@
                 </div>
 
                 <!-- Panel C: Message Flow Summary -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-transport)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-helm)">
                     <div class="lcars-panel-header">Message Flow Summary <span class="lcars-panel-id">5003</span></div>
                     <div class="lcars-panel-body" id="helm-message-flow">
                         <div class="helm-placeholder">Awaiting message flow data...</div>
@@ -1275,7 +1275,7 @@
                 </div>
 
                 <!-- Panel D: Engagement (A2A-Psychology) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-transport)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-helm)">
                     <div class="lcars-panel-header">Engagement (UWES) <span class="lcars-panel-id">5004</span></div>
                     <div class="lcars-panel-body" id="helm-engagement">
                         <div class="helm-placeholder">Awaiting psychometrics data...</div>
@@ -1283,7 +1283,7 @@
                 </div>
 
                 <!-- Panel E: Flow State (A2A-Psychology) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-transport)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-helm)">
                     <div class="lcars-panel-header">Flow State <span class="lcars-panel-id">5005</span></div>
                     <div class="lcars-panel-body" id="helm-flow">
                         <div class="helm-placeholder">Awaiting psychometrics data...</div>
@@ -1293,7 +1293,7 @@
 
             <!-- Mesh Breathing / Group Meditation (agentd Session 95) -->
             <div class="helm-grid" style="margin-top:var(--gap-m)">
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-transport); grid-column: 1 / -1" title="CS: Fleet-wide adaptive rate coordination + synchronized processing mode">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-helm); grid-column: 1 / -1" title="CS: Fleet-wide adaptive rate coordination + synchronized processing mode">
                     <div class="lcars-panel-header">Mesh Breathing <span class="lcars-panel-id">9501</span></div>
                     <div class="lcars-panel-body" id="helm-breathing">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading mesh breathing data...</div>
@@ -1303,7 +1303,7 @@
 
             <!-- LCARS-only: Transport Messages (from Meta) -->
             <div class="lcars-only" style="display:none">
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-transport)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-helm)">
                     <div class="lcars-panel-header">Transport Messages</div>
                     <div class="lcars-panel-body scrollable" id="lcars-helm-messages"></div>
                 </div>
@@ -1311,7 +1311,7 @@
         </div>
 
         <!-- Integrity Tab -->
-        <div class="tab-pane" id="pane-integrity">
+        <div class="tab-pane" id="pane-tactical">
             <!-- Zone C: title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
                 <span class="zc-title">Epistemic Integrity</span>
@@ -1322,7 +1322,7 @@
 
             <div class="tactical-grid">
                 <!-- Panel A: Shield Status -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-integrity)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-tactical)">
                     <div class="lcars-panel-header">Shield Status <span class="lcars-panel-id">6001</span></div>
                     <div class="lcars-panel-body" id="shield-status">
                         <div class="shield-row">
@@ -1359,7 +1359,7 @@
                 </div>
 
                 <!-- Panel B: Agent Card Compliance -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-integrity)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-tactical)">
                     <div class="lcars-panel-header">Agent Card Compliance <span class="lcars-panel-id">6002</span></div>
                     <div class="lcars-panel-body" id="agent-compliance">
                         <div class="compliance-row">
@@ -1391,7 +1391,7 @@
                 </div>
 
                 <!-- Panel C: Transport Integrity -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-integrity)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-tactical)">
                     <div class="lcars-panel-header">Transport Integrity <span class="lcars-panel-id">6003</span></div>
                     <div class="lcars-panel-body" id="transport-integrity">
                         <div class="transport-layer-row">
@@ -1418,7 +1418,7 @@
                 </div>
 
                 <!-- Panel D: Threat Log -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-integrity)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-tactical)">
                     <div class="lcars-panel-header">Threat Log <span class="lcars-panel-id">6004</span></div>
                     <div class="lcars-panel-body" id="threat-log">
                         <div class="threat-entry">
@@ -1434,7 +1434,7 @@
                 </div>
 
                 <!-- Panel E: Trust Matrix Heatmap -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-integrity); grid-column: 1 / -1;">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-tactical); grid-column: 1 / -1;">
                     <div class="lcars-panel-header">Trust Matrix <span class="lcars-panel-id">6005</span></div>
                     <div class="lcars-panel-body" id="trust-heatmap">
                         <div class="trust-matrix-loading">Fetching trust data...</div>
@@ -1444,7 +1444,7 @@
         </div>
 
         <!-- Vitals Tab (Station 11 — per-agent diagnostics) -->
-        <div class="tab-pane" id="pane-vitals">
+        <div class="tab-pane" id="pane-medical">
             <!-- Medical Record — zone-c title + data grid -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
                 <span class="zc-title">Agent Vitals</span>
@@ -1464,7 +1464,7 @@
             <!-- Zone B: Diagnostic panels (2-col grid) -->
             <div class="medical-grid">
                 <!-- Oscillator — waveform + activation (primary diagnostic) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals); grid-column: 1 / -1;">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical); grid-column: 1 / -1;">
                     <div class="lcars-panel-header">Oscillator <span class="lcars-panel-id">8686</span></div>
                     <div class="lcars-panel-body" id="medical-oscillator-waveform">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Select an agent to view oscillator state</div>
@@ -1473,7 +1473,7 @@
                 </div>
 
                 <!-- Signal Breakdown — hatched bars per signal source -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">Signal Breakdown <span class="lcars-panel-id">6741</span></div>
                     <div class="lcars-panel-body" id="medical-oscillator-signals">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Awaiting signal data</div>
@@ -1481,7 +1481,7 @@
                 </div>
 
                 <!-- Cognitive Tempo — waveform + recommended tier -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">Cognitive Tempo <span class="lcars-panel-id">3847</span></div>
                     <div class="lcars-panel-body" id="medical-vitals-tempo">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Awaiting tempo data</div>
@@ -1489,7 +1489,7 @@
                 </div>
 
                 <!-- Cognitive Load (NASA-TLX) — demand/pressure/efficacy bars -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">Cognitive Load (TLX) <span class="lcars-panel-id">1988</span></div>
                     <div class="lcars-panel-body" id="medical-vitals-tlx">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Awaiting psychometrics</div>
@@ -1497,7 +1497,7 @@
                 </div>
 
                 <!-- Working Memory — capacity + Yerkes-Dodson zone -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">Working Memory <span class="lcars-panel-id">1986</span></div>
                     <div class="lcars-panel-body" id="medical-vitals-memory">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Awaiting psychometrics</div>
@@ -1505,7 +1505,7 @@
                 </div>
 
                 <!-- Resources — reserve/self-reg/allostatic bars -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">Resources <span class="lcars-panel-id">2002</span></div>
                     <div class="lcars-panel-body" id="medical-vitals-resources">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Awaiting psychometrics</div>
@@ -1513,7 +1513,7 @@
                 </div>
 
                 <!-- DEW (Degradation Early Warning) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">DEW (Degradation) <span class="lcars-panel-id">4471</span></div>
                     <div class="lcars-panel-body" id="medical-burnout-dew">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Awaiting psychometrics</div>
@@ -1521,7 +1521,7 @@
                 </div>
 
                 <!-- Mesh Coherence (5-dimensional) -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">Coherence <span class="lcars-panel-id">2010</span></div>
                     <div class="lcars-panel-body" id="medical-coherence">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Select MESH for coherence data</div>
@@ -1529,7 +1529,7 @@
                 </div>
 
                 <!-- Refractory State -->
-                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals)">
+                <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical)">
                     <div class="lcars-panel-header">Refractory <span class="lcars-panel-id">7209</span></div>
                     <div class="lcars-panel-body" id="medical-oscillator-refractory">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">&mdash;</div>
@@ -1538,7 +1538,7 @@
             </div>
 
             <!-- Alpha Heartbeat (T22 metabolic cooling — per agent or mesh aggregate) -->
-            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals); margin-top:8px">
+            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical); margin-top:8px">
                 <div class="lcars-panel-header">Alpha Heartbeat <span class="lcars-panel-id">2246</span></div>
                 <div class="lcars-panel-body" id="medical-alpha-heartbeat">
                     <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Awaiting heartbeat data</div>
@@ -1546,7 +1546,7 @@
             </div>
 
             <!-- Fleet Microbiome (agentd Session 95) -->
-            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals); margin-top:var(--gap-m)" title="CS: Aggregated external service dependency health across all agents">
+            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical); margin-top:var(--gap-m)" title="CS: Aggregated external service dependency health across all agents">
                 <div class="lcars-panel-header">Fleet Microbiome <span class="lcars-panel-id">7010</span></div>
                 <div class="lcars-panel-body" id="med-fleet-microbiome">
                     <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading fleet microbiome...</div>
@@ -1555,19 +1555,19 @@
 
             <!-- Three-Panel Cognitive Display (agentd Session 95) -->
             <div class="medical-grid" style="margin-top:var(--gap-m)">
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-vitals)" title="CS: Processing pipeline depth + frequency metrics">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-medical)" title="CS: Processing pipeline depth + frequency metrics">
                     <div class="lcars-panel-header">Neural (Gf/Gc) <span class="lcars-panel-id">7001</span></div>
                     <div class="lcars-panel-body" id="med-neural">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading neural data...</div>
                     </div>
                 </div>
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-vitals)" title="CS: Background maintenance tasks (GC, indexing, reconciliation)">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-medical)" title="CS: Background maintenance tasks (GC, indexing, reconciliation)">
                     <div class="lcars-panel-header">Glial (Gm) <span class="lcars-panel-id">7002</span></div>
                     <div class="lcars-panel-body" id="med-glial">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading glial data...</div>
                     </div>
                 </div>
-                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-vitals)" title="CS: Inter-agent message coherence + signaling quality">
+                <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-medical)" title="CS: Inter-agent message coherence + signaling quality">
                     <div class="lcars-panel-header">Photonic <span class="lcars-panel-id">7003</span></div>
                     <div class="lcars-panel-body" id="med-photonic">
                         <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading photonic data...</div>
@@ -1576,7 +1576,7 @@
             </div>
 
             <!-- Vagal Brake Cascade (agentd Session 95) -->
-            <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-vitals); margin-top:var(--gap-m)" title="CS: Adaptive rate limiter cascade — master tempo controls processing speed">
+            <div class="lcars-panel panel-tristate panel-expanded" style="--panel-accent: var(--c-tab-medical); margin-top:var(--gap-m)" title="CS: Adaptive rate limiter cascade — master tempo controls processing speed">
                 <div class="lcars-panel-header">Vagal Brake Cascade <span class="lcars-panel-id">7004</span></div>
                 <div class="lcars-panel-body" id="med-vagal">
                     <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading vagal data...</div>
@@ -1584,7 +1584,7 @@
             </div>
 
             <!-- Microbiome Health (agentd Session 95) -->
-            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals); margin-top:var(--gap-m)" title="CS: External service dependency health (API, VCS, DB, runtime)">
+            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical); margin-top:var(--gap-m)" title="CS: External service dependency health (API, VCS, DB, runtime)">
                 <div class="lcars-panel-header">Microbiome <span class="lcars-panel-id">7005</span></div>
                 <div class="lcars-panel-body" id="med-microbiome">
                     <div style="color:var(--text-dim);font-size:0.82em;padding:12px">Loading microbiome data...</div>
@@ -1592,7 +1592,7 @@
             </div>
 
             <!-- Zone C: Fire History (full width) + footer title -->
-            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-vitals); margin-top:8px">
+            <div class="lcars-panel panel-tristate" style="--panel-accent: var(--c-tab-medical); margin-top:8px">
                 <div class="lcars-panel-header">Fire History (Shadow)</div>
                 <div class="lcars-panel-body" id="medical-oscillator-history">
                     <div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">No fire events recorded</div>
@@ -1644,7 +1644,7 @@
 <!-- Station plugins — loaded dynamically via /api/stations, fallback to static list -->
 <script>
 (async function loadStations() {
-    const fallback = ["governance","analysis","transport","architecture","integrity","vitals"];
+    const fallback = ["operations","science","helm","engineering","tactical","medical"];
     let stationIds = fallback;
     try {
         const resp = await fetch("/api/stations", { signal: AbortSignal.timeout(3000) });

@@ -58,17 +58,17 @@ async function checkAuth() {
 // ── Operations Subsystem Switcher ──────────────────────────
 
 // ═══ LCARS CHROME ═══════════════════════════════════════════
-function switchGovSubsystem(subsys) {
-    document.querySelectorAll("#pane-governance .gov-panel-btn").forEach(b =>
-        b.classList.toggle("gov-panel-active", b.dataset.subsys === subsys));
-    document.querySelectorAll(".gov-panel").forEach(p =>
-        p.classList.toggle("gov-panel-active", p.id === `gov-${subsys}`));
+function switchOpsSubsystem(subsys) {
+    document.querySelectorAll("#pane-operations .ops-panel-btn").forEach(b =>
+        b.classList.toggle("ops-panel-active", b.dataset.subsys === subsys));
+    document.querySelectorAll(".ops-panel").forEach(p =>
+        p.classList.toggle("ops-panel-active", p.id === `ops-${subsys}`));
     // Persist to URL
     const url = new URL(location);
     url.searchParams.set("sub", subsys);
     history.replaceState(null, "", url);
 }
-window.switchGovSubsystem = switchGovSubsystem;
+window.switchOpsSubsystem = switchOpsSubsystem;
 
 async function meshControl(action) {
     // Model tier selection — client-side only (visual feedback), actual change requires meshctl
@@ -298,13 +298,13 @@ function setTheme(mode) {
     if (mode === "lcars") {
         startLcarsStardate();
         // Switch to bridge station: prefer URL hash, then current tab, then Operations
-        const bridgeTabs = ["governance", "analysis", "architecture", "transport", "integrity", "vitals"];
+        const bridgeTabs = ["operations", "science", "engineering", "helm", "tactical", "medical"];
         const hashTab = location.hash.replace("#", "");
         const currentTab = document.querySelector('.lcars-tab.active')?.dataset?.tab;
         if (hashTab && bridgeTabs.includes(hashTab)) {
             switchTab(hashTab, false);
         } else if (!bridgeTabs.includes(currentTab)) {
-            switchTab("governance");
+            switchTab("operations");
         }
         updateLcarsHeaderData();
         // Render SVG L-shape frame + listen for resize
@@ -331,7 +331,7 @@ function setTheme(mode) {
 // ── Tabs ───────────────────────────────────────────────────────
 
 // ═══ TABS + NAV ═════════════════════════════════════════════
-const VALID_TABS = ["pulse", "meta", "kb", "wisdom", "governance", "analysis", "architecture", "transport", "integrity", "vitals"];
+const VALID_TABS = ["pulse", "meta", "kb", "wisdom", "operations", "science", "engineering", "helm", "tactical", "medical"];
 
 // ── LCARS Spine Content Tracking ─────────────────────────────
 // Each tab maps to a set of spine segments reflecting its content sections.
@@ -359,33 +359,33 @@ const SPINE_CONFIG = {
         { label: "Lessons",    color: "var(--c-tab-wisdom)", flex: 4 },
         { label: "Graduated",  color: "var(--c-tab-pulse)", flex: 2 },
     ],
-    governance: [
-        { label: "Budget",    color: "var(--c-tab-governance)",   flex: 2 },
+    operations: [
+        { label: "Budget",    color: "var(--c-tab-ops)",   flex: 2 },
         { label: "Actions",   color: "var(--c-health)",    flex: 3 },
         { label: "Schedule",  color: "var(--c-epistemic)", flex: 1 },
     ],
-    analysis: [
-        { label: "Affect",     color: "var(--c-tab-analysis)", flex: 2 },
+    science: [
+        { label: "Affect",     color: "var(--c-tab-science)", flex: 2 },
         { label: "Mesh",       color: "var(--c-epistemic)",   flex: 2 },
         { label: "Generators", color: "var(--c-health)",      flex: 2 },
-        { label: "Flow",       color: "var(--c-tab-analysis)", flex: 1 },
+        { label: "Flow",       color: "var(--c-tab-science)", flex: 1 },
         { label: "DEW",        color: "var(--c-alert)",       flex: 1 },
         { label: "Control",    color: "var(--c-transport)",   flex: 1 },
     ],
-    architecture: [
-        { label: "Deliberation", color: "var(--c-tab-architecture)", flex: 2 },
+    engineering: [
+        { label: "Deliberation", color: "var(--c-tab-engineering)", flex: 2 },
         { label: "Utilization", color: "var(--c-health)",          flex: 2 },
-        { label: "Tempo",       color: "var(--c-tab-architecture)", flex: 2 },
+        { label: "Tempo",       color: "var(--c-tab-engineering)", flex: 2 },
         { label: "Cost",        color: "var(--c-warning)",         flex: 1 },
         { label: "Concurrency", color: "var(--c-transport)",       flex: 1 },
     ],
-    transport: [
-        { label: "Sessions", color: "var(--c-tab-transport)",    flex: 3 },
-        { label: "Routing",  color: "var(--c-tab-transport)",    flex: 2 },
+    helm: [
+        { label: "Sessions", color: "var(--c-tab-helm)",    flex: 3 },
+        { label: "Routing",  color: "var(--c-tab-helm)",    flex: 2 },
         { label: "Flow",     color: "var(--c-transport)",   flex: 2 },
     ],
-    integrity: [
-        { label: "Shields",    color: "var(--c-tab-integrity)", flex: 2 },
+    tactical: [
+        { label: "Shields",    color: "var(--c-tab-tactical)", flex: 2 },
         { label: "Compliance", color: "var(--c-warning)",      flex: 2 },
         { label: "Transport",  color: "var(--c-transport)",    flex: 2 },
         { label: "Threats",    color: "var(--c-alert)",        flex: 2 },
@@ -404,7 +404,7 @@ function updateSpine(tabId) {
     }).join("");
 }
 
-const TAB_COLORS = { pulse: "--c-tab-pulse", meta: "--c-tab-meta", kb: "--c-tab-kb", wisdom: "--c-tab-wisdom", governance: "--c-tab-governance", analysis: "--c-tab-analysis", integrity: "--c-tab-integrity", architecture: "--c-tab-architecture", transport: "--c-tab-transport", vitals: "--c-tab-vitals" };
+const TAB_COLORS = { pulse: "--c-tab-pulse", meta: "--c-tab-meta", kb: "--c-tab-kb", wisdom: "--c-tab-wisdom", operations: "--c-tab-ops", science: "--c-tab-science", tactical: "--c-tab-tactical", engineering: "--c-tab-engineering", helm: "--c-tab-helm", medical: "--c-tab-medical" };
 
 function switchTab(tabId, updateHash = true) {
     if (tabId === "knowledge") tabId = "meta"; // backward compat
@@ -424,13 +424,13 @@ function switchTab(tabId, updateHash = true) {
     const computed = getComputedStyle(document.body).getPropertyValue(colorVar).trim();
     document.documentElement.style.setProperty("--active-tab-color", computed || `var(${colorVar})`);
     updateSpine(tabId);
-    if (tabId === "governance") refreshAll();
-    if (tabId === "analysis") fetchScienceData();
-    if (tabId === "architecture") { fetchEngineeringData(); startWaveformAnimation(); }
-    else if (tabId === "vitals") { fetchMedicalData(); startWaveformAnimation(); }
+    if (tabId === "operations") refreshAll();
+    if (tabId === "science") fetchScienceData();
+    if (tabId === "engineering") { fetchEngineeringData(); startWaveformAnimation(); }
+    else if (tabId === "medical") { fetchMedicalData(); startWaveformAnimation(); }
     else { stopWaveformAnimation(); }
-    if (tabId === "transport") fetchHelmData();
-    if (tabId === "integrity") fetchTacticalData();
+    if (tabId === "helm") fetchHelmData();
+    if (tabId === "tactical") fetchTacticalData();
     if (updateHash) history.replaceState(null, "", `#${tabId}`);
 }
 

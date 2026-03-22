@@ -41,12 +41,12 @@
     --c-tab-kb: #c4956a;          /* amber — structured knowledge */
     --c-tab-wisdom: #b8956a;      /* warm bronze — accumulated insight */
     /* LCARS 2369 station colors — panel function, not uniform division */
-    --c-tab-governance: #FF9966;         /* orange-peel — command operations */
-    --c-tab-analysis: #9999FF;     /* melrose — science analysis */
-    --c-tab-architecture: #FF9900; /* atomic-tangerine — engineering systems */
-    --c-tab-integrity: #CC6666;    /* chestnut-rose — security/tactical */
-    --c-tab-transport: #CC99CC;        /* lilac — navigation/routing */
-    --c-tab-vitals: #9999CC;     /* blue-bell — medical diagnostics */
+    --c-tab-ops: #FF9966;         /* orange-peel — command operations */
+    --c-tab-science: #9999FF;     /* melrose — science analysis */
+    --c-tab-engineering: #FF9900; /* atomic-tangerine — engineering systems */
+    --c-tab-tactical: #CC6666;    /* chestnut-rose — security/tactical */
+    --c-tab-helm: #CC99CC;        /* lilac — navigation/routing */
+    --c-tab-medical: #9999CC;     /* blue-bell — medical diagnostics */
 
     /* Agent identity palette — subtle, distinguishable */
     --c-psychology: #6b8aaf;
@@ -89,11 +89,11 @@
 .lcars-only { display: none !important; }
 .theme-lcars .lcars-only { display: block !important; }
 /* Bridge station panes: hidden in dark/light, available in LCARS via .tab-pane.active */
-body:not(.theme-lcars) #pane-analysis { display: none !important; }
-body:not(.theme-lcars) #pane-vitals { display: none !important; }
-body:not(.theme-lcars) #pane-architecture { display: none !important; }
-body:not(.theme-lcars) #pane-transport { display: none !important; }
-body:not(.theme-lcars) #pane-integrity { display: none !important; }
+body:not(.theme-lcars) #pane-science { display: none !important; }
+body:not(.theme-lcars) #pane-medical { display: none !important; }
+body:not(.theme-lcars) #pane-engineering { display: none !important; }
+body:not(.theme-lcars) #pane-helm { display: none !important; }
+body:not(.theme-lcars) #pane-tactical { display: none !important; }
 
 /* LCARS 47988 — canonical TNG color semantics */
 .theme-lcars {
@@ -245,12 +245,12 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     --c-tab-kb: var(--lcars-secondary);
     --c-tab-wisdom: var(--lcars-title);
     /* LCARS 2369 station colors — canonical panel function colors */
-    --c-tab-governance: #FF9966;         /* orange-peel — command operations */
-    --c-tab-analysis: #9999FF;     /* melrose — science analysis */
-    --c-tab-architecture: #FF9900; /* atomic-tangerine — engineering systems */
-    --c-tab-integrity: #CC6666;    /* chestnut-rose — security/tactical */
-    --c-tab-transport: #CC99CC;        /* lilac — navigation/routing */
-    --c-tab-vitals: #9999CC;     /* blue-bell — medical diagnostics */
+    --c-tab-ops: #FF9966;         /* orange-peel — command operations */
+    --c-tab-science: #9999FF;     /* melrose — science analysis */
+    --c-tab-engineering: #FF9900; /* atomic-tangerine — engineering systems */
+    --c-tab-tactical: #CC6666;    /* chestnut-rose — security/tactical */
+    --c-tab-helm: #CC99CC;        /* lilac — navigation/routing */
+    --c-tab-medical: #9999CC;     /* blue-bell — medical diagnostics */
 
     --c-psychology: var(--lcars-accent);
     --c-psq: var(--lcars-secondary);
@@ -453,12 +453,12 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     filter: brightness(1.3); /* brightness = state, not color change (§2.1) */
 }
 /* Per-station button colors — LCARS 2369 palette */
-.lcars-sidebar-btn[data-tab="operations"]  { background: var(--c-tab-governance); }
-.lcars-sidebar-btn[data-tab="science"]     { background: var(--c-tab-analysis); }
-.lcars-sidebar-btn[data-tab="engineering"] { background: var(--c-tab-architecture); }
-.lcars-sidebar-btn[data-tab="helm"]        { background: var(--c-tab-transport); }
-.lcars-sidebar-btn[data-tab="tactical"]    { background: var(--c-tab-integrity); }
-.lcars-sidebar-btn[data-tab="medical"]     { background: var(--c-tab-vitals); }
+.lcars-sidebar-btn[data-tab="operations"]  { background: var(--c-tab-ops); }
+.lcars-sidebar-btn[data-tab="science"]     { background: var(--c-tab-science); }
+.lcars-sidebar-btn[data-tab="engineering"] { background: var(--c-tab-engineering); }
+.lcars-sidebar-btn[data-tab="helm"]        { background: var(--c-tab-helm); }
+.lcars-sidebar-btn[data-tab="tactical"]    { background: var(--c-tab-tactical); }
+.lcars-sidebar-btn[data-tab="medical"]     { background: var(--c-tab-medical); }
 /* TODO: Active button connector — needs proper elbow geometry linking
    the active sidebar button to the content panel. Current approach (nub)
    looked wrong. Revisit with SVG elbow sprites or CSS clip-path. */
@@ -733,7 +733,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .util-rho,
 .theme-lcars .tempo-value,
 .theme-lcars .cost-total,
-.theme-lcars .gov-budget-credit {
+.theme-lcars .ops-budget-credit {
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 
@@ -862,7 +862,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .tempo-bar-fill,
 .theme-lcars .shield-bar-fill,
 .theme-lcars .budget-bar-fill,
-.theme-lcars .gov-budget-fill,
+.theme-lcars .ops-budget-fill,
 .theme-lcars .dew-bar-fill,
 .theme-lcars .gen-balance-fill-left,
 .theme-lcars .gen-balance-fill-right,
@@ -1055,12 +1055,12 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 /* LCARS-specific pill overrides — rectangular blocks, TNG saturated palette */
 .theme-lcars .lcars-pill-btn { color: #000; border-radius: var(--gap-xs); background: var(--lcars-secondary); }
 /* Station pill colors — inherit from parent pane's station */
-.theme-lcars #pane-governance .lcars-pill-btn { background: var(--c-tab-governance); }
-.theme-lcars #pane-analysis .lcars-pill-btn    { background: var(--c-tab-analysis); }
-.theme-lcars #pane-architecture .lcars-pill-btn { background: var(--c-tab-architecture); }
-.theme-lcars #pane-transport .lcars-pill-btn       { background: var(--c-tab-transport); }
-.theme-lcars #pane-integrity .lcars-pill-btn   { background: var(--c-tab-integrity); }
-.theme-lcars #pane-vitals .lcars-pill-btn    { background: var(--c-tab-vitals); }
+.theme-lcars #pane-operations .lcars-pill-btn { background: var(--c-tab-ops); }
+.theme-lcars #pane-science .lcars-pill-btn    { background: var(--c-tab-science); }
+.theme-lcars #pane-engineering .lcars-pill-btn { background: var(--c-tab-engineering); }
+.theme-lcars #pane-helm .lcars-pill-btn       { background: var(--c-tab-helm); }
+.theme-lcars #pane-tactical .lcars-pill-btn   { background: var(--c-tab-tactical); }
+.theme-lcars #pane-medical .lcars-pill-btn    { background: var(--c-tab-medical); }
 .theme-lcars .lcars-pill-red { background: var(--lcars-alert); }
 .theme-lcars .lcars-pill-green { background: #6aab8e; }
 .theme-lcars .lcars-pill-orange { background: #ff9944; }
@@ -1070,7 +1070,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 
 /* Operations control surface — LCARS interactive buttons (full pill) */
 /* Canonical: chunky capsule with generous padding (§3.1) */
-.gov-ctrl {
+.ops-ctrl {
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -1080,7 +1080,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     font-size: 0.72em;
     min-height: 58px;
 }
-.gov-ctrl-active {
+.ops-ctrl-active {
     filter: brightness(1.3);
     color: #fff;
 }
@@ -1525,7 +1525,7 @@ body[data-alert-level="1"] .lcars-hdr-title {
 .diag-level-num {
     min-width: 32px;
     font-weight: 700;
-    color: var(--c-tab-architecture);
+    color: var(--c-tab-engineering);
 }
 .diag-level-name {
     min-width: 120px;
@@ -1767,11 +1767,11 @@ body {
 .lcars-tab[data-tab="meta"].active   { color: var(--c-tab-meta);  border-bottom-color: var(--c-tab-meta); }
 .lcars-tab[data-tab="kb"].active     { color: var(--c-tab-kb);    border-bottom-color: var(--c-tab-kb); }
 .lcars-tab[data-tab="wisdom"].active { color: var(--c-tab-wisdom); border-bottom-color: var(--c-tab-wisdom); }
-.lcars-tab[data-tab="operations"].active { color: var(--c-tab-governance); border-bottom-color: var(--c-tab-governance); }
-.lcars-tab[data-tab="science"].active { color: var(--c-tab-analysis); border-bottom-color: var(--c-tab-analysis); }
-.lcars-tab[data-tab="engineering"].active { color: var(--c-tab-architecture); border-bottom-color: var(--c-tab-architecture); }
-.lcars-tab[data-tab="helm"].active { color: var(--c-tab-transport); border-bottom-color: var(--c-tab-transport); }
-.lcars-tab[data-tab="tactical"].active { color: var(--c-tab-integrity); border-bottom-color: var(--c-tab-integrity); }
+.lcars-tab[data-tab="operations"].active { color: var(--c-tab-ops); border-bottom-color: var(--c-tab-ops); }
+.lcars-tab[data-tab="science"].active { color: var(--c-tab-science); border-bottom-color: var(--c-tab-science); }
+.lcars-tab[data-tab="engineering"].active { color: var(--c-tab-engineering); border-bottom-color: var(--c-tab-engineering); }
+.lcars-tab[data-tab="helm"].active { color: var(--c-tab-helm); border-bottom-color: var(--c-tab-helm); }
+.lcars-tab[data-tab="tactical"].active { color: var(--c-tab-tactical); border-bottom-color: var(--c-tab-tactical); }
 .tab-badge {
     background: var(--c-alert);
     color: var(--bg-primary);
@@ -2574,58 +2574,58 @@ a.activity-link:hover {
 .phase-stub-icon { font-size: 2em; margin-bottom: 8px; }
 .phase-stub-text { font-size: 0.85em; }
 
-.gov-budget-grid {
+.ops-budget-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 12px;
     margin-bottom: 24px;
 }
-.gov-budget-card {
+.ops-budget-card {
     background: var(--bg-panel);
     border: 1px solid var(--border);
     border-radius: 0 8px 8px 0;
     padding: 16px;
     position: relative;
 }
-.gov-budget-card::before {
+.ops-budget-card::before {
     content: "";
     position: absolute;
     left: 0; top: 0; bottom: 0;
     width: 4px;
     border-radius: 4px 0 0 4px;
-    background: var(--card-accent, var(--c-tab-governance));
+    background: var(--card-accent, var(--c-tab-ops));
 }
-.gov-budget-agent {
+.ops-budget-agent {
     font-size: 0.75em;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-secondary);
     margin-bottom: 8px;
 }
-.gov-budget-bar {
+.ops-budget-bar {
     height: 6px;
     background: var(--border);
     border-radius: 3px;
     overflow: hidden;
     margin-bottom: 8px;
 }
-.gov-budget-fill {
+.ops-budget-fill {
     height: 100%;
     border-radius: 3px;
     transition: width 0.6s ease;
 }
-.gov-budget-values {
+.ops-budget-values {
     display: flex;
     justify-content: space-between;
     font-size: 0.78em;
     color: var(--text-secondary);
 }
-.gov-budget-credit {
+.ops-budget-credit {
     font-size: 1.8em;
     font-weight: 700;
     color: var(--text-primary);
 }
-.gov-action-tier {
+.ops-action-tier {
     display: inline-block;
     padding: 1px 6px;
     border-radius: 3px;
@@ -2633,14 +2633,14 @@ a.activity-link:hover {
     font-weight: 600;
     letter-spacing: 0.04em;
 }
-.gov-tier-1 { background: rgba(106,171,142,0.15); color: #6aab8e; }
-.gov-tier-2 { background: rgba(107,138,175,0.15); color: #6b8aaf; }
-.gov-tier-3 { background: rgba(196,149,106,0.15); color: #c4956a; }
-.gov-tier-4 { background: rgba(196,112,112,0.15); color: #c47070; }
-.gov-result-approved { color: #6aab8e; }
-.gov-result-blocked { color: #c47070; }
-.gov-result-rejected { color: #c47070; }
-.gov-schedule-row {
+.ops-tier-1 { background: rgba(106,171,142,0.15); color: #6aab8e; }
+.ops-tier-2 { background: rgba(107,138,175,0.15); color: #6b8aaf; }
+.ops-tier-3 { background: rgba(196,149,106,0.15); color: #c4956a; }
+.ops-tier-4 { background: rgba(196,112,112,0.15); color: #c47070; }
+.ops-result-approved { color: #6aab8e; }
+.ops-result-blocked { color: #c47070; }
+.ops-result-rejected { color: #c47070; }
+.ops-schedule-row {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -2648,25 +2648,25 @@ a.activity-link:hover {
     border-bottom: 1px solid var(--border);
     font-size: 0.78em;
 }
-.gov-schedule-row:last-child { border-bottom: none; }
-.gov-schedule-agent {
+.ops-schedule-row:last-child { border-bottom: none; }
+.ops-schedule-agent {
     min-width: 120px;
     font-weight: 600;
     color: var(--text-primary);
 }
-.gov-schedule-detail {
+.ops-schedule-detail {
     color: var(--text-secondary);
     flex: 1;
 }
-.gov-schedule-status {
+.ops-schedule-status {
     padding: 2px 8px;
     border-radius: 3px;
     font-size: 0.85em;
     font-weight: 600;
 }
-.gov-schedule-active { background: rgba(106,171,142,0.15); color: #6aab8e; }
-.gov-schedule-stale { background: rgba(212,149,74,0.15); color: #d4944a; }
-.gov-schedule-offline { background: rgba(196,112,112,0.15); color: #c47070; }
+.ops-schedule-active { background: rgba(106,171,142,0.15); color: #6aab8e; }
+.ops-schedule-stale { background: rgba(212,149,74,0.15); color: #d4944a; }
+.ops-schedule-offline { background: rgba(196,112,112,0.15); color: #c47070; }
 
 /* ── Science Station ─────────────────────────────────────────── */
 .science-grid {
@@ -2744,7 +2744,7 @@ a.activity-link:hover {
     font-size: 1.6em;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: var(--c-tab-analysis);
+    color: var(--c-tab-science);
     margin-bottom: 12px;
 }
 .organism-readout {
@@ -2908,7 +2908,7 @@ a.activity-link:hover {
 }
 .loa-rung.active {
     background: rgba(153,153,255,0.15);
-    color: var(--c-tab-analysis);
+    color: var(--c-tab-science);
     font-weight: 700;
 }
 .loa-rung-level {
@@ -3046,7 +3046,7 @@ a.activity-link:hover {
     height: 100%;
     border-radius: 7px;
     transition: width 0.6s ease;
-    background: var(--c-tab-architecture);
+    background: var(--c-tab-engineering);
 }
 .tempo-status {
     font-size: 0.78em;
@@ -3066,7 +3066,7 @@ a.activity-link:hover {
     font-size: 2.8em;
     font-weight: 700;
     line-height: 1;
-    color: var(--c-tab-architecture);
+    color: var(--c-tab-engineering);
 }
 .cost-label {
     font-size: 0.72em;
@@ -3082,7 +3082,7 @@ a.activity-link:hover {
     margin-top: 12px;
 }
 .cost-rate-arrow {
-    color: var(--c-tab-architecture);
+    color: var(--c-tab-engineering);
     margin-right: 4px;
 }
 
@@ -3111,9 +3111,9 @@ a.activity-link:hover {
     border: 2px solid var(--border);
 }
 .slot-indicator.filled {
-    background: var(--c-tab-architecture);
-    border-color: var(--c-tab-architecture);
-    box-shadow: 0 0 6px var(--c-tab-architecture);
+    background: var(--c-tab-engineering);
+    border-color: var(--c-tab-engineering);
+    box-shadow: 0 0 6px var(--c-tab-engineering);
 }
 .slot-indicator.empty {
     background: transparent;
@@ -3189,7 +3189,7 @@ a.activity-link:hover {
     transition: width 0.4s ease;
     min-width: 4px;
 }
-.session-timeline-bar-fill.status-active  { background: var(--c-tab-transport); }
+.session-timeline-bar-fill.status-active  { background: var(--c-tab-helm); }
 .session-timeline-bar-fill.status-closing { background: var(--c-warning); }
 .session-timeline-bar-fill.status-closed  { background: var(--c-inactive); }
 .session-timeline-bar-fill.status-open    { background: var(--c-health); }
@@ -3208,7 +3208,7 @@ a.activity-link:hover {
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
-.session-timeline-status.status-active  { color: var(--c-tab-transport); border: 1px solid var(--c-tab-transport); }
+.session-timeline-status.status-active  { color: var(--c-tab-helm); border: 1px solid var(--c-tab-helm); }
 .session-timeline-status.status-closing { color: var(--c-warning); border: 1px solid var(--c-warning); }
 .session-timeline-status.status-closed  { color: var(--c-inactive); border: 1px solid var(--c-inactive); }
 .session-timeline-status.status-open    { color: var(--c-health); border: 1px solid var(--c-health); }
@@ -3222,12 +3222,12 @@ a.activity-link:hover {
 .helm-routing-table th {
     text-align: left;
     padding: 6px 10px;
-    color: var(--c-tab-transport);
+    color: var(--c-tab-helm);
     font-size: 0.85em;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    border-bottom: 2px solid var(--c-tab-transport);
+    border-bottom: 2px solid var(--c-tab-helm);
 }
 .helm-routing-table td {
     padding: 5px 10px;
@@ -3237,7 +3237,7 @@ a.activity-link:hover {
 .helm-routing-table tr:last-child td { border-bottom: none; }
 .helm-routing-domain {
     font-weight: 600;
-    color: var(--c-tab-transport);
+    color: var(--c-tab-helm);
 }
 .helm-routing-arrow {
     color: var(--text-dim);
@@ -3256,12 +3256,12 @@ a.activity-link:hover {
 .helm-flow-table th {
     text-align: left;
     padding: 6px 10px;
-    color: var(--c-tab-transport);
+    color: var(--c-tab-helm);
     font-size: 0.85em;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    border-bottom: 2px solid var(--c-tab-transport);
+    border-bottom: 2px solid var(--c-tab-helm);
 }
 .helm-flow-table td {
     padding: 5px 10px;
@@ -3582,13 +3582,13 @@ a.activity-link:hover {
 }
 
 /* ── Operations Control Surface (Session 9) ─────────────────── */
-.gov-control-surface {
+.ops-control-surface {
     display: flex;
     gap: var(--gap-l);
     margin-bottom: var(--gap-l);
     flex-wrap: wrap;
 }
-.gov-ctrl-group {
+.ops-ctrl-group {
     display: flex;
     flex-direction: column;
     gap: var(--gap-xs);
@@ -3596,22 +3596,22 @@ a.activity-link:hover {
 }
 /* Mobile portrait: stack control groups 2×2 */
 @media (max-width: 480px) {
-    .gov-control-surface {
+    .ops-control-surface {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: var(--gap-m);
     }
-    .gov-ctrl-group {
+    .ops-ctrl-group {
         min-width: 0;
     }
-    .gov-ctrl {
+    .ops-ctrl {
         font-size: 0.65em;
         padding: 6px 8px;
     }
 }
 /* Very small portrait (iPhone SE class) */
 @media (max-width: 375px) {
-    .gov-control-surface {
+    .ops-control-surface {
         grid-template-columns: 1fr;
     }
 }
@@ -3858,7 +3858,7 @@ body[data-alert-level="2"] .lcars-sidebar-drop { background: var(--alert-red-dar
 
 /* ── Operations Subsystem Switcher (Defiant Bridge pattern) ── */
 /* Canonical: mode selector row — uniform button width (§3.3, Defiant A2) */
-.gov-panel-selector {
+.ops-panel-selector {
     display: flex;
     gap: var(--gap-m);
     margin-bottom: 0;
@@ -3866,7 +3866,7 @@ body[data-alert-level="2"] .lcars-sidebar-drop { background: var(--alert-red-dar
     justify-content: center;
 }
 /* Uniform compact buttons — wrap naturally, don't stretch to fill */
-.gov-panel-selector .gov-panel-btn {
+.ops-panel-selector .ops-panel-btn {
     flex: 0 0 auto;
     min-width: 100px;
     min-height: 48px;
@@ -3874,23 +3874,23 @@ body[data-alert-level="2"] .lcars-sidebar-drop { background: var(--alert-red-dar
 /* Mobile: tighter content padding + uniform button width */
 @media (max-width: 600px) {
     .theme-lcars .lcars-content { padding: var(--gap-m); }
-    .gov-panel-selector .gov-panel-btn,
+    .ops-panel-selector .ops-panel-btn,
     .theme-lcars .section-jump-btn,
     .theme-lcars .agent-switch-btn {
         min-width: 100px;
         width: 100px;
     }
 }
-.gov-panel-btn {
+.ops-panel-btn {
     transition: filter 0.15s;
 }
-.gov-panel-btn.gov-panel-active {
+.ops-panel-btn.ops-panel-active {
     filter: brightness(1.3);
 }
-.gov-panel {
+.ops-panel {
     display: none;
 }
-.gov-panel.gov-panel-active {
+.ops-panel.ops-panel-active {
     display: block;
 }
 

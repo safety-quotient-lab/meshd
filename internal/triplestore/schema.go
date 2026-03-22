@@ -15,7 +15,8 @@ import (
 // CreateSchema initializes the triples and prefixes tables with indexes.
 // Safe to call repeatedly — uses IF NOT EXISTS throughout.
 func CreateSchema(dbPath string) error {
-	schema := `
+	schema := `.timeout 5000
+BEGIN;
 CREATE TABLE IF NOT EXISTS triples (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     subject     TEXT NOT NULL,
@@ -65,7 +66,7 @@ INSERT OR IGNORE INTO prefixes (prefix, uri) VALUES
     ('agent',     'https://safety-quotient.dev/ns/agent/'),
     ('transport', 'https://safety-quotient.dev/ns/transport/'),
     ('vocab',     'https://psychology-agent.safety-quotient.dev/vocab/');
-`
+COMMIT;`
 	_, err := db.Exec(dbPath, schema)
 	return err
 }

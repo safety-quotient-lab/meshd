@@ -43,6 +43,10 @@ func (s *Store) SetOntology(ont *Ontology) {
 	s.ontology = ont
 }
 
+// busyPrefix prepends sqlite3's .timeout command to avoid SQLITE_BUSY
+// errors when concurrent sqlite3 CLI processes access the same WAL database.
+const busyPrefix = ".timeout 5000\n"
+
 // Assert adds a triple to the store. For dynamic triples, marks any
 // existing triple with the same subject+predicate+graph as superseded
 // (sets valid_until) before inserting the new one.
@@ -64,7 +68,7 @@ func (s *Store) Assert(t Triple) error {
 	if t.Temporal == "dynamic" {
 		// Mark previous current value as superseded
 		supersede := fmt.Sprintf(
-			"UPDATE triples SET valid_until = '%s' WHERE subject = '%s' AND predicate = '%s' AND graph = '%s' AND valid_until IS NULL;",
+			busyPrefix+"UPDATE triples SET valid_until = '%s' WHERE subject = '%s' AND predicate = '%s' AND graph = '%s' AND valid_until IS NULL;",
 			now,
 			db.EscapeString(t.Subject),
 			db.EscapeString(t.Predicate),
@@ -76,7 +80,7 @@ func (s *Store) Assert(t Triple) error {
 	}
 
 	insert := fmt.Sprintf(
-		"INSERT INTO triples (subject, predicate, object, object_type, datatype, graph, temporal, created_at) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+		busyPrefix+"INSERT INTO triples (subject, predicate, object, object_type, datatype, graph, temporal, created_at) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
 		db.EscapeString(t.Subject),
 		db.EscapeString(t.Predicate),
 		db.EscapeString(t.Object),
@@ -97,6 +101,7 @@ func (s *Store) AssertBatch(triples []Triple) error {
 	}
 
 	var b strings.Builder
+	b.WriteString(busyPrefix)
 	b.WriteString("BEGIN;\n")
 
 	now := time.Now().Format("2006-01-02T15:04:05")
@@ -145,7 +150,7 @@ func (s *Store) AssertBatch(triples []Triple) error {
 func (s *Store) Retract(subject, predicate, graph string) error {
 	now := time.Now().Format("2006-01-02T15:04:05")
 	query := fmt.Sprintf(
-		"UPDATE triples SET valid_until = '%s' WHERE subject = '%s' AND predicate = '%s' AND graph = '%s' AND valid_until IS NULL;",
+		busyPrefix+"UPDATE triples SET valid_until = '%s' WHERE subject = '%s' AND predicate = '%s' AND graph = '%s' AND valid_until IS NULL;",
 		now,
 		db.EscapeString(subject),
 		db.EscapeString(predicate),
@@ -160,7 +165,7 @@ func (s *Store) Retract(subject, predicate, graph string) error {
 func (s *Store) RetractGraph(graph string) error {
 	now := time.Now().Format("2006-01-02T15:04:05")
 	query := fmt.Sprintf(
-		"UPDATE triples SET valid_until = '%s' WHERE graph = '%s' AND valid_until IS NULL;",
+		busyPrefix+"UPDATE triples SET valid_until = '%s' WHERE graph = '%s' AND valid_until IS NULL;",
 		now,
 		db.EscapeString(graph),
 	)

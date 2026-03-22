@@ -338,12 +338,14 @@ function renderLinguistics() {
 // ── Ontology Subsystem ──────────────────────────────────────
 let _ontologyData = null;
 let _facetsData = null;
+let _triplesGraph = "";  // current graph filter for triple store
 
 async function fetchOntologyData() {
-    // Fetch KB + facets in parallel (same-origin)
-    const [kbResp, facetsResp] = await Promise.allSettled([
+    // Fetch KB + facets + triple stats in parallel (same-origin)
+    const [kbResp, facetsResp, tripleStatsResp] = await Promise.allSettled([
         _ontologyData ? Promise.resolve(null) : fetch("/api/kb", { signal: AbortSignal.timeout(8000) }),
         _facetsData ? Promise.resolve(null) : fetch("/api/facets", { signal: AbortSignal.timeout(5000) }),
+        fetch("/api/triples/stats", { signal: AbortSignal.timeout(5000) }),
     ]);
     if (!_ontologyData && kbResp.status === "fulfilled" && kbResp.value?.ok) {
         _ontologyData = await kbResp.value.json();
@@ -351,20 +353,29 @@ async function fetchOntologyData() {
     if (!_facetsData && facetsResp.status === "fulfilled" && facetsResp.value?.ok) {
         _facetsData = await facetsResp.value.json();
     }
+    let tripleStats = null;
+    if (tripleStatsResp.status === "fulfilled" && tripleStatsResp.value?.ok) {
+        tripleStats = await tripleStatsResp.value.json();
+    }
+    window._tripleStatsTotal = tripleStats?.total || 0;
     renderOntology();
+    renderTripleStore(tripleStats);
 }
 
 function renderOntology() {
     const kb = _ontologyData?.data || _ontologyData || {};
     const facets = _facetsData || {};
 
-    // Zone-A pills
+    // Zone-A pills — include triple count from /api/triples/stats
+    const tripleTotal = window._tripleStatsTotal || 0;
     renderNumberGrid("onto-zone-a", [
         { value: facets.stats?.vocabulary_count || 0, label: "FACETS", type: "count" },
         { value: facets.stats?.universal_count || 0, label: "CLASSIFIED", type: "id" },
         { gap: true },
         { value: (kb.decisions || []).length, label: "DECISIONS", type: "count" },
         { value: (kb.claims || []).length, label: "CLAIMS", type: "val" },
+        { gap: true },
+        { value: tripleTotal, label: "TRIPLES", type: "count" },
     ]);
 
     // Discipline Catalog — from /api/facets vocabulary, grouped by facet_type
@@ -466,6 +477,111 @@ function renderOntology() {
             graphEl.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px">No decisions recorded.</div>';
         }
     }
+}
+
+// ── Knowledge Graph (triple store query interface) ────────────
+async function renderTripleStore(stats) {
+    const el = document.getElementById("onto-triples");
+    if (!el) return;
+
+    const graphCounts = stats?.by_graph || {};
+    const total = stats?.total || 0;
+    const graphs = Object.keys(graphCounts).sort();
+
+    // Build graph filter pills + triple count
+    const pills = graphs.map(g =>
+        `<button class="ops-panel-btn${_triplesGraph === g ? " ops-panel-active" : ""}"
+                 data-graph="${g}" onclick="filterTripleGraph('${g}')"
+                 style="font-size:0.72em;padding:2px 8px;margin:2px">${g}
+            <span style="opacity:0.6;margin-left:4px">${graphCounts[g]}</span>
+        </button>`
+    ).join("");
+
+    const allActive = _triplesGraph === "" ? " ops-panel-active" : "";
+    const header = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:var(--gap-s)">
+        <button class="ops-panel-btn${allActive}" onclick="filterTripleGraph('')"
+                style="font-size:0.72em;padding:2px 8px;margin:2px">ALL
+            <span style="opacity:0.6;margin-left:4px">${total}</span>
+        </button>
+        ${pills}
+    </div>`;
+
+    // Fetch triples for the selected graph (or all)
+    const url = _triplesGraph
+        ? `/api/triples?graph=${encodeURIComponent(_triplesGraph)}`
+        : "/api/triples";
+    let triples = [];
+    try {
+        const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        if (resp.ok) {
+            const data = await resp.json();
+            triples = data.triples || [];
+        }
+    } catch { /* silent — show empty state */ }
+
+    if (triples.length === 0 && total === 0) {
+        el.innerHTML = header + '<div style="color:var(--text-dim);font-size:0.82em;padding:12px">No triples in store. Triple emission activates after agent registry refresh.</div>';
+        return;
+    }
+
+    // Render triple table (P28 data listing)
+    const rows = triples.slice(0, 100).map(t => {
+        const subjectShort = shortenURI(t.subject);
+        const predShort = shortenURI(t.predicate);
+        const objShort = t.object_type === "uri" ? shortenURI(t.object) : truncate(t.object, 40);
+        const graphBadge = t.graph && t.graph !== "default"
+            ? `<span style="background:var(--bg-inset);padding:1px 4px;border-radius:3px;font-size:0.85em;color:var(--text-dim)">${t.graph}</span>`
+            : "";
+        return `<tr>
+            <td style="color:var(--lcars-accent);font-family:monospace;font-size:0.85em" title="${t.subject}">${subjectShort}</td>
+            <td style="color:var(--lcars-secondary);font-family:monospace;font-size:0.85em" title="${t.predicate}">${predShort}</td>
+            <td style="color:var(--text-primary);font-size:0.85em" title="${t.object}">${objShort}</td>
+            <td>${graphBadge}</td>
+            <td style="color:var(--text-dim);font-size:0.78em">${t.created_at || ""}</td>
+        </tr>`;
+    }).join("");
+
+    const overflow = triples.length > 100
+        ? `<div style="color:var(--text-dim);font-size:0.78em;padding:8px">Showing 100 of ${triples.length} triples</div>`
+        : "";
+
+    el.innerHTML = header + `<div class="lcars-data-table-wrap" style="--panel-accent:var(--c-tab-science)">
+        <table class="lcars-data-table">
+            <thead><tr><th>SUBJECT</th><th>PREDICATE</th><th>OBJECT</th><th>GRAPH</th><th>TIME</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+    </div>` + overflow;
+}
+
+function filterTripleGraph(graph) {
+    _triplesGraph = graph;
+    // Re-render with current stats (refetch triples for new graph)
+    fetch("/api/triples/stats", { signal: AbortSignal.timeout(3000) })
+        .then(r => r.ok ? r.json() : null)
+        .then(stats => renderTripleStore(stats))
+        .catch(() => renderTripleStore(null));
+}
+window.filterTripleGraph = filterTripleGraph;
+
+function shortenURI(uri) {
+    if (!uri) return "?";
+    const prefixes = [
+        ["agent:", "agent:"], ["transport:", "transport:"], ["mesh:", "mesh:"],
+        ["vocab:", "vocab:"], ["schema:", "schema:"], ["sosa:", "sosa:"],
+        ["prov:", "prov:"], ["as:", "as:"], ["rdf:", "rdf:"],
+        ["skos:", "skos:"], ["_:", "_:"],
+    ];
+    for (const [prefix, display] of prefixes) {
+        if (uri.startsWith(prefix)) return uri;
+    }
+    // Full URI — show last segment
+    const parts = uri.split(/[/#]/);
+    return parts[parts.length - 1] || uri;
+}
+
+function truncate(str, max) {
+    if (!str || str.length <= max) return str || "";
+    return str.slice(0, max) + "…";
 }
 
 // ── agentd Session 95: Fleet Cognitive Panels ─────────────────

@@ -1,20 +1,4 @@
-/**
- * helm.js — Helm station (session timeline, routing table, message flow).
- *
- * Extracted from inline <script> in index.html.
- * Molecular chain / session timeline, routing table, message flow matrix.
- *
- * Data endpoints:
- *   GET {ops-agent}/api/kb — messages, sessions
- *   GET {ops-agent}/api/psychometrics — (optional)
- *
- * DOM dependencies: #helm-session-timeline, #helm-routing-tbody,
- *   #helm-message-flow, #helm-status-line
- */
-
-import { agentName } from '../core/utils.js';
-
-// ── Module State ───────────────────────────────────────────────
+// ═══ RENDER: HELM ═══════════════════════════════════════════
 let helmData = null;
 let helmFetchPending = false;
 
@@ -26,35 +10,27 @@ const DEFAULT_ROUTING = [
     { domain: "governance",         agent: "psychology-agent + human" },
     { domain: "content-publishing", agent: "unratified-agent" },
     { domain: "data-observatory",   agent: "observatory-agent" },
-    { domain: "infrastructure",     agent: "operations-agent" },
-    { domain: "vocabulary",         agent: "operations-agent (compositor)" },
-    { domain: "security",           agent: "operations-agent" },
+    { domain: "infrastructure",     agent: "mesh" },
+    { domain: "vocabulary",         agent: "mesh (compositor)" },
+    { domain: "security",           agent: "mesh" },
     { domain: "consensus",          agent: "ALL (C1/C2/C3 tiered)" },
 ];
 
-// ── Data Fetching ──────────────────────────────────────────────
-
-/**
- * Fetch KB data from operations-agent for session timeline and message flow.
- * @param {Array} AGENTS — main agent config array
- * @returns {Promise<void>}
- */
-export async function fetchHelmData(AGENTS) {
+async function fetchHelmData() {
     if (helmFetchPending) return;
     helmFetchPending = true;
     try {
-        // Fetch KB data from operations-agent (has transport messages)
-        const opsAgent = AGENTS.find(a => a.id === "operations-agent");
-        const baseUrl = opsAgent ? opsAgent.url : "https://operations-agent.safety-quotient.dev";
+        // Fetch KB + local psychometrics (same-origin)
+        const kbUrl = "/api/kb";
         const [kbResp, psychResp] = await Promise.allSettled([
-            fetch(`${baseUrl}/api/kb`, { signal: AbortSignal.timeout(8000) }),
-            fetch(`${baseUrl}/api/psychometrics`, { signal: AbortSignal.timeout(5000) }),
+            fetch(kbUrl, { signal: AbortSignal.timeout(8000) }),
+            fetch("/api/psychometrics", { signal: AbortSignal.timeout(5000) }),
         ]);
 
-        const kbResult = kbResp.status === "fulfilled" && kbResp.value.ok ? await kbResp.value.json() : null;
+        const kbData = kbResp.status === "fulfilled" && kbResp.value.ok ? await kbResp.value.json() : null;
 
         // Build session list from KB messages (data.messages or messages)
-        const messages = kbResult?.data?.messages || kbResult?.messages || [];
+        const messages = kbData?.data?.messages || kbData?.messages || [];
         const sessionMap = {};
         messages.forEach(m => {
             const sid = m.session_name || m.session_id || "unknown";
@@ -75,19 +51,33 @@ export async function fetchHelmData(AGENTS) {
     } finally {
         helmFetchPending = false;
     }
-    renderHelm(AGENTS);
+    renderHelm();
 }
 
-// ── Render ─────────────────────────────────────────────────────
-
-/**
- * Render all Helm station panels.
- * @param {Array} AGENTS — main agent config array
- */
-export function renderHelm(AGENTS) {
+function renderHelm() {
+    renderNumberGrid("helm-zone-a", helmZoneAMetrics());
     renderSessionTimeline();
     renderRoutingTable();
-    renderMessageFlow(AGENTS);
+    renderMessageFlow();
+    fetchMeshBreathing();
+}
+
+function helmZoneAMetrics() {
+    const sessions = helmData?.sessions || [];
+    const messages = helmData?.messages || [];
+    const active = sessions.filter(s => (s.status || "active") === "active").length;
+    const flowPairs = {};
+    messages.forEach(m => {
+        const key = (m.from_agent || "?") + "->" + (m.to_agent || "?");
+        flowPairs[key] = (flowPairs[key] || 0) + 1;
+    });
+    return [
+        { value: sessions.length, label: "SESSIONS", type: "count" },
+        { value: active, label: "ACTIVE", type: "count" },
+        { value: messages.length, label: "MESSAGES", type: "id" },
+        { value: Object.keys(flowPairs).length, label: "ROUTES", type: "val" },
+        { value: DEFAULT_ROUTING.length, label: "DOMAINS", type: "id" },
+    ];
 }
 
 function renderSessionTimeline() {
@@ -100,10 +90,10 @@ function renderSessionTimeline() {
         return;
     }
 
-    // Sort by most recent activity, take top 6
+    // Sort by most recent activity, take top 10
     const sorted = [...sessions]
         .sort((a, b) => (b.last_activity || "").localeCompare(a.last_activity || ""))
-        .slice(0, 6);
+        .slice(0, 10);
 
     const statusColors = {
         active: "#ff9966", open: "#ff9900", resolved: "#6aab8e",
@@ -135,11 +125,24 @@ function renderSessionTimeline() {
         }
         chainSvg += `</svg>`;
 
+        // Participants
+        const participants = (s.from || []).map(f => agentName(f)).join(", ") || "—";
+        // Relative time
+        const lastTs = s.last_activity || "";
+        let ago = "";
+        if (lastTs) {
+            const ms = Date.now() - new Date(lastTs).getTime();
+            if (ms < 3600000) ago = Math.round(ms / 60000) + "m";
+            else if (ms < 86400000) ago = Math.round(ms / 3600000) + "h";
+            else ago = Math.round(ms / 86400000) + "d";
+        }
+
         return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)">
-            <span style="min-width:100px;max-width:140px;font-size:0.75em;font-weight:600;color:${color};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${name}">${name}</span>
+            <span style="min-width:120px;max-width:160px;font-size:0.75em;font-weight:600;color:${color};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${name}">${name}</span>
             <div style="flex:1">${chainSvg}</div>
+            <span style="font-size:0.65em;color:var(--text-dim);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${participants}">${participants}</span>
             <span style="font-size:0.68em;color:var(--text-dim);min-width:24px;text-align:right">T${turns}</span>
-            <span style="font-size:0.62em;font-weight:600;text-transform:uppercase;color:${color};min-width:50px;text-align:right">${status}</span>
+            <span style="font-size:0.62em;color:var(--text-dim);min-width:24px;text-align:right">${ago}</span>
         </div>`;
     }).join("");
 
@@ -167,7 +170,7 @@ function renderRoutingTable() {
     }).join("");
 }
 
-function renderMessageFlow(AGENTS) {
+function renderMessageFlow() {
     const container = document.getElementById("helm-message-flow");
     if (!container) return;
 
@@ -205,8 +208,8 @@ function renderMessageFlow(AGENTS) {
         <thead><tr><th>From</th><th>To</th><th>Messages</th></tr></thead>
         <tbody>${pairs.map(p =>
             `<tr>
-                <td>${agentName(p.from || "—", AGENTS)}</td>
-                <td>${agentName(p.to || "—", AGENTS)}</td>
+                <td>${agentName(p.from || "—")}</td>
+                <td>${agentName(p.to || "—")}</td>
                 <td class="helm-flow-count">${p.count || 0}</td>
             </tr>`
         ).join("")}</tbody>
@@ -214,3 +217,52 @@ function renderMessageFlow(AGENTS) {
 
     container.innerHTML = html;
 }
+
+
+// ── agentd Session 95: Mesh Breathing ────────────────────────────
+async function fetchMeshBreathing() {
+    const fetches = AGENTS.filter(a => a.url).map(a =>
+        fetch(a.url + "/api/vagal", { signal: AbortSignal.timeout(2000) })
+            .then(r => r.ok ? r.json() : null).catch(() => null)
+            .then(d => ({ id: a.id, color: a.color, vagal: d }))
+    );
+    const results = await Promise.all(fetches);
+    renderMeshBreathing(results);
+}
+
+function renderMeshBreathing(agents) {
+    const el = document.getElementById("helm-breathing");
+    if (!el) return;
+    const withData = agents.filter(a => a.vagal);
+    if (withData.length === 0) { el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px">No vagal data from agents</div>'; return; }
+
+    const avgBreathing = withData.reduce((s, a) => s + (a.vagal.breathing_rate || 0), 0) / withData.length;
+    const anyMeditation = withData.some(a => a.vagal.group_meditation);
+
+    el.innerHTML = '<div style="font-size:0.78em">'
+        + '<div style="margin-bottom:var(--gap-m)">'
+        + '<span style="color:var(--lcars-title)">mesh.global.tempo:</span> '
+        + '<div style="display:inline-block;width:60%;height:8px;background:var(--bg-inset);border-radius:var(--gap-xs);vertical-align:middle;margin:0 8px">'
+        + '<div style="width:' + (avgBreathing * 100) + '%;height:100%;background:var(--c-tab-helm);border-radius:var(--gap-xs)"></div></div>'
+        + '<span style="color:var(--lcars-readout)">' + avgBreathing.toFixed(2) + '</span>'
+        + '</div>'
+        + '<div style="margin-bottom:var(--gap-s);color:var(--lcars-title)">Group meditation: <strong style="color:' + (anyMeditation ? "var(--lcars-medical)" : "var(--text-dim)") + '">' + (anyMeditation ? "ON" : "OFF") + '</strong></div>'
+        + withData.map(a => {
+            const rate = a.vagal.breathing_rate || 0;
+            const diff = Math.abs(rate - avgBreathing);
+            const status = diff < 0.05 ? "entrained" : diff < 0.15 ? "drifting" : "independent";
+            const statusColor = status === "entrained" ? "var(--lcars-medical)" : status === "drifting" ? "var(--lcars-accent)" : "var(--text-dim)";
+            return '<div style="display:flex;align-items:center;gap:var(--gap-s);margin-bottom:2px">'
+                + '<span style="width:70px;color:' + a.color + '">' + agentName(a.id) + '</span>'
+                + '<div style="flex:1;height:6px;background:var(--bg-inset);border-radius:var(--gap-xs)"><div style="width:' + (rate * 100) + '%;height:100%;background:' + a.color + ';border-radius:var(--gap-xs)"></div></div>'
+                + '<span style="color:' + statusColor + ';font-size:0.85em;width:70px;text-align:right">' + status + '</span></div>';
+        }).join("")
+        + '<div style="margin-top:var(--gap-s);color:var(--text-dim)">Mesh RSA: ' + (avgBreathing * 1.3).toFixed(2) + ' (adaptive)</div>'
+        + '</div>';
+}
+
+// Wire into Helm render
+const _origRenderHelm = typeof renderHelm === "function" ? renderHelm : null;
+
+// ── Engineering Station ─────────────────────────────────────────
+

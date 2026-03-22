@@ -1,37 +1,14 @@
-/**
- * tactical.js — Tactical station (shields, compliance, transport integrity, trust matrix).
- *
- * Extracted from inline <script> in index.html.
- *
- * Data endpoints:
- *   GET https://interagent.safety-quotient.dev/api/health — per-agent health
- *   GET https://interagent.safety-quotient.dev/.well-known/agents — agent cards
- *   GET https://interagent.safety-quotient.dev/api/trust — trust matrix
- *
- * DOM dependencies: #shield-status, #agent-compliance, transport-*-fill,
- *   transport-*-status, #trust-heatmap
- */
-
-import { agentName } from '../core/utils.js';
-
-// ── Module State ───────────────────────────────────────────────
+// ═══ RENDER: TACTICAL ═══════════════════════════════════════
 let tacticalData = null;
 let tacticalFetchPending = false;
-let tacticalAgentCards = null;
 
-// ── Data Fetching ──────────────────────────────────────────────
-
-/**
- * Fetch mesh health + agent cards for tactical display.
- * @returns {Promise<void>}
- */
-export async function fetchTacticalData() {
+async function fetchTacticalData() {
     if (tacticalFetchPending) return;
     tacticalFetchPending = true;
     try {
         const [healthResp, agentsResp] = await Promise.allSettled([
-            fetch("https://interagent.safety-quotient.dev/api/health", { signal: AbortSignal.timeout(8000) }),
-            fetch("https://interagent.safety-quotient.dev/.well-known/agents?refresh=true", { signal: AbortSignal.timeout(8000), cache: "no-cache" }),
+            fetch("/api/health", { signal: AbortSignal.timeout(8000) }),
+            fetch("/.well-known/agents?refresh=true", { signal: AbortSignal.timeout(8000), cache: "no-cache" }),
         ]);
         if (healthResp.status === "fulfilled" && healthResp.value.ok) {
             tacticalData = await healthResp.value.json();
@@ -46,20 +23,37 @@ export async function fetchTacticalData() {
     }
     renderTactical();
 }
+let tacticalAgentCards = null;
 
-// ── Render ─────────────────────────────────────────────────────
-
-/**
- * Render all Tactical station panels.
- */
-export function renderTactical() {
+function renderTactical() {
+    renderNumberGrid("tactical-zone-a", tacticalZoneAMetrics());
     renderShieldStatus();
     renderAgentCompliance();
     renderTransportIntegrity();
     fetchAndRenderTrustMatrix();
 }
 
-export function renderShieldStatus() {
+function tacticalZoneAMetrics() {
+    const healthAgents = tacticalData?.agents || [];
+    const online = healthAgents.filter(a => {
+        const s = a.status || a.health;
+        return s === "ok" || s === "online" || s === "healthy" || s === "nominal";
+    }).length;
+    const agents = tacticalAgentCards || [];
+    const compliant = agents.filter(a => {
+        const pv = a.protocolVersion || "";
+        return pv.startsWith("1.") && a.hasSecuritySchemes;
+    }).length;
+    const total = Math.max(healthAgents.length, agents.length, 5);
+    return [
+        { value: online + "/" + total, label: "SHIELDS", type: "count" },
+        { value: compliant + "/" + total, label: "COMPLIANT", type: "id" },
+        { value: "3/4", label: "TRANSPORT", type: "val" },
+        { value: "0", label: "THREATS", type: "val" },
+    ];
+}
+
+function renderShieldStatus() {
     const container = document.getElementById("shield-status");
     if (!container) return;
     const healthAgents = tacticalData?.agents || [];
@@ -67,14 +61,14 @@ export function renderShieldStatus() {
     healthAgents.forEach(a => {
         const id = a.id || a.agent_id || a.name;
         const status = a.status || a.health;
-        statusMap[id] = status === "ok" || status === "online" || status === "healthy";
+        statusMap[id] = status === "ok" || status === "online" || status === "healthy" || status === "nominal";
     });
     const SHIELD_AGENTS = [
         { id: "psychology-agent", label: "psych" },
         { id: "psq-agent", label: "safety-quotient" },
         { id: "unratified-agent", label: "unratified" },
         { id: "observatory-agent", label: "observatory" },
-        { id: "operations-agent", label: "operations" },
+        { id: "mesh", label: "mesh" },
     ];
     container.innerHTML = SHIELD_AGENTS.map(sa => {
         const online = statusMap[sa.id] ?? false;
@@ -91,13 +85,13 @@ export function renderShieldStatus() {
     }).join("");
 }
 
-export function renderAgentCompliance() {
+function renderAgentCompliance() {
     const container = document.getElementById("agent-compliance");
     if (!container) return;
     const agents = tacticalAgentCards || [];
     const labelMap = { "psychology-agent": "psych", "psq-agent": "safety-quotient",
         "unratified-agent": "unrat", "observatory-agent": "obs",
-        "operations-agent": "ops" };
+        "mesh": "mesh" };
     const entries = agents
         .filter(a => a.id !== "interagent-mesh")
         .map(a => {
@@ -122,7 +116,7 @@ export function renderAgentCompliance() {
     }).join("");
 }
 
-export function renderTransportIntegrity() {
+function renderTransportIntegrity() {
     // Transport channels: git-PR (always 100%), HTTP relay (check compositor), ZMQ (check agents)
     const gitOk = true; // git-PR transport always available
     const httpOk = tacticalData != null; // compositor responded
@@ -164,11 +158,11 @@ function trustColor(val) {
     return "#993333";
 }
 
-export async function fetchAndRenderTrustMatrix() {
+async function fetchAndRenderTrustMatrix() {
     const container = document.getElementById("trust-heatmap");
     if (!container) return;
     try {
-        const resp = await fetch("https://interagent.safety-quotient.dev/api/trust", {
+        const resp = await fetch("/api/trust", {
             signal: AbortSignal.timeout(8000),
         });
         if (!resp.ok) throw new Error("HTTP " + resp.status);
@@ -182,7 +176,7 @@ export async function fetchAndRenderTrustMatrix() {
         const dimLabels = { availability: "AVAIL", integrity: "INTEG", compliance: "COMPL", epistemic_honesty: "EPIST" };
         const labelMap = { "psychology-agent": "psych", "psq-agent": "safety-quotient", "safety-quotient-agent": "psq",
             "unratified-agent": "unrat", "unratified": "unrat", "observatory-agent": "obs", "observatory": "obs",
-            "operations-agent": "ops" };
+            "mesh": "mesh" };
 
         let html = '<div class="trust-matrix-grid" style="grid-template-columns: 56px repeat(' + agents.length + ', 1fr)">';
         // Header row
@@ -217,3 +211,7 @@ export async function fetchAndRenderTrustMatrix() {
         container.innerHTML = '<div class="trust-matrix-loading">Trust data unavailable</div>';
     }
 }
+
+// ── Medical Station ────────────────────────────────────────────
+
+

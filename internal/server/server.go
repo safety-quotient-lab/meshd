@@ -293,7 +293,13 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /vocab/schema.json", s.handleVocabSchema)
 	mux.HandleFunc("GET /.well-known/agent-card.json", s.handleAgentCardStatic)
 	staticSub, _ := fs.Sub(staticFS, "static")
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSub))))
+	staticServer := http.FileServer(http.FS(staticSub))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", staticServer))
+	// Serve at root-relative paths too (index.html uses relative href="css/..." and "js/...")
+	mux.Handle("GET /css/", staticServer)
+	mux.Handle("GET /js/", staticServer)
+	mux.Handle("GET /fonts/", staticServer)
+	mux.Handle("GET /favicon.svg", staticServer)
 
 	// Discovery
 	mux.HandleFunc("GET /.well-known/agents", s.handleAgents)

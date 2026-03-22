@@ -1,184 +1,96 @@
-/**
- * engineering.js — Engineering Station render functions.
- *
- * Extracted from inline <script> in index.html. Contains spawn dynamics (Gf bars),
- * Gc cascade area chart with sparkHistory accumulation, deliberation tree SVG
- * waterfall timeline, utilization rho gauge + vertical level gauge, waveform SVG
- * tempo visualization, tempo introspection per-deliberation timing table, cost
- * tracking, concurrency slot occupancy, and Engineering-specific cognitive load
- * (NASA-TLX per agent) and Yerkes-Dodson zone displays.
- *
- * Data endpoints:
- *   GET {opsAgent.url}/api/tempo      — mesh + per-agent timing
- *   GET {opsAgent.url}/api/spawn-rate — per-agent spawn counts
- *   GET {opsAgent.url}/api/flow       — concurrency slot data
- *   GET /api/psychometrics            — cognitive load + Y-D zones
- *
- * DOM dependencies: #spawn-dynamics, #gc-cascade, #util-rho, #tempo-value,
- *   #cost-total, #concurrency-slots, #eng-cognitive-load, #eng-yd-zones,
- *   #eng-status-line
- */
-
-import {
-    fmtNum, sparklineSVG, waveformSVG, pushSparkValue,
-    agentName, setTrackedValue, renderVlevelGauge, sparkHistory,
-} from '../core/utils.js';
-
-// ── Module State ───────────────────────────────────────────────
+// ═══ RENDER: ENGINEERING ════════════════════════════════════
 let engineeringData = null;
 let engineeringFetchPending = false;
 
-// Concurrency data fetched from /api/flow
-let _flowData = null;
+let engSelectedAgent = "mesh"; // default to mesh aggregate
 
-// Psychometrics cache for Engineering-specific cognitive load + Y-D
-let _psychCache = null;
+function _opsAgent() {
+    if (engSelectedAgent !== "mesh") {
+        return agentData[engSelectedAgent] || {};
+    }
+    return agentData["mesh"] || {};
+}
 
-const SPAWN_AGENTS = [
+function renderEngAgentSelector() {
+    renderAgentSelector("eng-agent-selector", engSelectedAgent, "selectEngAgent");
+}
+window.selectEngAgent = function(agentId) {
+    engSelectedAgent = agentId;
+    renderEngAgentSelector();
+    fetchEngineeringData();
+};
+
+const DELIBERATION_AGENTS = [
     { id: "psychology-agent",  label: "psychology", color: "var(--c-psychology)" },
     { id: "psq-agent",        label: "safety-quotient",   color: "var(--c-psq)" },
     { id: "unratified-agent",  label: "unratified", color: "var(--c-unratified)" },
     { id: "observatory-agent", label: "observatory",   color: "var(--c-observatory)" },
-    { id: "operations-agent",  label: "operations",   color: "var(--c-tab-ops)" },
+    { id: "mesh",              label: "mesh",          color: "var(--c-tab-ops)" },
 ];
 
-// ── Data Fetching ──────────────────────────────────────────────
-
-/**
- * Fetch engineering metrics from tempo and spawn-rate endpoints.
- * Stores results in module-level engineeringData and triggers render.
- * @param {Array} AGENTS — agent config array
- * @param {Object} agentData — per-agent cached data keyed by agent ID
- * @returns {Promise<void>}
- */
-export async function fetchEngineeringData(AGENTS, agentData) {
+async function fetchEngineeringData() {
     if (engineeringFetchPending) return;
     engineeringFetchPending = true;
     try {
-        const opsAgent = AGENTS.find(a => a.id === "operations-agent");
-        const baseUrl = opsAgent ? opsAgent.url : "https://psychology-agent.safety-quotient.dev";
-        const [tempoResp, spawnResp] = await Promise.allSettled([
-            fetch(`${baseUrl}/api/tempo`, { signal: AbortSignal.timeout(8000) }),
-            fetch(`${baseUrl}/api/spawn-rate`, { signal: AbortSignal.timeout(8000) }),
+        // Fetch full status for selected agent (cross-origin for remote agents)
+        const targetId = engSelectedAgent;
+        const targetAgent = AGENTS.find(a => a.id === targetId);
+        const statusUrl = targetAgent?.url ? targetAgent.url + "/api/status" : "/api/status";
+        const [tempoResp, deliberationResp, cogTempoResp, agentStatusResp] = await Promise.allSettled([
+            fetch("/api/tempo", { signal: AbortSignal.timeout(8000) }),
+            fetch("/api/spawn-rate", { signal: AbortSignal.timeout(8000) }),
+            fetch("/api/cognitive-tempo", { signal: AbortSignal.timeout(3000) }),
+            fetch(statusUrl, { signal: AbortSignal.timeout(3000) }),
         ]);
         const tempoData = tempoResp.status === "fulfilled" && tempoResp.value.ok
             ? await tempoResp.value.json() : null;
-        const spawnData = spawnResp.status === "fulfilled" && spawnResp.value.ok
-            ? await spawnResp.value.json() : null;
-        engineeringData = { tempo: tempoData, spawn: spawnData };
+        const deliberationData = deliberationResp.status === "fulfilled" && deliberationResp.value.ok
+            ? await deliberationResp.value.json() : null;
+        const cogTempo = cogTempoResp.status === "fulfilled" && cogTempoResp.value.ok
+            ? await cogTempoResp.value.json() : null;
+        // Enrich selected agent with full status (oscillator, heartbeat, gc_metrics)
+        if (agentStatusResp.status === "fulfilled" && agentStatusResp.value.ok) {
+            const fullStatus = await agentStatusResp.value.json();
+            const aid = fullStatus.agent_id || targetId;
+            agentData[aid] = { id: aid, status: "online", data: fullStatus };
+        }
+        engineeringData = { tempo: tempoData, deliberation: deliberationData, cogTempo: cogTempo };
     } catch (err) {
         engineeringData = null;
     } finally {
         engineeringFetchPending = false;
     }
-    renderEngineering(AGENTS, agentData);
+    renderEngineering();
 }
 
-/**
- * Fetch psychometrics for Engineering-specific panels.
- * @returns {Promise<void>}
- */
-async function fetchPsychForOps() {
-    try {
-        const resp = await fetch("https://interagent.safety-quotient.dev/api/psychometrics", { signal: AbortSignal.timeout(5000) });
-        if (resp.ok) _psychCache = await resp.json();
-    } catch {}
-}
+function renderEngineering() {
+    renderEngAgentSelector();
+    renderNumberGrid("eng-zone-a", engZoneAMetrics());
+    renderTimingHierarchy();
+    renderDeliberationCascade();
+    renderGcCascade();
+    renderUtilization();
+    renderTempo();
+    renderCost();
+    renderConcurrency();
+    renderCognitiveLoad();
+    renderYerkesDodson();
+    renderAlphaHeartbeat();
+    renderGcLearning();
+    renderModeTransitions();
 
-/**
- * Fetch concurrency/flow data from operations-agent.
- * @param {Array} AGENTS — agent config array
- * @returns {Promise<void>}
- */
-async function fetchFlowData(AGENTS) {
-    try {
-        const opsUrl = AGENTS.find(a => a.id === "operations-agent")?.url || "";
-        const r = await fetch(`${opsUrl}/api/flow`, { signal: AbortSignal.timeout(5000) });
-        if (r.ok) _flowData = await r.json();
-    } catch {}
-}
-
-// ── Render: Spawn Dynamics (Gf bars per agent) ─────────────────
-
-/**
- * Render per-agent spawn count bars with model tier summary.
- * Also triggers renderDeliberationTree for the waterfall timeline.
- *
- * DOM WRITE: #spawn-dynamics (appends elements), #spawn-placeholder visibility
- * @param {Array} AGENTS — agent config array
- * @param {Object} agentData — per-agent cached data keyed by agent ID
- */
-export function renderSpawnDynamics(AGENTS, agentData) {
-    const container = document.getElementById("spawn-dynamics");
-    const placeholder = document.getElementById("spawn-placeholder");
-    if (!container) return;
-
-    // Gf = fluid intelligence: deliberations per agent with model + duration
-    const tempoAgents = engineeringData?.tempo?.agents || [];
-    const agentMap = {};
-    tempoAgents.forEach(a => { agentMap[a.agent_id] = a; });
-
-    // Also get model tier from gc_metrics
-    const modelTier = agentData[AGENTS.find(a => a.id === "operations-agent")?.id]?.data?.gc_metrics?.deliberation_model || "?";
-
-    // Clear existing
-    container.querySelectorAll(".spawn-bar-row, .gf-summary").forEach(r => r.remove());
-
-    if (tempoAgents.length === 0) {
-        if (placeholder) placeholder.style.display = "block";
-        SPAWN_AGENTS.forEach(agent => {
-            const row = document.createElement("div");
-            row.className = "spawn-bar-row";
-            row.innerHTML = `<span class="spawn-bar-label">${agent.label}</span>
-                <div class="spawn-bar-track"><div class="spawn-bar-fill" style="width:0%;background:${agent.color};opacity:0.3"></div></div>
-                <span class="spawn-bar-count">\u2014</span>`;
-            container.appendChild(row);
-        });
-        return;
+    // Update status line (removed — replaced by zone-c title)
+    const statusEl = document.getElementById("eng-status-line");
+    if (statusEl && engineeringData) {
+        const mesh = engineeringData.tempo?.mesh || {};
+        const rho = mesh.utilization != null ? (mesh.utilization * 100).toFixed(0) + "%" : "—";
+        const dur = mesh.mean_duration_sec != null ? Math.round(mesh.mean_duration_sec) + "s" : "—";
+        const cost = mesh.cost_per_hour != null ? "$" + mesh.cost_per_hour + "/hr" : "—";
+        statusEl.textContent = `Utilization: ${rho} · Tempo: ${dur} avg · Cost: ${cost}`;
     }
-
-    if (placeholder) placeholder.style.display = "none";
-
-    // Summary with model tier + avg duration
-    const meshData = engineeringData?.tempo?.mesh || {};
-    const avgDur = meshData.mean_duration_sec ? Math.round(meshData.mean_duration_sec) + "s" : "\u2014";
-    const costHr = meshData.cost_per_hour != null ? "$" + meshData.cost_per_hour + "/hr" : "";
-    const summary = document.createElement("div");
-    summary.className = "gf-summary";
-    summary.style.cssText = "margin-bottom:8px;font-size:0.85em;opacity:0.8";
-    summary.innerHTML = `<span>Model: <strong>${modelTier.toUpperCase()}</strong> \u00B7 Avg: <strong>${avgDur}</strong>${costHr ? " \u00B7 " + costHr : ""}</span>`;
-    container.appendChild(summary);
-
-    // Per-agent bars
-    const maxCount = Math.max(1, ...SPAWN_AGENTS.map(a => agentMap[a.id]?.spawns_60min || 0));
-    SPAWN_AGENTS.forEach(agent => {
-        const data = agentMap[agent.id] || {};
-        const count = data.spawns_60min || 0;
-        const dur = data.mean_duration_sec ? Math.round(data.mean_duration_sec) + "s" : "";
-        const pct = (count / maxCount) * 100;
-        const row = document.createElement("div");
-        row.className = "spawn-bar-row";
-        row.innerHTML = `<span class="spawn-bar-label">${agent.label}</span>
-            <div class="spawn-bar-track"><div class="spawn-bar-fill" style="width:${pct}%;background:${agent.color}"></div></div>
-            <span class="spawn-bar-count" style="font-size:0.75em">${count}${dur ? " \u00B7 " + dur : ""}</span>`;
-        container.appendChild(row);
-    });
-
-    // Deliberation tree — waterfall of recent deliberations across all agents
-    renderDeliberationTree(container, AGENTS, agentData);
 }
 
-// ── Render: Gc Cascade (Area Chart) ────────────────────────────
-
-/**
- * Render the Gc cascade area chart — stacked crystallized processing streams.
- * Accumulates Gc history via sparkHistory for trend display.
- *
- * DOM WRITE: #gc-cascade (appends elements), #gc-placeholder visibility
- * @param {Array} AGENTS — agent config array
- * @param {Object} agentData — per-agent cached data keyed by agent ID
- */
-export function renderGcCascade(AGENTS, agentData) {
+function renderGcCascade() {
     const container = document.getElementById("gc-cascade");
     const placeholder = document.getElementById("gc-placeholder");
     if (!container) return;
@@ -261,34 +173,82 @@ export function renderGcCascade(AGENTS, agentData) {
     gcEntries.forEach(entry => {
         const pct = (entry.total / maxVal * 100);
         const row = document.createElement("div");
-        row.className = "gc-bar-row spawn-bar-row";
-        row.innerHTML = `<span class="spawn-bar-label">${entry.label}</span>
-            <div class="spawn-bar-track"><div class="spawn-bar-fill" style="width:${pct}%;background:${entry.color}"></div></div>
-            <span class="spawn-bar-count" style="font-size:0.75em">${fmtNum(entry.total)}</span>`;
+        row.className = "gc-bar-row delib-bar-row";
+        row.innerHTML = `<span class="delib-bar-label">${entry.label}</span>
+            <div class="delib-bar-track"><div class="delib-bar-fill" style="width:${pct}%;background:${entry.color}"></div></div>
+            <span class="delib-bar-count" style="font-size:0.75em">${fmtNum(entry.total)}</span>`;
         container.appendChild(row);
     });
 }
 
-// ── Render: Deliberation Tree (SVG Waterfall Timeline) ─────────
+function renderDeliberationCascade() {
+    const container = document.getElementById("deliberation-cascade");
+    const placeholder = document.getElementById("deliberation-placeholder");
+    if (!container) return;
 
-/**
- * Render the deliberation tree — SVG waterfall timeline of recent deliberations
- * across all agents. Nodes sized by cost, colored by agent, with broken links
- * for failures and duration indicators.
- *
- * DOM WRITE: appends .delib-tree element to container
- * @param {HTMLElement} container — parent element to append tree into
- * @param {Array} AGENTS — agent config array
- * @param {Object} agentData — per-agent cached data keyed by agent ID
- */
-export function renderDeliberationTree(container, AGENTS, agentData) {
+    // Gf = fluid intelligence: deliberations per agent with model + duration
+    const tempoAgents = engineeringData?.tempo?.agents || [];
+    const agentMap = {};
+    tempoAgents.forEach(a => { agentMap[a.agent_id] = a; });
+
+    // Also get model tier from gc_metrics
+    const modelTier = agentData["mesh"]?.data?.gc_metrics?.deliberation_model || "?";
+
+    // Clear existing
+    container.querySelectorAll(".delib-bar-row, .gf-summary").forEach(r => r.remove());
+
+    if (tempoAgents.length === 0) {
+        if (placeholder) placeholder.style.display = "block";
+        DELIBERATION_AGENTS.forEach(agent => {
+            const row = document.createElement("div");
+            row.className = "delib-bar-row";
+            row.innerHTML = `<span class="delib-bar-label">${agent.label}</span>
+                <div class="delib-bar-track"><div class="delib-bar-fill" style="width:0%;background:${agent.color};opacity:0.3"></div></div>
+                <span class="delib-bar-count">\u2014</span>`;
+            container.appendChild(row);
+        });
+        return;
+    }
+
+    if (placeholder) placeholder.style.display = "none";
+
+    // Summary with model tier + avg duration
+    const meshData = engineeringData?.tempo?.mesh || {};
+    const avgDur = meshData.mean_duration_sec ? Math.round(meshData.mean_duration_sec) + "s" : "—";
+    const costHr = meshData.cost_per_hour != null ? "$" + meshData.cost_per_hour + "/hr" : "";
+    const summary = document.createElement("div");
+    summary.className = "gf-summary";
+    summary.style.cssText = "margin-bottom:8px;font-size:0.85em;opacity:0.8";
+    summary.innerHTML = `<span>Model: <strong>${modelTier.toUpperCase()}</strong> · Avg: <strong>${avgDur}</strong>${costHr ? " · " + costHr : ""}</span>`;
+    container.appendChild(summary);
+
+    // Per-agent bars
+    const maxCount = Math.max(1, ...DELIBERATION_AGENTS.map(a => agentMap[a.id]?.deliberations_60min || 0));
+    DELIBERATION_AGENTS.forEach(agent => {
+        const data = agentMap[agent.id] || {};
+        const count = data.deliberations_60min || 0;
+        const dur = data.mean_duration_sec ? Math.round(data.mean_duration_sec) + "s" : "";
+        const pct = (count / maxCount) * 100;
+        const row = document.createElement("div");
+        row.className = "delib-bar-row";
+        row.innerHTML = `<span class="delib-bar-label">${agent.label}</span>
+            <div class="delib-bar-track"><div class="delib-bar-fill" style="width:${pct}%;background:${agent.color}"></div></div>
+            <span class="delib-bar-count" style="font-size:0.75em">${count}${dur ? " · " + dur : ""}</span>`;
+        container.appendChild(row);
+    });
+
+    // Deliberation tree — waterfall of recent deliberations across all agents
+    renderDeliberationTree(container);
+}
+
+function renderDeliberationTree(container) {
     // Collect all deliberations from all agents
     const allDelibs = [];
     for (const agent of AGENTS) {
         const d = agentData[agent.id];
         if (!d || d.status !== "online") continue;
-        const spawns = d.data?.recent_deliberations || d.data?.recent_spawns || [];
-        spawns.forEach(s => allDelibs.push({
+        const deliberations = d.data?.recent_deliberations || d.data?.recent_deliberations_legacy || [];
+        deliberations.forEach(s => allDelibs.push({
             agent_id: s.agent_id || agent.id,
             color: agent.color,
             started_at: s.started_at || "",
@@ -360,21 +320,13 @@ export function renderDeliberationTree(container, AGENTS, agentData) {
     if (!treeEl.parentNode) container.appendChild(treeEl);
 }
 
-// ── Render: Utilization ────────────────────────────────────────
-
-/**
- * Render the utilization gauge — rho metric with color-coded status
- * and Tuvok-style vertical level gauge (7 segments).
- *
- * DOM WRITE: #util-rho, #util-bar-fill, #util-status, #util-vlevel-gauge
- */
-export function renderUtilization() {
+function renderUtilization() {
     const rhoEl = document.getElementById("util-rho");
     const fillEl = document.getElementById("util-bar-fill");
     const statusEl = document.getElementById("util-status");
     if (!rhoEl) return;
 
-    const rho = engineeringData?.tempo?.mesh?.utilization ?? engineeringData?.spawn?.utilization ?? null;
+    const rho = engineeringData?.tempo?.mesh?.utilization ?? engineeringData?.deliberation?.utilization ?? null;
 
     if (rho == null) {
         rhoEl.textContent = "\u03C1 = \u2014";
@@ -418,71 +370,83 @@ export function renderUtilization() {
     }
 }
 
-// ── Render: Tempo ──────────────────────────────────────────────
+function renderTempo() {
+    // ── Gf Tempo: cognitive tempo (gain, tier, Yerkes-Dodson) ──
+    const gfVal = document.getElementById("tempo-gf-value");
+    const gfFill = document.getElementById("tempo-gf-fill");
+    const gfStatus = document.getElementById("tempo-gf-status");
+    const ct = engineeringData?.cogTempo;
+    const gain = ct?.gain ?? null;
+    const tier = ct?.recommended_tier || "?";
+    const tierColor = tier === "opus" ? "#c47070" : tier === "sonnet" ? "#d4944a" : "#66ccaa";
 
-/**
- * Render the OODA cycle tempo gauge with waveform SVG visualization.
- * Frequency inversely proportional to cycle time.
- *
- * DOM WRITE: #tempo-value, #tempo-bar-fill, #tempo-status, #tempo-waveform
- * @param {Array} AGENTS — agent config array
- * @param {Object} agentData — per-agent cached data keyed by agent ID
- */
-export function renderTempo(AGENTS, agentData) {
-    const valueEl = document.getElementById("tempo-value");
-    const fillEl = document.getElementById("tempo-bar-fill");
-    const statusEl = document.getElementById("tempo-status");
-    if (!valueEl) return;
+    if (gfVal) {
+        const opsData = _opsAgent()?.data || {};
+        const delibCount = opsData.deliberation_count || 0;
+        const delibLastHr = opsData.gc_metrics?.deliberations_last_hour || 0;
+        const complexity = ct?.task_complexity || 0;
 
-    const avgMs = engineeringData?.tempo?.mesh?.mean_duration_sec != null
-        ? Math.round(engineeringData.tempo.mesh.mean_duration_sec * 1000)
-        : engineeringData?.tempo?.avg_cycle_ms ?? null;
-
-    if (avgMs == null) {
-        valueEl.innerHTML = `\u2014<span class="tempo-unit">ms avg</span>`;
-        fillEl.style.width = "0%";
-        statusEl.textContent = "OODA cycle: AWAITING DATA";
-        return;
+        if (gain != null) {
+            const gcGf = ct?.gc_gf_ratio ?? null;
+            const backlog = ct?.backlog_pressure ?? 0;
+            const unproc = ct?.unprocessed ?? 0;
+            gfVal.innerHTML = `${tier.toUpperCase()}<span class="tempo-unit"> g=${gain.toFixed(2)}</span>`;
+            gfFill.style.width = `${Math.min(100, gain * 100)}%`;
+            gfFill.style.background = tierColor;
+            const gcPct = gcGf != null ? Math.round(gcGf * 100) : "?";
+            const gfPct = gcGf != null ? Math.round((1 - gcGf) * 100) : "?";
+            gfStatus.textContent = `Gc/Gf: ${gcPct}/${gfPct} · backlog: ${unproc} (p=${backlog.toFixed(2)}) · c=${complexity.toFixed(2)}`;
+        } else {
+            gfVal.innerHTML = `${delibCount}<span class="tempo-unit"> deliberations</span>`;
+            gfFill.style.width = "0%";
+            gfStatus.textContent = `${delibLastHr}/hr · no cognitive tempo data`;
+        }
     }
 
-    setTrackedValue("tempo-value", avgMs, { suffix: '<span class="tempo-unit">ms avg</span>', inverted: true });
-    const pct = Math.min(100, (avgMs / 2000) * 100);
-    fillEl.style.width = `${pct}%`;
-
-    let label = "NOMINAL";
-    let tempoColor = "#6aab8e";
-    if (avgMs > 1500) { label = "SLOW"; tempoColor = "#c47070"; }
-    else if (avgMs > 800) { label = "MODERATE"; tempoColor = "#d4944a"; }
-    statusEl.textContent = `OODA cycle: ${label}`;
-
-    // Waveform visualization — frequency inversely proportional to cycle time
-    const tempoWaveEl = document.getElementById("tempo-waveform");
-    if (tempoWaveEl) {
-        const freq = Math.max(1, 6 - (avgMs / 500));
-        tempoWaveEl.innerHTML = waveformSVG({
-            width: tempoWaveEl.clientWidth || 200, height: 30,
-            amplitude: Math.min(1, avgMs / 1000),
-            frequency: freq,
-            stroke: tempoColor,
-        });
+    // Gf waveform — real gain data over time (animation tick reads from pushWaveData)
+    const gfWave = document.getElementById("tempo-gf-waveform");
+    if (gfWave) {
+        gfWave._opts = { stroke: tierColor };
     }
 
-    // Tempo introspection — per-deliberation timing breakdown
-    renderTempoIntrospection(tempoColor, AGENTS, agentData);
+    // ── Gc Tempo: crystallized throughput (OODA cycle, events/hr) ──
+    const gcVal = document.getElementById("tempo-gc-value");
+    const gcFill = document.getElementById("tempo-gc-fill");
+    const gcStatus = document.getElementById("tempo-gc-status");
+    const mesh = engineeringData?.tempo?.mesh || {};
+    const avgMs = mesh.mean_duration_sec != null ? Math.round(mesh.mean_duration_sec * 1000) : null;
+    const rho = mesh.utilization ?? null;
+
+    if (gcVal) {
+        const opsData = _opsAgent()?.data || {};
+        const gcHandled = opsData.gc_metrics?.gc_handled_total || 0;
+        const eventCount = opsData.event_count || 0;
+        const blocked = opsData.gc_metrics?.deliberation_blocked_total || 0;
+
+        if (eventCount > 0 || gcHandled > 0) {
+            gcVal.innerHTML = `${eventCount}<span class="tempo-unit"> events</span>`;
+            const pct = rho != null ? Math.min(100, rho * 100) : Math.min(100, Math.min(gcHandled, 100));
+            gcFill.style.width = `${pct}%`;
+            gcFill.style.background = rho > 0.8 ? "#c47070" : rho > 0.5 ? "#d4944a" : "#6aab8e";
+            gcStatus.textContent = `Gc: ${gcHandled} handled · ${blocked} blocked${rho != null ? " · \u03C1=" + (rho * 100).toFixed(0) + "%" : ""}`;
+        } else {
+            gcVal.innerHTML = `0<span class="tempo-unit"> events</span>`;
+            gcFill.style.width = "0%";
+            gcStatus.textContent = "Gc: no activity";
+        }
+    }
+
+    // Gc waveform — real Gc event count over time (animation tick reads from pushWaveData)
+    const gcWave = document.getElementById("tempo-gc-waveform");
+    if (gcWave) {
+        const gcColor = rho != null ? (rho > 0.8 ? "#c47070" : rho > 0.5 ? "#d4944a" : "#6aab8e") : "#6aab8e";
+        gcWave._opts = { stroke: gcColor };
+    }
+
+    renderTempoIntrospection(tierColor);
 }
 
-// ── Render: Tempo Introspection ────────────────────────────────
-
-/**
- * Render per-deliberation timing table — agent, duration, gap, cost.
- * Shows last 8 deliberations sorted chronologically with inter-deliberation gaps.
- *
- * DOM WRITE: #tempo-introspection
- * @param {string} color — tempo status color
- * @param {Array} AGENTS — agent config array
- * @param {Object} agentData — per-agent cached data keyed by agent ID
- */
-export function renderTempoIntrospection(color, AGENTS, agentData) {
+function renderTempoIntrospection(color) {
     const container = document.getElementById("tempo-introspection");
     if (!container) return;
 
@@ -491,8 +455,8 @@ export function renderTempoIntrospection(color, AGENTS, agentData) {
     for (const agent of AGENTS) {
         const d = agentData[agent.id];
         if (!d || d.status !== "online") continue;
-        const spawns = d.data?.recent_deliberations || [];
-        spawns.forEach(s => {
+        const deliberations = d.data?.recent_deliberations || [];
+        deliberations.forEach(s => {
             if (s.started_at && s.duration_ms) {
                 allDelibs.push({
                     agent: agentName(agent),
@@ -537,21 +501,15 @@ export function renderTempoIntrospection(color, AGENTS, agentData) {
         '</div></div>';
 }
 
-// ── Render: Cost ───────────────────────────────────────────────
-
-/**
- * Render total cost and hourly rate displays.
- * DOM WRITE: #cost-total, #cost-rate
- */
-export function renderCost() {
+function renderCost() {
     const totalEl = document.getElementById("cost-total");
     const rateEl = document.getElementById("cost-rate");
     if (!totalEl) return;
 
     const meshData = engineeringData?.tempo?.mesh || {};
-    const spawnCost = engineeringData?.spawn || {};
-    const hourlyRate = meshData.cost_per_hour ?? spawnCost?.cost?.hourly_rate ?? null;
-    const totalCost = spawnCost?.last_hour?.total_cost ?? spawnCost?.cost?.total_today ?? null;
+    const deliberationCost = engineeringData?.deliberation || {};
+    const hourlyRate = meshData.cost_per_hour ?? deliberationCost?.cost?.hourly_rate ?? null;
+    const totalCost = deliberationCost?.last_hour?.total_cost ?? deliberationCost?.cost?.total_today ?? null;
 
     if (hourlyRate == null && totalCost == null) {
         totalEl.textContent = "$\u2014";
@@ -565,21 +523,22 @@ export function renderCost() {
         : `<span class="cost-rate-arrow">\u2197</span> $\u2014/hr`;
 }
 
-// ── Render: Concurrency ────────────────────────────────────────
+// Concurrency data fetched from /api/flow
+let _flowData = null;
+async function fetchFlowData() {
+    try {
+        const r = await fetch("/api/flow", { signal: AbortSignal.timeout(5000) });
+        if (r.ok) _flowData = await r.json();
+    } catch {}
+}
 
-/**
- * Render concurrency slot occupancy indicators.
- * Fetches flow data on first call if not yet cached.
- *
- * DOM WRITE: #concurrency-slots (innerHTML replacement)
- * @param {Array} AGENTS — agent config array
- */
-export function renderConcurrency(AGENTS) {
+function renderConcurrency() {
     const container = document.getElementById("concurrency-slots");
     if (!container) return;
 
     if (!_flowData) {
-        fetchFlowData(AGENTS).then(() => renderConcurrency(AGENTS));
+        fetchFlowData(); // fire once — no recursive retry
+        container.innerHTML = '<div style="opacity:0.5;padding:8px;font-size:0.85em">Loading flow data...</div>';
         return;
     }
 
@@ -606,21 +565,17 @@ export function renderConcurrency(AGENTS) {
     }
 }
 
-// ── Render: Cognitive Load (Engineering-specific) ──────────────
-
-/**
- * Render per-agent NASA-TLX cognitive load bars with 6 dimensions.
- * Uses psychometrics cache — fetches on first call if not cached.
- *
- * DOM WRITE: #eng-cognitive-load
- * @param {Array} AGENTS — agent config array
- */
-export function renderCognitiveLoad(AGENTS) {
+function renderCognitiveLoad() {
     const container = document.getElementById("eng-cognitive-load");
     if (!container) return;
 
-    if (!_psychCache || !_psychCache.agents) {
-        fetchPsychForOps().then(() => renderCognitiveLoad(AGENTS));
+    if (!_psychCache) {
+        fetchPsychForOps(); // fire once — no recursive retry
+        container.innerHTML = '<div style="opacity:0.5;padding:8px;font-size:0.85em">Loading psychometrics...</div>';
+        return;
+    }
+    if (!_psychCache.agents) {
+        container.innerHTML = '<div style="opacity:0.5;padding:8px;font-size:0.85em">Psychometrics loaded — per-agent view requires compositor</div>';
         return;
     }
 
@@ -639,9 +594,9 @@ export function renderCognitiveLoad(AGENTS) {
         container.innerHTML = '<div style="padding:8px;font-size:0.85em;opacity:0.7">' +
             partial.map(([aid, d]) => {
                 const wm = d.working_memory || {};
-                const yd = wm.yerkes_dodson_zone || "\u2014";
+                const yd = wm.yerkes_dodson_zone || "—";
                 return `<span style="color:${AGENTS.find(a=>a.id===aid)?.color||"inherit"}">${agentName(aid)}</span>: YD zone = ${yd}`;
-            }).join(" \u00B7 ") + '</div>';
+            }).join(" · ") + '</div>';
         return;
     }
 
@@ -662,22 +617,18 @@ export function renderCognitiveLoad(AGENTS) {
     }).join("");
 }
 
-// ── Render: Yerkes-Dodson Zones (Engineering-specific) ─────────
-
-/**
- * Render per-agent Yerkes-Dodson zones from working memory data.
- * Uses psychometrics cache — fetches on first call if not cached.
- *
- * DOM WRITE: #eng-yd-zones
- * @param {Array} AGENTS — agent config array
- */
-export function renderYerkesDodson(AGENTS) {
+function renderYerkesDodson() {
     const container = document.getElementById("eng-yd-zones");
     if (!container) return;
 
     // Read Yerkes-Dodson zones from psychometrics cache
-    if (!_psychCache || !_psychCache.agents) {
-        fetchPsychForOps().then(() => renderYerkesDodson(AGENTS));
+    if (!_psychCache) {
+        fetchPsychForOps(); // fire once — no recursive retry
+        container.innerHTML = '<div style="opacity:0.5;padding:8px;font-size:0.85em">Loading...</div>';
+        return;
+    }
+    if (!_psychCache.agents) {
+        container.innerHTML = '<div style="opacity:0.5;padding:8px;font-size:0.85em">Per-agent view requires compositor</div>';
         return;
     }
 
@@ -689,7 +640,7 @@ export function renderYerkesDodson(AGENTS) {
         return;
     }
 
-    const colorMap = { "psychology-agent": "#5b9cf6", "psq-agent": "#4ecdc4", "unratified-agent": "#e5a735", "observatory-agent": "#a78bfa", "operations-agent": "#6b7280" };
+    const colorMap = { "psychology-agent": "#5b9cf6", "psq-agent": "#4ecdc4", "unratified-agent": "#e5a735", "observatory-agent": "#a78bfa", "mesh": "#6b7280" };
     const zoneColors = { understimulated: "#5b9cf6", optimal: "#6aab8e", overwhelmed: "#c47070" };
 
     container.innerHTML = entries.map(([agentId, data]) => {
@@ -709,30 +660,195 @@ export function renderYerkesDodson(AGENTS) {
     }).join("");
 }
 
-// ── Render: Combined Engineering ───────────────────────────────
+// ── Timing Hierarchy (psy-session arch synthesis) ───────────────
+// 5-layer timing status derived from live system state.
+function renderTimingHierarchy() {
+    const ops = _opsAgent();
+    const osc = ops?.data?.oscillator || {};
+    const health = ops?.data?.health;
 
-/**
- * Render all Engineering station sub-sections.
- * @param {Array} AGENTS — agent config array
- * @param {Object} agentData — per-agent cached data keyed by agent ID
- */
-export function renderEngineering(AGENTS, agentData) {
-    renderSpawnDynamics(AGENTS, agentData);
-    renderGcCascade(AGENTS, agentData);
-    renderUtilization();
-    renderTempo(AGENTS, agentData);
-    renderCost();
-    renderConcurrency(AGENTS);
-    renderCognitiveLoad(AGENTS);
-    renderYerkesDodson(AGENTS);
+    // Layer 1: Circadian — not implemented
+    // Layer 2: Ultradian — deliberation cycle (sleep mode = shadow, active if deliberations recent)
+    const recentDelibs = ops?.data?.recent_deliberations || [];
+    const hasRecentDelib = recentDelibs.length > 0 && recentDelibs[0]?.started_at;
+    const el2 = document.getElementById("eng-timing-ultradian");
+    if (el2) {
+        if (hasRecentDelib) { el2.textContent = "ACTIVE"; el2.style.color = "var(--lcars-medical)"; }
+        else { el2.textContent = "SLEEP"; el2.style.color = "var(--text-dim)"; }
+    }
 
-    // Update status line
-    const statusEl = document.getElementById("eng-status-line");
-    if (statusEl && engineeringData) {
-        const mesh = engineeringData.tempo?.mesh || {};
-        const rho = mesh.utilization != null ? (mesh.utilization * 100).toFixed(0) + "%" : "\u2014";
-        const dur = mesh.mean_duration_sec != null ? Math.round(mesh.mean_duration_sec) + "s" : "\u2014";
-        const cost = mesh.cost_per_hour != null ? "$" + mesh.cost_per_hour + "/hr" : "\u2014";
-        statusEl.textContent = `Utilization: ${rho} \u00B7 Tempo: ${dur} avg \u00B7 Cost: ${cost}`;
+    // Layer 3: Cardiac — oscillator state (from /api/status → oscillator snapshot)
+    const el3 = document.getElementById("eng-timing-cardiac");
+    if (el3) {
+        const oscState = osc.state || ops?.data?.oscillator?.state;
+        const act = osc.activation || ops?.data?.oscillator?.activation || 0;
+        if (oscState === "firing") { el3.textContent = "FIRING " + act.toFixed(2); el3.style.color = "var(--lcars-alert)"; }
+        else if (oscState === "refractory") { el3.textContent = "REFRACT"; el3.style.color = "var(--lcars-accent)"; }
+        else if (oscState === "monitoring") { el3.textContent = "ACTIVE " + act.toFixed(2); el3.style.color = "var(--lcars-medical)"; }
+        else if (oscState) { el3.textContent = oscState.toUpperCase(); el3.style.color = "var(--lcars-accent)"; }
+        else { el3.textContent = "OFFLINE"; el3.style.color = "var(--text-dim)"; }
+    }
+
+    // Layer 4: Respiratory — health monitor
+    const el4 = document.getElementById("eng-timing-respiratory");
+    if (el4) {
+        if (health === "nominal") { el4.textContent = "ACTIVE"; el4.style.color = "var(--lcars-medical)"; }
+        else if (health) { el4.textContent = health.toUpperCase(); el4.style.color = "var(--lcars-accent)"; }
+    }
+
+    // Layer 5: Neural — alpha heartbeat (T22 metabolic cooling)
+    const el5 = document.getElementById("eng-timing-neural");
+    if (el5) {
+        const hb = ops?.data?.alpha_heartbeat;
+        const band = hb?.dominant_band || osc.dominant_band || "";
+        if (hb?.running) {
+            el5.textContent = band.toUpperCase() + " " + Math.round(hb.interval_sec || 0) + "s";
+            el5.style.color = "var(--lcars-medical)";
+        } else if (band) {
+            el5.textContent = band.toUpperCase();
+            el5.style.color = "var(--lcars-tertiary)";
+        } else {
+            el5.textContent = "IDLE";
+            el5.style.color = "var(--text-dim)";
+        }
     }
 }
+
+// ── Alpha Heartbeat Panel ────────────────────────────────────────
+function renderAlphaHeartbeat() {
+    const container = document.getElementById("eng-alpha-heartbeat");
+    if (!container) return;
+
+    const ops = _opsAgent();
+    const hb = ops?.data?.alpha_heartbeat;
+    if (!hb || !hb.running) {
+        container.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">Heartbeat not running</div>';
+        return;
+    }
+
+    const interval = hb.interval_sec != null ? Math.round(hb.interval_sec) : "—";
+    const band = (hb.dominant_band || "unknown").toUpperCase();
+    const ticks = hb.tick_count || 0;
+    const cooling = hb.cooling_elapsed || "—";
+    const lastAct = hb.last_activity ? new Date(hb.last_activity).toLocaleTimeString() : "—";
+
+    // Band color mapping (EEG convention)
+    const bandColors = { DELTA: "#9999ff", THETA: "#cc99cc", ALPHA: "#66ccaa", BETA: "#ff9966", GAMMA: "#ff6666" };
+    const bandColor = bandColors[band] || "var(--lcars-readout)";
+
+    // Cooling curve visualization — show where on the exponential decay we sit
+    const maxInterval = 300; // 5min resting
+    const minInterval = 10;  // peak
+    const pct = hb.interval_sec != null
+        ? Math.max(0, Math.min(100, ((hb.interval_sec - minInterval) / (maxInterval - minInterval)) * 100))
+        : 0;
+
+    container.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-s);font-size:0.82em">
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">BAND</div>
+                <div style="color:${bandColor};font-weight:700;font-size:1.2em">${band}</div>
+            </div>
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">INTERVAL</div>
+                <div style="color:var(--lcars-readout);font-weight:700;font-size:1.2em">${interval}s</div>
+            </div>
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">TICKS</div>
+                <div style="color:var(--lcars-secondary)">${ticks}</div>
+            </div>
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">COOLING</div>
+                <div style="color:var(--text-dim)">${cooling}</div>
+            </div>
+        </div>
+        <div style="margin-top:var(--gap-s)">
+            <div style="display:flex;justify-content:space-between;font-size:0.7em;color:var(--text-dim);margin-bottom:2px">
+                <span>PEAK 10s</span><span>RESTING 300s</span>
+            </div>
+            <div style="height:8px;background:var(--bg-inset);border-radius:var(--gap-xs)">
+                <div style="width:${pct}%;height:100%;background:${bandColor};border-radius:var(--gap-xs);transition:width 1s"></div>
+            </div>
+            <div style="font-size:0.7em;color:var(--text-dim);margin-top:2px">Last activity: ${lastAct}</div>
+        </div>`;
+}
+
+// ── Gc Learning Panel ───────────────────────────────────────────
+function renderGcLearning() {
+    const container = document.getElementById("eng-gc-learning");
+    if (!container) return;
+
+    const ops = _opsAgent();
+    const gcl = ops?.data?.gc_learning;
+    const gcm = ops?.data?.gc_metrics;
+
+    if (!gcl && !gcm) {
+        container.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">No Gc learning data</div>';
+        return;
+    }
+
+    const staticTypes = gcl?.static_types || 7;
+    const promoted = gcl?.types_promoted || 0;
+    const tracked = gcl?.types_tracked || 0;
+    const gcHandled = gcm?.gc_handled_total || 0;
+    const blocked = gcm?.deliberation_blocked_total || 0;
+    const ratio = gcm?.gc_ratio || "—";
+    const model = (gcm?.deliberation_model || "unknown").toUpperCase();
+
+    container.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap-s);font-size:0.82em">
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">STATIC TYPES</div>
+                <div style="color:var(--lcars-secondary);font-weight:700;font-size:1.2em">${staticTypes}</div>
+            </div>
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">PROMOTED</div>
+                <div style="color:${promoted > 0 ? "var(--lcars-medical)" : "var(--text-dim)"};font-weight:700;font-size:1.2em">${promoted}</div>
+            </div>
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">TRACKED</div>
+                <div style="color:var(--lcars-readout);font-weight:700;font-size:1.2em">${tracked}</div>
+            </div>
+        </div>
+        <div style="margin-top:var(--gap-s);display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-s);font-size:0.82em">
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">GC HANDLED</div>
+                <div style="color:var(--lcars-secondary)">${fmtNum(gcHandled)}</div>
+            </div>
+            <div>
+                <div style="color:var(--lcars-title);font-size:0.75em;margin-bottom:2px">BLOCKED</div>
+                <div style="color:${blocked > 0 ? "var(--lcars-alert)" : "var(--text-dim)"}">${blocked}</div>
+            </div>
+        </div>
+        <div style="margin-top:var(--gap-s);font-size:0.75em;color:var(--text-dim)">
+            Model: <span style="color:var(--lcars-readout)">${model}</span> · ${ratio}
+        </div>`;
+}
+
+// ── agentd Session 95: Mode Transition Speed ────────────────────
+function renderModeTransitions() {
+    const el = document.getElementById("eng-mode-transitions");
+    if (!el) return;
+    // Mock transition data — real data arrives with agentd Phase 4+
+    const transitions = [
+        { from: "active", to: "DMN", ms: 1200 + Math.round(Math.random() * 400) },
+        { from: "DMN", to: "active", ms: 800 + Math.round(Math.random() * 300) },
+        { from: "active", to: "sleep", ms: 4500 + Math.round(Math.random() * 1000) },
+        { from: "task(creative)", to: "task(evaluative)", ms: 2100 + Math.round(Math.random() * 500) },
+    ];
+    const maxMs = Math.max(...transitions.map(t => t.ms));
+    el.innerHTML = '<div style="font-size:0.78em">'
+        + transitions.map(t => {
+            const pct = (t.ms / maxMs) * 100;
+            return '<div style="display:flex;align-items:center;gap:var(--gap-s);margin-bottom:4px">'
+                + '<span style="width:120px;color:var(--lcars-secondary);white-space:nowrap">' + t.from + ' → ' + t.to + '</span>'
+                + '<div style="flex:1;height:8px;background:var(--bg-inset);border-radius:var(--gap-xs)"><div style="width:' + pct + '%;height:100%;background:var(--c-tab-engineering);border-radius:var(--gap-xs)"></div></div>'
+                + '<span style="width:50px;text-align:right;color:var(--lcars-readout)">' + t.ms + 'ms</span>'
+                + '</div>';
+        }).join("")
+        + '<div style="margin-top:var(--gap-s);color:var(--text-dim)">Trend: improving (mock data — real metrics from agentd Phase 4+)</div>'
+        + '</div>';
+}
+
+// ── Tactical Station ─────────────────────────────────────────────
+

@@ -1049,7 +1049,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .lcars-pill-blue { background: var(--c-knowledge, #5b9cf6); }
 .lcars-pill-teal { background: var(--c-catalog, #4ecdc4); }
 .lcars-pill-dim { background: var(--bg-inset, #666); color: var(--text-secondary, #ccc); }
-.lcars-pill-sm { padding: 10px 14px 4px; font-size: 0.68em; min-height: 44px; /* 28 × φ */ }
+.lcars-pill-sm { padding: 4px 12px 3px; font-size: 0.68em; min-height: 24px; }
 .lcars-pill-active { box-shadow: 0 0 8px currentColor; opacity: 1; }
 .lcars-pill-sm.lcars-pill-active { background: var(--c-warning, #d4944a); }
 /* LCARS-specific pill overrides — rectangular blocks, TNG saturated palette */
@@ -3877,8 +3877,8 @@ body[data-alert-level="2"] .lcars-sidebar-drop { background: var(--alert-red-dar
 /* Uniform compact buttons — wrap naturally, don't stretch to fill */
 .gov-panel-selector .gov-panel-btn {
     flex: 0 0 auto;
-    min-width: 100px;
-    min-height: 48px;
+    min-width: 80px;
+    min-height: 24px;
 }
 /* Mobile: tighter content padding + uniform button width */
 @media (max-width: 600px) {

@@ -509,20 +509,20 @@ async function renderTripleStore(stats) {
     const pills = graphs.map(g => {
         const color = GRAPH_COLORS[g] || "var(--lcars-secondary)";
         const active = _triplesGraph === g;
-        return `<button class="ops-panel-btn${active ? " ops-panel-active" : ""}"
+        const activeClass = active ? " lcars-pill-active" : "";
+        return `<button class="lcars-pill-btn lcars-pill-sm${activeClass}"
                  data-graph="${g}" onclick="filterTripleGraph('${g}')"
-                 style="font-size:0.72em;padding:2px 8px;margin:2px;${active ? "" : "border-left:3px solid " + color}">${g}
+                 style="${active ? "" : "border-left:3px solid " + color}">${g}
             <span style="opacity:0.6;margin-left:4px">${graphCounts[g]}</span>
         </button>`;
     }).join("");
 
-    const allActive = _triplesGraph === "" ? " ops-panel-active" : "";
-    const viewToggle = `<button class="ops-panel-btn" onclick="toggleTripleView()"
-        style="font-size:0.72em;padding:2px 8px;margin-left:auto">${_tripleViewMode === "entity" ? "TABLE" : "ENTITY"}</button>`;
+    const allActive = _triplesGraph === "" ? " lcars-pill-active" : "";
+    const viewToggle = `<button class="lcars-pill-btn lcars-pill-sm" onclick="toggleTripleView()"
+        style="margin-left:auto">${_tripleViewMode === "entity" ? "TABLE" : "ENTITY"}</button>`;
 
     const header = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:var(--gap-s)">
-        <button class="ops-panel-btn${allActive}" onclick="filterTripleGraph('')"
-                style="font-size:0.72em;padding:2px 8px;margin:2px">ALL
+        <button class="lcars-pill-btn lcars-pill-sm${allActive}" onclick="filterTripleGraph('')">ALL
             <span style="opacity:0.6;margin-left:4px">${total}</span>
         </button>
         ${pills}
@@ -633,8 +633,7 @@ function renderEntityDetail(subject, props) {
 
     return `<div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--gap-s)">
-            <button class="ops-panel-btn" onclick="selectTripleSubject(null)"
-                    style="font-size:0.72em;padding:2px 8px">← BACK</button>
+            <button class="lcars-pill-btn lcars-pill-sm" onclick="selectTripleSubject(null)">← BACK</button>
             <span style="color:${color};font-size:0.72em">${graph}</span>
         </div>
         <div style="border-left:3px solid ${color};padding:8px 12px;background:var(--bg-inset)">

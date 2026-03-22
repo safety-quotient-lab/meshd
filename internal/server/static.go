@@ -47,6 +47,14 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 // Prefers fleet.html (modular v2); falls back to index.html (legacy monolith).
 // Injects build version into ?v= cache-buster parameters so deploys
 // automatically bust Cloudflare edge cache without manual hash updates.
+// subToTab maps ?sub= query parameter values to their parent tab IDs.
+var subToTab = map[string]string{
+	"psychometrics": "analysis", "linguistics": "analysis", "ontology": "analysis",
+	"mesh-status": "governance", "resources-autonomy": "governance",
+	"transport-overview": "governance", "resources-capacity": "governance",
+	"deliberations-log": "governance", "governance-record": "governance",
+}
+
 func (s *Server) serveCompositor(w http.ResponseWriter, r *http.Request) {
 	data, err := staticFS.ReadFile("static/fleet.html")
 	if err != nil {
@@ -57,6 +65,17 @@ func (s *Server) serveCompositor(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	html := strings.ReplaceAll(string(data), "?v=BUILD_VERSION", "?v="+Version)
+
+	// Server-side tab activation: if ?sub= targets a specific tab,
+	// inject a <style> in <head> that shows only that tab's pane.
+	// Eliminates flash of wrong tab on deep links.
+	if sub := r.URL.Query().Get("sub"); sub != "" {
+		if tab, ok := subToTab[sub]; ok {
+			injection := `<style>.tab-pane{display:none!important}#pane-` + tab + `{display:block!important}</style>`
+			html = strings.Replace(html, "</head>", injection+"</head>", 1)
+		}
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Write([]byte(html))

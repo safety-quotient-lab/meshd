@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/safety-quotient-lab/meshd/internal/exosome"
+	"github.com/safety-quotient-lab/meshd/internal/triplestore"
 )
 
 // sessionIDRe validates session IDs against path traversal and injection.
@@ -155,6 +156,20 @@ func (s *Server) handleInbound(w http.ResponseWriter, r *http.Request) {
 		s.logger.Info("inbound: message indexed in state.db",
 			"session", msg.SessionID, "from", fromAgent, "turn", msg.Turn)
 		exo.MarkMeshDelivered(dbPath)
+
+		// Emit transport triples (fire-and-forget, event-sourced)
+		if s.TripleStore != nil {
+			go func() {
+				triples := triplestore.EmitMessage(
+					exo.ID, fromAgent, toAgent, subject,
+					msg.SessionID, msg.Turn, timestamp,
+					msg.Type, "",
+				)
+				if err := s.TripleStore.AssertBatch(triples); err != nil {
+					s.logger.Warn("inbound: triple emission failed", "error", err)
+				}
+			}()
+		}
 	}
 
 	// ── Write 2: filesystem (transport/sessions/) ────────────────

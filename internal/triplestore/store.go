@@ -94,9 +94,32 @@ func (s *Store) Assert(t Triple) error {
 }
 
 // AssertBatch inserts multiple triples in a single transaction.
+// If an ontology with SHACL shapes exists, validates entity triples
+// against the corresponding shape before writing.
 func (s *Store) AssertBatch(triples []Triple) error {
 	if len(triples) == 0 {
 		return nil
+	}
+
+	// SHACL validation: group triples by subject, find rdf:type, validate
+	if s.ontology != nil {
+		bySubject := make(map[string][]Triple)
+		typeOf := make(map[string]string)
+		for _, t := range triples {
+			bySubject[t.Subject] = append(bySubject[t.Subject], t)
+			if t.Predicate == "rdf:type" {
+				typeOf[t.Subject] = t.Object
+			}
+		}
+		for subj, subjTriples := range bySubject {
+			if rdfType, ok := typeOf[subj]; ok {
+				if err := s.ontology.ValidateAgainst(rdfType, subjTriples); err != nil {
+					s.Logger.Warn("SHACL validation failed",
+						"subject", subj, "type", rdfType, "error", err)
+					// Log but don't reject — Phase 1 warns, Phase 2 rejects
+				}
+			}
+		}
 	}
 
 	var b strings.Builder

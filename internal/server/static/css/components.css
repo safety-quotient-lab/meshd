@@ -1160,7 +1160,7 @@ a.activity-link:hover {
 }
 
 /* Science placeholder text */
-.science-placeholder {
+.analysis-placeholder {
     color: var(--text-dim);
     font-size: 0.82em;
     font-style: italic;
@@ -1170,21 +1170,21 @@ a.activity-link:hover {
 
 /* ── Medical Station ────────────────────────────────────────── */
 
-.medical-grid {
+.vitals-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     padding: 12px;
 }
-.medical-full-width { grid-column: 1 / -1; }
+.vitals-full-width { grid-column: 1 / -1; }
 
 /* Agent selector — row of colored buttons */
-.medical-agent-selector {
+.vitals-agent-selector {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
-.medical-agent-btn {
+.vitals-agent-btn {
     background: var(--bg-inset);
     border: 2px solid var(--agent-color, var(--border));
     color: var(--text-secondary);
@@ -1200,22 +1200,22 @@ a.activity-link:hover {
     letter-spacing: 0.1em;
     transition: all 0.2s;
 }
-.medical-agent-btn:hover {
+.vitals-agent-btn:hover {
     background: color-mix(in srgb, var(--agent-color) 20%, var(--bg-inset));
     border-color: var(--agent-color);
 }
-.medical-agent-btn.active {
+.vitals-agent-btn.active {
     background: var(--agent-color);
     color: var(--bg-primary);
     border-color: var(--agent-color);
 }
-.theme-lcars .medical-agent-btn {
+.theme-lcars .vitals-agent-btn {
     border-radius: 50vh;
     letter-spacing: 0.14em;
 }
 
 /* Placeholder text */
-.medical-placeholder {
+.vitals-placeholder {
     color: var(--text-dim);
     font-size: 0.82em;
     font-style: italic;
@@ -1224,17 +1224,17 @@ a.activity-link:hover {
 }
 
 /* Vitals grid — PAD and TLX side by side */
-.medical-vitals-grid {
+.vitals-vitals-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
 }
 @media (max-width: 600px) {
-    .medical-vitals-grid { grid-template-columns: 1fr; }
-    .medical-grid { grid-template-columns: 1fr; }
+    .vitals-vitals-grid { grid-template-columns: 1fr; }
+    .vitals-grid { grid-template-columns: 1fr; }
 }
-.medical-vitals-section { display: flex; flex-direction: column; gap: 6px; }
-.medical-section-label {
+.vitals-vitals-section { display: flex; flex-direction: column; gap: 6px; }
+.vitals-section-label {
     font-size: 0.7em;
     font-weight: 600;
     color: var(--text-secondary);
@@ -1244,12 +1244,12 @@ a.activity-link:hover {
 }
 
 /* Bar rows — shared by PAD and TLX */
-.medical-bar-row {
+.vitals-bar-row {
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.medical-bar-label {
+.vitals-bar-label {
     font-size: 0.72em;
     color: var(--text-secondary);
     width: 80px;
@@ -1257,19 +1257,19 @@ a.activity-link:hover {
     letter-spacing: 0.08em;
     flex-shrink: 0;
 }
-.medical-bar-track {
+.vitals-bar-track {
     flex: 1;
     height: 10px;
     background: var(--bg-inset);
     border-radius: 2px;
     overflow: hidden;
 }
-.medical-bar-fill {
+.vitals-bar-fill {
     height: 100%;
     border-radius: 2px;
     transition: width 0.4s ease;
 }
-.medical-bar-value {
+.vitals-bar-value {
     font-size: 0.72em;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     color: var(--text-primary);
@@ -1279,49 +1279,49 @@ a.activity-link:hover {
 }
 
 /* DEW gauge */
-.medical-dew-gauge {
+.vitals-dew-gauge {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
     padding: 8px 0;
 }
-.medical-dew-bar-track {
+.vitals-dew-bar-track {
     width: 100%;
     height: 18px;
     background: var(--bg-inset);
     border-radius: 3px;
     overflow: hidden;
 }
-.medical-dew-bar-fill {
+.vitals-dew-bar-fill {
     height: 100%;
     border-radius: 3px;
     transition: width 0.4s ease;
 }
-.medical-dew-readout {
+.vitals-dew-readout {
     display: flex;
     align-items: baseline;
     gap: 10px;
 }
-.medical-dew-value {
+.vitals-dew-value {
     font-size: 2em;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     font-weight: 700;
 }
-.medical-dew-label {
+.vitals-dew-label {
     font-size: 0.82em;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.12em;
 }
-.medical-dew-factors {
+.vitals-dew-factors {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     justify-content: center;
 }
-.medical-dew-factor {
+.vitals-dew-factor {
     font-size: 0.7em;
     color: var(--text-dim);
     background: var(--bg-inset);
@@ -1330,18 +1330,18 @@ a.activity-link:hover {
 }
 
 /* LOA ladder */
-.medical-loa-container {
+.vitals-loa-container {
     display: flex;
     gap: 16px;
     align-items: flex-start;
 }
-.medical-loa-ladder {
+.vitals-loa-ladder {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
-.medical-loa-rung {
+.vitals-loa-rung {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1350,30 +1350,30 @@ a.activity-link:hover {
     background: var(--bg-inset);
     transition: background 0.2s;
 }
-.medical-loa-rung.reachable {
+.vitals-loa-rung.reachable {
     background: color-mix(in srgb, var(--c-tab-medical) 10%, var(--bg-inset));
 }
-.medical-loa-rung.active {
+.vitals-loa-rung.active {
     background: var(--c-tab-medical);
     color: var(--bg-primary);
 }
-.medical-loa-level {
+.vitals-loa-level {
     font-size: 0.78em;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     font-weight: 700;
     width: 20px;
     text-align: center;
 }
-.medical-loa-name {
+.vitals-loa-name {
     font-size: 0.72em;
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
-.medical-loa-rung.active .medical-loa-level,
-.medical-loa-rung.active .medical-loa-name {
+.vitals-loa-rung.active .vitals-loa-level,
+.vitals-loa-rung.active .vitals-loa-name {
     color: var(--bg-primary);
 }
-.medical-loa-budget {
+.vitals-loa-budget {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1382,13 +1382,13 @@ a.activity-link:hover {
     background: var(--bg-inset);
     border-radius: 4px;
 }
-.medical-loa-budget-label {
+.vitals-loa-budget-label {
     font-size: 0.68em;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.12em;
 }
-.medical-loa-budget-value {
+.vitals-loa-budget-value {
     font-size: 1.6em;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     font-weight: 700;
@@ -1396,13 +1396,13 @@ a.activity-link:hover {
 }
 
 /* LCARS overrides for medical */
-.theme-lcars .medical-bar-track { border-radius: 50vh; }
-.theme-lcars .medical-bar-fill { border-radius: 50vh; }
-.theme-lcars .medical-dew-bar-track { border-radius: 50vh; }
-.theme-lcars .medical-dew-bar-fill { border-radius: 50vh; }
-.theme-lcars .medical-loa-rung { border-radius: 50vh; }
-.theme-lcars .medical-loa-budget { border-radius: 12px; }
-.theme-lcars .medical-dew-factor { border-radius: 50vh; }
+.theme-lcars .vitals-bar-track { border-radius: 50vh; }
+.theme-lcars .vitals-bar-fill { border-radius: 50vh; }
+.theme-lcars .vitals-dew-bar-track { border-radius: 50vh; }
+.theme-lcars .vitals-dew-bar-fill { border-radius: 50vh; }
+.theme-lcars .vitals-loa-rung { border-radius: 50vh; }
+.theme-lcars .vitals-loa-budget { border-radius: 12px; }
+.theme-lcars .vitals-dew-factor { border-radius: 50vh; }
 
 /* ── Engineering Station ────────────────────────────────────── */
 
@@ -1722,12 +1722,12 @@ a.activity-link:hover {
 .session-timeline-status.status-open    { color: var(--c-health); border: 1px solid var(--c-health); }
 
 /* Routing Table */
-.helm-routing-table {
+.transport-routing-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.82em;
 }
-.helm-routing-table th {
+.transport-routing-table th {
     text-align: left;
     padding: 6px 10px;
     color: var(--c-tab-helm);
@@ -1737,31 +1737,31 @@ a.activity-link:hover {
     letter-spacing: 0.06em;
     border-bottom: 2px solid var(--c-tab-helm);
 }
-.helm-routing-table td {
+.transport-routing-table td {
     padding: 5px 10px;
     border-bottom: 1px solid var(--border);
     color: var(--text-primary);
 }
-.helm-routing-table tr:last-child td { border-bottom: none; }
-.helm-routing-domain {
+.transport-routing-table tr:last-child td { border-bottom: none; }
+.transport-routing-domain {
     font-weight: 600;
     color: var(--c-tab-helm);
 }
-.helm-routing-arrow {
+.transport-routing-arrow {
     color: var(--text-dim);
     padding: 0 4px;
 }
-.helm-routing-agent {
+.transport-routing-agent {
     color: var(--text-secondary);
 }
 
 /* Message Flow Summary */
-.helm-flow-table {
+.transport-flow-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.82em;
 }
-.helm-flow-table th {
+.transport-flow-table th {
     text-align: left;
     padding: 6px 10px;
     color: var(--c-tab-helm);
@@ -1771,18 +1771,18 @@ a.activity-link:hover {
     letter-spacing: 0.06em;
     border-bottom: 2px solid var(--c-tab-helm);
 }
-.helm-flow-table td {
+.transport-flow-table td {
     padding: 5px 10px;
     border-bottom: 1px solid var(--border);
     color: var(--text-primary);
 }
-.helm-flow-table tr:last-child td { border-bottom: none; }
-.helm-flow-count {
+.transport-flow-table tr:last-child td { border-bottom: none; }
+.transport-flow-count {
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
-.helm-placeholder {
+.transport-placeholder {
     color: var(--text-dim);
     font-size: 0.82em;
     font-style: italic;
@@ -1791,48 +1791,48 @@ a.activity-link:hover {
 }
 
 /* Helm: Engagement rows */
-.helm-agent-engagement {
+.transport-agent-engagement {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     padding: 4px 0;
     border-bottom: 1px solid var(--surface-alt, #1a1a2e);
 }
-.helm-agent-engagement:last-child { border-bottom: none; }
-.helm-eng-label { width: 44px; font-weight: 600; font-size: 0.82em; padding-top: 2px; }
-.helm-eng-bars { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.helm-eng-bar { display: flex; align-items: center; gap: 4px; font-size: 0.78em; }
-.helm-eng-dim { width: 28px; opacity: 0.7; font-size: 0.85em; }
-.helm-eng-track {
+.transport-agent-engagement:last-child { border-bottom: none; }
+.transport-eng-label { width: 44px; font-weight: 600; font-size: 0.82em; padding-top: 2px; }
+.transport-eng-bars { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.transport-eng-bar { display: flex; align-items: center; gap: 4px; font-size: 0.78em; }
+.transport-eng-dim { width: 28px; opacity: 0.7; font-size: 0.85em; }
+.transport-eng-track {
     flex: 1;
     height: 6px;
     background: var(--surface-alt, #1a1a2e);
     border-radius: 3px;
     overflow: hidden;
 }
-.helm-eng-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-.helm-eng-val { width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+.transport-eng-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.transport-eng-val { width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* Helm: Flow State */
-.helm-flow-agent {
+.transport-flow-agent {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 5px 0;
     font-size: 0.82em;
 }
-.helm-flow-label { width: 44px; font-weight: 600; }
-.helm-flow-dots { display: flex; gap: 4px; }
-.helm-flow-dot {
+.transport-flow-label { width: 44px; font-weight: 600; }
+.transport-flow-dots { display: flex; gap: 4px; }
+.transport-flow-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     border: 1.5px solid var(--dot-color, var(--text-dim));
     background: transparent;
 }
-.helm-flow-dot.filled { background: var(--dot-color, var(--c-tab-helm)); }
-.helm-flow-score { width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
-.helm-flow-state { font-size: 0.85em; font-weight: 600; letter-spacing: 0.04em; }
+.transport-flow-dot.filled { background: var(--dot-color, var(--c-tab-helm)); }
+.transport-flow-score { width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+.transport-flow-state { font-size: 0.85em; font-weight: 600; letter-spacing: 0.04em; }
 
 /* ── Tactical Station ────────────────────────────────────────── */
 
@@ -1963,7 +1963,7 @@ a.activity-link:hover {
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
-.tactical-placeholder {
+.integrity-placeholder {
     color: var(--text-dim);
     font-size: 0.82em;
     font-style: italic;
@@ -1993,8 +1993,8 @@ a.activity-link:hover {
 .theme-lcars .ops-budget-fill,
 .theme-lcars .gen-balance-fill-left,
 .theme-lcars .gen-balance-fill-right,
-.theme-lcars .medical-bar-fill,
-.theme-lcars .medical-dew-bar-fill {
+.theme-lcars .vitals-bar-fill,
+.theme-lcars .vitals-dew-bar-fill {
     position: relative;
 }
 .theme-lcars .util-bar-fill::after,
@@ -2003,8 +2003,8 @@ a.activity-link:hover {
 .theme-lcars .ops-budget-fill::after,
 .theme-lcars .gen-balance-fill-left::after,
 .theme-lcars .gen-balance-fill-right::after,
-.theme-lcars .medical-bar-fill::after,
-.theme-lcars .medical-dew-bar-fill::after {
+.theme-lcars .vitals-bar-fill::after,
+.theme-lcars .vitals-dew-bar-fill::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -2449,8 +2449,8 @@ a.activity-link:hover {
     }
 
     /* Medical grid: single column */
-    .medical-vitals-grid { grid-template-columns: 1fr; }
-    .medical-grid { grid-template-columns: 1fr; }
+    .vitals-vitals-grid { grid-template-columns: 1fr; }
+    .vitals-grid { grid-template-columns: 1fr; }
 
     /* Agent card metrics: wrap and compact */
     .agent-metrics {
@@ -3207,9 +3207,9 @@ a.activity-link:hover {
 @media (max-height: 500px) and (orientation: landscape) {
     .agents-grid { grid-template-columns: 1fr !important; }
     .vitals-grid { grid-template-columns: 1fr !important; }
-    .science-grid { grid-template-columns: 1fr !important; }
+    .analysis-grid { grid-template-columns: 1fr !important; }
     .engineering-grid { grid-template-columns: 1fr !important; }
-    .medical-grid { grid-template-columns: 1fr !important; }
-    .tactical-grid { grid-template-columns: 1fr !important; }
-    .helm-grid { grid-template-columns: 1fr !important; }
+    .vitals-grid { grid-template-columns: 1fr !important; }
+    .integrity-grid { grid-template-columns: 1fr !important; }
+    .transport-grid { grid-template-columns: 1fr !important; }
 }

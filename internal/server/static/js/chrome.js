@@ -425,12 +425,12 @@ function switchTab(tabId, updateHash = true) {
     document.documentElement.style.setProperty("--active-tab-color", computed || `var(${colorVar})`);
     updateSpine(tabId);
     if (tabId === "governance") refreshAll();
-    if (tabId === "analysis") fetchScienceData();
-    if (tabId === "architecture") { fetchEngineeringData(); startWaveformAnimation(); }
-    else if (tabId === "vitals") { fetchMedicalData(); startWaveformAnimation(); }
+    if (tabId === "analysis") fetchAnalysisData();
+    if (tabId === "architecture") { fetchArchitectureData(); startWaveformAnimation(); }
+    else if (tabId === "vitals") { fetchVitalsData(); startWaveformAnimation(); }
     else { stopWaveformAnimation(); }
-    if (tabId === "transport") fetchHelmData();
-    if (tabId === "integrity") fetchTacticalData();
+    if (tabId === "transport") fetchTransportData();
+    if (tabId === "integrity") fetchIntegrityData();
     if (updateHash) history.replaceState(null, "", `#${tabId}`);
 }
 

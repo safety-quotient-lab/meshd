@@ -1,23 +1,23 @@
 // ═══ RENDER: ENGINEERING ════════════════════════════════════
-let engineeringData = null;
-let engineeringFetchPending = false;
+let architectureData = null;
+let architectureFetchPending = false;
 
-let engSelectedAgent = "mesh"; // default to mesh aggregate
+let archSelectedAgent = "mesh"; // default to mesh aggregate
 
 function _opsAgent() {
-    if (engSelectedAgent !== "mesh") {
-        return agentData[engSelectedAgent] || {};
+    if (archSelectedAgent !== "mesh") {
+        return agentData[archSelectedAgent] || {};
     }
     return agentData["mesh"] || {};
 }
 
-function renderEngAgentSelector() {
-    renderAgentSelector("eng-agent-selector", engSelectedAgent, "selectEngAgent");
+function renderArchAgentSelector() {
+    renderAgentSelector("arch-agent-selector", archSelectedAgent, "selectArchAgent");
 }
-window.selectEngAgent = function(agentId) {
-    engSelectedAgent = agentId;
-    renderEngAgentSelector();
-    fetchEngineeringData();
+window.selectArchAgent = function(agentId) {
+    archSelectedAgent = agentId;
+    renderArchAgentSelector();
+    fetchArchitectureData();
 };
 
 const DELIBERATION_AGENTS = [
@@ -28,12 +28,12 @@ const DELIBERATION_AGENTS = [
     { id: "mesh",              label: "mesh",          color: "var(--c-tab-ops)" },
 ];
 
-async function fetchEngineeringData() {
-    if (engineeringFetchPending) return;
-    engineeringFetchPending = true;
+async function fetchArchitectureData() {
+    if (architectureFetchPending) return;
+    architectureFetchPending = true;
     try {
         // Fetch full status for selected agent (cross-origin for remote agents)
-        const targetId = engSelectedAgent;
+        const targetId = archSelectedAgent;
         const targetAgent = AGENTS.find(a => a.id === targetId);
         const statusUrl = targetAgent?.url ? targetAgent.url + "/api/status" : "/api/status";
         const [tempoResp, deliberationResp, cogTempoResp, agentStatusResp] = await Promise.allSettled([
@@ -54,18 +54,18 @@ async function fetchEngineeringData() {
             const aid = fullStatus.agent_id || targetId;
             agentData[aid] = { id: aid, status: "online", data: fullStatus };
         }
-        engineeringData = { tempo: tempoData, deliberation: deliberationData, cogTempo: cogTempo };
+        architectureData = { tempo: tempoData, deliberation: deliberationData, cogTempo: cogTempo };
     } catch (err) {
-        engineeringData = null;
+        architectureData = null;
     } finally {
-        engineeringFetchPending = false;
+        architectureFetchPending = false;
     }
-    renderEngineering();
+    renderArchitecture();
 }
 
-function renderEngineering() {
-    renderEngAgentSelector();
-    renderNumberGrid("eng-zone-a", engZoneAMetrics());
+function renderArchitecture() {
+    renderArchAgentSelector();
+    renderNumberGrid("arch-zone-a", engZoneAMetrics());
     renderTimingHierarchy();
     renderDeliberationCascade();
     renderGcCascade();
@@ -80,9 +80,9 @@ function renderEngineering() {
     renderModeTransitions();
 
     // Update status line (removed — replaced by zone-c title)
-    const statusEl = document.getElementById("eng-status-line");
-    if (statusEl && engineeringData) {
-        const mesh = engineeringData.tempo?.mesh || {};
+    const statusEl = document.getElementById("arch-status-line");
+    if (statusEl && architectureData) {
+        const mesh = architectureData.tempo?.mesh || {};
         const rho = mesh.utilization != null ? (mesh.utilization * 100).toFixed(0) + "%" : "—";
         const dur = mesh.mean_duration_sec != null ? Math.round(mesh.mean_duration_sec) + "s" : "—";
         const cost = mesh.cost_per_hour != null ? "$" + mesh.cost_per_hour + "/hr" : "—";
@@ -187,7 +187,7 @@ function renderDeliberationCascade() {
     if (!container) return;
 
     // Gf = fluid intelligence: deliberations per agent with model + duration
-    const tempoAgents = engineeringData?.tempo?.agents || [];
+    const tempoAgents = architectureData?.tempo?.agents || [];
     const agentMap = {};
     tempoAgents.forEach(a => { agentMap[a.agent_id] = a; });
 
@@ -213,7 +213,7 @@ function renderDeliberationCascade() {
     if (placeholder) placeholder.style.display = "none";
 
     // Summary with model tier + avg duration
-    const meshData = engineeringData?.tempo?.mesh || {};
+    const meshData = architectureData?.tempo?.mesh || {};
     const avgDur = meshData.mean_duration_sec ? Math.round(meshData.mean_duration_sec) + "s" : "—";
     const costHr = meshData.cost_per_hour != null ? "$" + meshData.cost_per_hour + "/hr" : "";
     const summary = document.createElement("div");
@@ -326,7 +326,7 @@ function renderUtilization() {
     const statusEl = document.getElementById("util-status");
     if (!rhoEl) return;
 
-    const rho = engineeringData?.tempo?.mesh?.utilization ?? engineeringData?.deliberation?.utilization ?? null;
+    const rho = architectureData?.tempo?.mesh?.utilization ?? architectureData?.deliberation?.utilization ?? null;
 
     if (rho == null) {
         rhoEl.textContent = "\u03C1 = \u2014";
@@ -375,7 +375,7 @@ function renderTempo() {
     const gfVal = document.getElementById("tempo-gf-value");
     const gfFill = document.getElementById("tempo-gf-fill");
     const gfStatus = document.getElementById("tempo-gf-status");
-    const ct = engineeringData?.cogTempo;
+    const ct = architectureData?.cogTempo;
     const gain = ct?.gain ?? null;
     const tier = ct?.recommended_tier || "?";
     const tierColor = tier === "opus" ? "#c47070" : tier === "sonnet" ? "#d4944a" : "#66ccaa";
@@ -413,7 +413,7 @@ function renderTempo() {
     const gcVal = document.getElementById("tempo-gc-value");
     const gcFill = document.getElementById("tempo-gc-fill");
     const gcStatus = document.getElementById("tempo-gc-status");
-    const mesh = engineeringData?.tempo?.mesh || {};
+    const mesh = architectureData?.tempo?.mesh || {};
     const avgMs = mesh.mean_duration_sec != null ? Math.round(mesh.mean_duration_sec * 1000) : null;
     const rho = mesh.utilization ?? null;
 
@@ -506,8 +506,8 @@ function renderCost() {
     const rateEl = document.getElementById("cost-rate");
     if (!totalEl) return;
 
-    const meshData = engineeringData?.tempo?.mesh || {};
-    const deliberationCost = engineeringData?.deliberation || {};
+    const meshData = architectureData?.tempo?.mesh || {};
+    const deliberationCost = architectureData?.deliberation || {};
     const hourlyRate = meshData.cost_per_hour ?? deliberationCost?.cost?.hourly_rate ?? null;
     const totalCost = deliberationCost?.last_hour?.total_cost ?? deliberationCost?.cost?.total_today ?? null;
 
@@ -566,7 +566,7 @@ function renderConcurrency() {
 }
 
 function renderCognitiveLoad() {
-    const container = document.getElementById("eng-cognitive-load");
+    const container = document.getElementById("arch-cognitive-load");
     if (!container) return;
 
     if (!_psychCache) {

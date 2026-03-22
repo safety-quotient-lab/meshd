@@ -979,10 +979,10 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 }
 
 /* ── LCARS Mirror Symmetry (Pattern #19) ───────────────── */
-.theme-lcars .science-grid,
+.theme-lcars .analysis-grid,
 .theme-lcars .engineering-grid,
-.theme-lcars .tactical-grid,
-.theme-lcars .helm-grid {
+.theme-lcars .integrity-grid,
+.theme-lcars .transport-grid {
     align-items: stretch;
 }
 
@@ -1203,9 +1203,9 @@ body[data-affect-mode="focused"] .lcars-panel {
 body[data-affect-mode="streamlined"] .lcars-panel-body.scrollable {
     max-height: 200px;
 }
-body[data-affect-mode="streamlined"] .science-grid,
+body[data-affect-mode="streamlined"] .analysis-grid,
 body[data-affect-mode="streamlined"] .engineering-grid,
-body[data-affect-mode="streamlined"] .tactical-grid {
+body[data-affect-mode="streamlined"] .integrity-grid {
     grid-template-columns: 1fr;
 }
 
@@ -2669,14 +2669,14 @@ a.activity-link:hover {
 .gov-schedule-offline { background: rgba(196,112,112,0.15); color: #c47070; }
 
 /* ── Science Station ─────────────────────────────────────────── */
-.science-grid {
+.analysis-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 16px;
 }
 @media (max-width: 768px) {
-    .science-grid { grid-template-columns: 1fr; }
+    .analysis-grid { grid-template-columns: 1fr; }
 }
 
 /* Affect Grid (2D scatter) */
@@ -2929,7 +2929,7 @@ a.activity-link:hover {
 }
 
 /* Science placeholder text */
-.science-placeholder {
+.analysis-placeholder {
     color: var(--text-dim);
     font-size: 0.82em;
     font-style: italic;
@@ -3139,17 +3139,17 @@ a.activity-link:hover {
 }
 
 /* ── Helm Station ────────────────────────────────────────────── */
-.helm-grid {
+.transport-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 16px;
 }
-.helm-grid .helm-full-width {
+.transport-grid .transport-full-width {
     grid-column: 1 / -1;
 }
 @media (max-width: 768px) {
-    .helm-grid { grid-template-columns: 1fr; }
+    .transport-grid { grid-template-columns: 1fr; }
 }
 
 /* Session Timeline bars */
@@ -3214,12 +3214,12 @@ a.activity-link:hover {
 .session-timeline-status.status-open    { color: var(--c-health); border: 1px solid var(--c-health); }
 
 /* Routing Table */
-.helm-routing-table {
+.transport-routing-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.82em;
 }
-.helm-routing-table th {
+.transport-routing-table th {
     text-align: left;
     padding: 6px 10px;
     color: var(--c-tab-transport);
@@ -3229,31 +3229,31 @@ a.activity-link:hover {
     letter-spacing: 0.06em;
     border-bottom: 2px solid var(--c-tab-transport);
 }
-.helm-routing-table td {
+.transport-routing-table td {
     padding: 5px 10px;
     border-bottom: 1px solid var(--border);
     color: var(--text-primary);
 }
-.helm-routing-table tr:last-child td { border-bottom: none; }
-.helm-routing-domain {
+.transport-routing-table tr:last-child td { border-bottom: none; }
+.transport-routing-domain {
     font-weight: 600;
     color: var(--c-tab-transport);
 }
-.helm-routing-arrow {
+.transport-routing-arrow {
     color: var(--text-dim);
     padding: 0 4px;
 }
-.helm-routing-agent {
+.transport-routing-agent {
     color: var(--text-secondary);
 }
 
 /* Message Flow Summary */
-.helm-flow-table {
+.transport-flow-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.82em;
 }
-.helm-flow-table th {
+.transport-flow-table th {
     text-align: left;
     padding: 6px 10px;
     color: var(--c-tab-transport);
@@ -3263,18 +3263,18 @@ a.activity-link:hover {
     letter-spacing: 0.06em;
     border-bottom: 2px solid var(--c-tab-transport);
 }
-.helm-flow-table td {
+.transport-flow-table td {
     padding: 5px 10px;
     border-bottom: 1px solid var(--border);
     color: var(--text-primary);
 }
-.helm-flow-table tr:last-child td { border-bottom: none; }
-.helm-flow-count {
+.transport-flow-table tr:last-child td { border-bottom: none; }
+.transport-flow-count {
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
-.helm-placeholder {
+.transport-placeholder {
     color: var(--text-dim);
     font-size: 0.82em;
     font-style: italic;
@@ -3283,14 +3283,14 @@ a.activity-link:hover {
 }
 
 /* ── Tactical Station ────────────────────────────────────────── */
-.tactical-grid {
+.integrity-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 16px;
 }
 @media (max-width: 768px) {
-    .tactical-grid { grid-template-columns: 1fr; }
+    .integrity-grid { grid-template-columns: 1fr; }
 }
 
 .shield-row {
@@ -3420,7 +3420,7 @@ a.activity-link:hover {
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
-.tactical-placeholder {
+.integrity-placeholder {
     color: var(--text-dim);
     font-size: 0.82em;
     font-style: italic;

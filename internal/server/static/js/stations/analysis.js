@@ -1,6 +1,6 @@
 // ═══ RENDER: SCIENCE ════════════════════════════════════════
-let scienceData = null;
-let scienceFetchPending = false;
+let analysisData = null;
+let analysisFetchPending = false;
 let _vocabData = null;
 
 // ── Science Subsystem Switcher ──────────────────────────────
@@ -12,7 +12,7 @@ function switchSciSubsystem(subsys, updateUrl = true) {
     document.querySelectorAll("#pane-science .ops-panel-btn").forEach(b => {
         b.classList.toggle("ops-panel-active", b.dataset.subsys === subsys);
     });
-    const title = document.getElementById("science-zone-c-title");
+    const title = document.getElementById("analysis-zone-c-title");
     if (title) {
         const titles = { psychometrics: "Psychometric Analysis", linguistics: "Computational Linguistics", ontology: "Ontological Classification" };
         title.textContent = titles[subsys] || "Science";
@@ -573,9 +573,9 @@ const AGENT_DOT_DEFAULTS = [
     { agentIdx: 3, left: 40, top: 60 },  // observatory — slight negative valence, low arousal
 ];
 
-async function fetchScienceData() {
-    if (scienceFetchPending) return;
-    scienceFetchPending = true;
+async function fetchAnalysisData() {
+    if (analysisFetchPending) return;
+    analysisFetchPending = true;
     try {
         // Fetch mesh psychometrics + local agent psychometrics (same-origin, no CORS)
         const [meshResp, localResp] = await Promise.allSettled([
@@ -625,11 +625,11 @@ async function fetchScienceData() {
             },
         };
 
-        // Build scienceData: pick the agent with the richest psychometrics as primary
+        // Build analysisData: pick the agent with the richest psychometrics as primary
         const allEntries = Object.entries(meshPsych.agents || {}).filter(([, d]) => d && !d.error);
         const richest = allEntries.sort(([, a], [, b]) => Object.keys(b).length - Object.keys(a).length)[0];
         const primary = (richest ? richest[1] : null) || opsPsych || {};
-        scienceData = {
+        analysisData = {
             psychometrics: {
                 cognitive_load: primary.workload || null,
                 working_memory: primary.working_memory || null,
@@ -643,16 +643,16 @@ async function fetchScienceData() {
             agents: meshPsych.agents || {},
         };
     } catch (err) {
-        scienceData = null;
+        analysisData = null;
     } finally {
-        scienceFetchPending = false;
+        analysisFetchPending = false;
     }
-    renderScience();
+    renderAnalysis();
 }
 
-function renderScience() {
-    console.log("renderScience called, scienceData:", scienceData ? "has data" : "null", scienceData?.agents ? Object.keys(scienceData.agents).length + " agents" : "no agents");
-    renderNumberGrid("science-analysis-zonea", scienceZoneAMetrics());
+function renderAnalysis() {
+    console.log("renderAnalysis called, analysisData:", analysisData ? "has data" : "null", analysisData?.agents ? Object.keys(analysisData.agents).length + " agents" : "no agents");
+    renderNumberGrid("analysis-analysis-zonea", analysisZoneAMetrics());
     renderAffectGrid();
     renderOrganismState();
     renderGeneratorBalance();
@@ -665,18 +665,18 @@ function renderScience() {
     renderEngagement();
     fetchFleetCognitive(); // agentd Session 95 fleet panels
     // Update status line
-    const statusLine = document.getElementById("science-status-line");
-    if (statusLine && scienceData) {
-        const agentCount = Object.keys(scienceData.agents || {}).length;
-        const constructs = scienceData.psychometrics ? Object.values(scienceData.psychometrics).filter(v => v != null).length : 0;
-        const affect = scienceData.mesh?.affect?.mesh_affect_category || "unknown";
+    const statusLine = document.getElementById("analysis-status-line");
+    if (statusLine && analysisData) {
+        const agentCount = Object.keys(analysisData.agents || {}).length;
+        const constructs = analysisData.psychometrics ? Object.values(analysisData.psychometrics).filter(v => v != null).length : 0;
+        const affect = analysisData.mesh?.affect?.mesh_affect_category || "unknown";
         statusLine.textContent = `Psychometric Sensors: ${agentCount} agents \u00B7 Constructs: ${constructs}/7 \u00B7 Mesh Affect: ${affect.replace("mesh-", "")}`;
     }
 }
 
 // ── Sensor: Cognitive Load (NASA-TLX) ─────────────────────────
 function renderCognitiveLoad() {
-    const wl = scienceData?.psychometrics?.cognitive_load || null;
+    const wl = analysisData?.psychometrics?.cognitive_load || null;
     const dims = [
         { id: "cogload-demand-gauge", val: wl?.cognitive_demand },
         { id: "cogload-pressure-gauge", val: wl?.time_pressure },
@@ -704,7 +704,7 @@ function renderCognitiveLoad() {
 
 // ── Sensor: Working Memory ────────────────────────────────────
 function renderWorkingMemory() {
-    const wm = scienceData?.psychometrics?.working_memory || null;
+    const wm = analysisData?.psychometrics?.working_memory || null;
     const load = wm?.capacity_load ?? null;
     const zone = wm?.yerkes_dodson_zone ?? null;
 
@@ -728,7 +728,7 @@ function renderWorkingMemory() {
 
 // ── Sensor: Resources ─────────────────────────────────────────
 function renderResources() {
-    const res = scienceData?.psychometrics?.resource_model || null;
+    const res = analysisData?.psychometrics?.resource_model || null;
 
     const setBar = (fillId, valId, value, inverted) => {
         const fill = document.getElementById(fillId);
@@ -743,7 +743,7 @@ function renderResources() {
 
 // ── Sensor: Engagement (UWES) ─────────────────────────────────
 function renderEngagement() {
-    const eng = scienceData?.psychometrics?.engagement || null;
+    const eng = analysisData?.psychometrics?.engagement || null;
     const dims = [
         { id: "engage-vigor-gauge", val: eng?.vigor },
         { id: "engage-dedication-gauge", val: eng?.dedication },
@@ -803,8 +803,8 @@ function isoProject(x, y, z, w, h) {
 }
 
 function renderAffectGrid() {
-    const container = document.getElementById("science-generators-affect");
-    const placeholder = document.getElementById("science-generators-affect-placeholder");
+    const container = document.getElementById("analysis-generators-affect");
+    const placeholder = document.getElementById("analysis-generators-affect-placeholder");
     if (!container) return;
 
     // Remove existing dots and isometric SVG
@@ -823,7 +823,7 @@ function renderAffectGrid() {
         yLabel.textContent = (labels[padView] || labels.pa)[1];
     }
 
-    const agents = scienceData?.agents || null;
+    const agents = analysisData?.agents || null;
     if (placeholder) placeholder.style.display = agents ? "none" : "block";
 
     // Collect PAD values for all agents
@@ -951,7 +951,7 @@ function renderOrganismState() {
     const coordEl = document.getElementById("organism-coord");
     if (!labelEl) return;
 
-    const mesh = scienceData?.mesh || null;
+    const mesh = analysisData?.mesh || null;
     const affect = mesh?.affect || {};
     const stateLabel = affect.mesh_affect_category?.replace("mesh-", "")?.toUpperCase() || "—";
     // Data grid: label lives in .dg-val child
@@ -1046,11 +1046,11 @@ function renderOneGenerator(prefix, data, targetLow, targetHigh) {
 }
 
 function renderFlowState() {
-    const listEl = document.getElementById("science-flow-checklist");
-    const statusEl = document.getElementById("science-flow-status");
+    const listEl = document.getElementById("analysis-flow-checklist");
+    const statusEl = document.getElementById("analysis-flow-status");
     if (!listEl) return;
 
-    const flow = scienceData?.psychometrics?.flow || {};
+    const flow = analysisData?.psychometrics?.flow || {};
     const inFlow = flow.in_flow || false;
     const condsMet = flow.conditions_met ?? 0;
     // Derive condition booleans from conditions_met count
@@ -1079,8 +1079,8 @@ function renderDEW() {
     if (!scoreEl) return;
 
     // DEW computed from engagement burnout_risk + workload composite
-    const eng = scienceData?.psychometrics?.engagement || {};
-    const wl = scienceData?.psychometrics?.cognitive_load || {};
+    const eng = analysisData?.psychometrics?.engagement || {};
+    const wl = analysisData?.psychometrics?.cognitive_load || {};
     const burnout = eng.burnout_risk ?? 0;
     const load = (wl.cognitive_load ?? 0) / 100;
     const dewScore = Math.min(100, Math.round((burnout * 60 + load * 40)));
@@ -1113,7 +1113,7 @@ function renderLOA() {
     const budgetEl = document.getElementById("loa-budget-val");
     if (!ladderEl) return;
 
-    const sc = scienceData?.psychometrics?.supervisory_control || {};
+    const sc = analysisData?.psychometrics?.supervisory_control || {};
     const currentLevel = sc.level_of_automation ?? 5;
     const remaining = null; // budget_remaining not in current schema
 

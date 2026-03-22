@@ -74,7 +74,7 @@ function renderKnowledge() {
     // lcars-sci-vocab now rendered directly by Linguistics subsystem (science.js)
     mirrorToLcars("kb-lessons", "lcars-sci-lessons");
     // lcars-sci-catalog now rendered directly by Ontology subsystem (science.js)
-    mirrorToLcars("messages-table", "lcars-helm-messages");
+    mirrorToLcars("messages-table", "lcars-transport-messages");
 }
 
 // ── KB Vitals ────────────────────────────────────────────────

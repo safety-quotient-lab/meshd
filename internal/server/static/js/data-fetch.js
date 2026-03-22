@@ -147,11 +147,11 @@ function refreshActiveStation() {
                       document.querySelector('.lcars-sidebar-btn.active')?.dataset?.tab;
     if (!activeTab) return;
     try {
-        if (activeTab === "engineering" && typeof fetchEngineeringData === "function") fetchEngineeringData();
-        else if (activeTab === "science" && typeof fetchScienceData === "function") fetchScienceData();
-        else if (activeTab === "medical" && typeof fetchMedicalData === "function") fetchMedicalData();
-        else if (activeTab === "helm" && typeof fetchHelmData === "function") fetchHelmData();
-        else if (activeTab === "tactical" && typeof fetchTacticalData === "function") fetchTacticalData();
+        if (activeTab === "engineering" && typeof fetchArchitectureData === "function") fetchArchitectureData();
+        else if (activeTab === "science" && typeof fetchAnalysisData === "function") fetchAnalysisData();
+        else if (activeTab === "medical" && typeof fetchVitalsData === "function") fetchVitalsData();
+        else if (activeTab === "helm" && typeof fetchTransportData === "function") fetchTransportData();
+        else if (activeTab === "tactical" && typeof fetchIntegrityData === "function") fetchIntegrityData();
     } catch(e) { console.error("refreshActiveStation failed:", e); }
 }
 

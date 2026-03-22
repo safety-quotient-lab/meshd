@@ -1,32 +1,32 @@
 // ═══ RENDER: TACTICAL ═══════════════════════════════════════
-let tacticalData = null;
-let tacticalFetchPending = false;
+let integrityData = null;
+let integrityFetchPending = false;
 
-async function fetchTacticalData() {
-    if (tacticalFetchPending) return;
-    tacticalFetchPending = true;
+async function fetchIntegrityData() {
+    if (integrityFetchPending) return;
+    integrityFetchPending = true;
     try {
         const [healthResp, agentsResp] = await Promise.allSettled([
             fetch("/api/health", { signal: AbortSignal.timeout(8000) }),
             fetch("/.well-known/agents?refresh=true", { signal: AbortSignal.timeout(8000), cache: "no-cache" }),
         ]);
         if (healthResp.status === "fulfilled" && healthResp.value.ok) {
-            tacticalData = await healthResp.value.json();
+            integrityData = await healthResp.value.json();
         }
         if (agentsResp.status === "fulfilled" && agentsResp.value.ok) {
             tacticalAgentCards = await agentsResp.value.json();
         }
     } catch (err) {
-        tacticalData = null;
+        integrityData = null;
     } finally {
-        tacticalFetchPending = false;
+        integrityFetchPending = false;
     }
-    renderTactical();
+    renderIntegrity();
 }
 let tacticalAgentCards = null;
 
-function renderTactical() {
-    renderNumberGrid("tactical-zone-a", tacticalZoneAMetrics());
+function renderIntegrity() {
+    renderNumberGrid("integrity-zone-a", tacticalZoneAMetrics());
     renderShieldStatus();
     renderAgentCompliance();
     renderTransportIntegrity();
@@ -34,7 +34,7 @@ function renderTactical() {
 }
 
 function tacticalZoneAMetrics() {
-    const healthAgents = tacticalData?.agents || [];
+    const healthAgents = integrityData?.agents || [];
     const online = healthAgents.filter(a => {
         const s = a.status || a.health;
         return s === "ok" || s === "online" || s === "healthy" || s === "nominal";
@@ -56,7 +56,7 @@ function tacticalZoneAMetrics() {
 function renderShieldStatus() {
     const container = document.getElementById("shield-status");
     if (!container) return;
-    const healthAgents = tacticalData?.agents || [];
+    const healthAgents = integrityData?.agents || [];
     const statusMap = {};
     healthAgents.forEach(a => {
         const id = a.id || a.agent_id || a.name;
@@ -119,8 +119,8 @@ function renderAgentCompliance() {
 function renderTransportIntegrity() {
     // Transport channels: git-PR (always 100%), HTTP relay (check compositor), ZMQ (check agents)
     const gitOk = true; // git-PR transport always available
-    const httpOk = tacticalData != null; // compositor responded
-    const zmqAgents = tacticalData?.agents?.filter(a => a.status === "online")?.length || 0;
+    const httpOk = integrityData != null; // compositor responded
+    const zmqAgents = integrityData?.agents?.filter(a => a.status === "online")?.length || 0;
     const zmqPct = Math.min(100, Math.round((zmqAgents / 5) * 100));
 
     const layers = [

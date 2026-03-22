@@ -209,7 +209,7 @@ function startWaveformAnimation() {
         // Gf tempo waveform — real deliberation activity
         const gfWave = document.getElementById("tempo-gf-waveform");
         if (gfWave) {
-            const gain = engineeringData?.cogTempo?.gain || 0;
+            const gain = architectureData?.cogTempo?.gain || 0;
             const gfData = pushWaveData("gf-tempo", gain);
             const color = gfWave._opts?.stroke || "var(--lcars-accent)";
             gfWave.innerHTML = dataWaveformSVG({ width: gfWave.clientWidth || 200, height: 30, data: gfData, stroke: color, fill: true });
@@ -224,7 +224,7 @@ function startWaveformAnimation() {
             gcWave.innerHTML = dataWaveformSVG({ width: gcWave.clientWidth || 200, height: 30, data: gcData, stroke: color, fill: true });
         }
         // Medical oscillator — real activation level
-        const medOscEl = document.getElementById("medical-oscillator-wave");
+        const medOscEl = document.getElementById("vitals-oscillator-wave");
         if (medOscEl) {
             const osc = agentData[typeof medSelectedAgent !== "undefined" ? medSelectedAgent : "mesh"]?.data?.oscillator;
             const act = osc?.activation || 0;
@@ -428,7 +428,7 @@ function opsZoneAMetrics() {
 }
 
 // Science Zone A — psychometric construct readings across mesh
-function scienceZoneAMetrics() {
+function analysisZoneAMetrics() {
     const online = Object.values(agentData).filter(a => a.status === "online");
     // Mesh-wide averages
     let vSum = 0, aSum = 0, dSum = 0, clSum = 0, fSum = 0, n = 0;
@@ -463,8 +463,8 @@ function engZoneAMetrics() {
         totalDur += deliberations.reduce((s, d) => s + (parseInt(d.duration_ms) || 0), 0);
     }
     const avgDur = totalDelibs > 0 ? Math.round(totalDur / totalDelibs / 1000) : 0;
-    const rho = engineeringData?.tempo?.mesh?.utilization;
-    const ct = engineeringData?.cogTempo;
+    const rho = architectureData?.tempo?.mesh?.utilization;
+    const ct = architectureData?.cogTempo;
     const gcGf = ct?.gc_gf_ratio;
     const backlog = ct?.unprocessed ?? 0;
     return [

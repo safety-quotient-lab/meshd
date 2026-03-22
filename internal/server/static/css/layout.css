@@ -179,13 +179,13 @@ body {
 }
 
 /* Science grid (v2 — organism-level) */
-.science-grid-v2 {
+.analysis-grid-v2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 16px;
 }
-.science-hero {
+.analysis-hero {
     grid-column: 1 / -1;
 }
 
@@ -201,18 +201,18 @@ body {
 }
 
 /* Helm grid */
-.helm-grid {
+.transport-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 16px;
 }
-.helm-grid .helm-full-width {
+.transport-grid .transport-full-width {
     grid-column: 1 / -1;
 }
 
 /* Tactical grid */
-.tactical-grid {
+.integrity-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
@@ -472,10 +472,10 @@ body {
     }
 
     /* Content grids: 2 columns for station widgets */
-    .science-grid-v2   { grid-template-columns: 1fr 1fr; }
+    .analysis-grid-v2   { grid-template-columns: 1fr 1fr; }
     .engineering-grid   { grid-template-columns: 1fr 1fr; }
-    .helm-grid          { grid-template-columns: 1fr 1fr; }
-    .tactical-grid      { grid-template-columns: 1fr 1fr; }
+    .transport-grid          { grid-template-columns: 1fr 1fr; }
+    .integrity-grid      { grid-template-columns: 1fr 1fr; }
 
     /* MSD schematic: full height range */
     .msd-schematic { min-height: 320px; }
@@ -514,10 +514,10 @@ body {
     }
 
     /* Content grids: 1 column for station widgets */
-    .science-grid-v2   { grid-template-columns: 1fr; }
+    .analysis-grid-v2   { grid-template-columns: 1fr; }
     .engineering-grid   { grid-template-columns: 1fr; }
-    .helm-grid          { grid-template-columns: 1fr; }
-    .tactical-grid      { grid-template-columns: 1fr; }
+    .transport-grid          { grid-template-columns: 1fr; }
+    .integrity-grid      { grid-template-columns: 1fr; }
 
     /* MSD schematic: reduced height */
     .msd-schematic { min-height: 260px; }
@@ -572,16 +572,16 @@ body {
     .vitals-grid        { grid-template-columns: repeat(3, 1fr); }
     .kb-vitals          { grid-template-columns: repeat(3, 1fr); }
     .dict-grid          { grid-template-columns: 1fr; }
-    .science-grid-v2    { grid-template-columns: 1fr; }
+    .analysis-grid-v2    { grid-template-columns: 1fr; }
     .engineering-grid   { grid-template-columns: 1fr; }
-    .helm-grid          { grid-template-columns: 1fr; }
-    .tactical-grid      { grid-template-columns: 1fr; }
+    .transport-grid          { grid-template-columns: 1fr; }
+    .integrity-grid      { grid-template-columns: 1fr; }
     .ops-budget-grid    { grid-template-columns: 1fr; }
 
     /* Hero panels: reset column span to single-column context */
-    .science-hero,
+    .analysis-hero,
     .engineering-hero,
-    .helm-grid .helm-full-width {
+    .transport-grid .transport-full-width {
         grid-column: 1;
     }
 

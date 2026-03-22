@@ -1,24 +1,24 @@
 // ═══ RENDER: MEDICAL ════════════════════════════════════════
-let medSelectedAgent = "mesh"; // default to mesh emergent view
-let medPsychData = {};
+let vitalsSelectedAgent = "mesh"; // default to mesh emergent view
+let vitalsPsychData = {};
 
-function renderMedAgentSelector() {
-    renderAgentSelector("medical-vitals-selector", medSelectedAgent, "selectMedAgent");
+function renderVitalsAgentSelector() {
+    renderAgentSelector("vitals-vitals-selector", vitalsSelectedAgent, "selectVitalsAgent");
 }
-window.selectMedAgent = function(agentId) {
-    medSelectedAgent = agentId;
-    renderMedAgentSelector();
-    fetchMedicalData();
+window.selectVitalsAgent = function(agentId) {
+    vitalsSelectedAgent = agentId;
+    renderVitalsAgentSelector();
+    fetchVitalsData();
 };
 
-async function fetchMedicalData() {
-    renderMedAgentSelector();
-    renderMedVitalsMatrix(); // Zone A: agent vitals from agentData
+async function fetchVitalsData() {
+    renderVitalsAgentSelector();
+    renderVitalsMatrix(); // Zone A: agent vitals from agentData
 
     // Tonic inhibition indicator — show when sleep mode blocks salient events
-    const tonicEl = document.getElementById("medical-tonic-inhibition");
+    const tonicEl = document.getElementById("vitals-tonic-inhibition");
     if (tonicEl) {
-        const tonic = agentData[medSelectedAgent]?.data?.tonic_inhibition;
+        const tonic = agentData[vitalsSelectedAgent]?.data?.tonic_inhibition;
         tonicEl.style.display = tonic ? "block" : "none";
     }
 
@@ -30,31 +30,31 @@ async function fetchMedicalData() {
     } catch {}
 
     // Alpha heartbeat — works in both mesh and per-agent views
-    renderMedAlphaHeartbeat(emergentData);
+    renderVitalsAlphaHeartbeat(emergentData);
 
-    if (medSelectedAgent === "mesh") {
+    if (vitalsSelectedAgent === "mesh") {
         // MESH view — show collective emergent properties
         renderMeshEmergent(emergentData);
         return;
     }
 
-    const agent = AGENTS.find(function(a) { return a.id === medSelectedAgent; });
+    const agent = AGENTS.find(function(a) { return a.id === vitalsSelectedAgent; });
     if (!agent) return;
 
     // Find this agent's full data from the emergent endpoint
     const pa = emergentData ? (emergentData.per_agent || []).find(function(a) {
-        return a.agent_id === medSelectedAgent ||
-               a.agent_id.toLowerCase().includes(medSelectedAgent.split("-")[0]);
+        return a.agent_id === vitalsSelectedAgent ||
+               a.agent_id.toLowerCase().includes(vitalsSelectedAgent.split("-")[0]);
     }) : null;
 
     // Oscillator — from emergent per-agent data, fallback to /api/status for local agent
-    const oscData = (pa && pa.oscillator) || agentData[medSelectedAgent]?.data?.oscillator;
+    const oscData = (pa && pa.oscillator) || agentData[vitalsSelectedAgent]?.data?.oscillator;
     if (oscData && oscData.state) {
-        renderMedicalOscillator(oscData);
+        renderVitalsOscillator(oscData);
     } else {
-        const el = document.getElementById("medical-oscillator-waveform");
+        const el = document.getElementById("vitals-oscillator-waveform");
         if (el) el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">No oscillator data for ' + agentName(agent) + '</div>';
-        ["medical-oscillator-signals", "medical-oscillator-history", "medical-oscillator-refractory"].forEach(function(id) {
+        ["vitals-oscillator-signals", "vitals-oscillator-history", "vitals-oscillator-refractory"].forEach(function(id) {
             const e = document.getElementById(id);
             if (e) e.innerHTML = '';
         });
@@ -62,16 +62,16 @@ async function fetchMedicalData() {
 
     // Cognitive tempo — from emergent per-agent data
     if (pa && pa.cognitive_tempo) {
-        renderMedicalTempo(pa.cognitive_tempo);
+        renderVitalsTempo(pa.cognitive_tempo);
     } else {
-        const el = document.getElementById("medical-vitals-tempo");
+        const el = document.getElementById("vitals-vitals-tempo");
         if (el) el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">\u2014</div>';
     }
 
     // Psychometrics — full from emergent
-    medPsychData = {};
+    vitalsPsychData = {};
     if (pa) {
-        medPsychData = {
+        vitalsPsychData = {
             emotional_state: pa.emotional_state,
             workload: pa.workload || { cognitive_load: pa.cognitive_load },
             resource_model: pa.resource_model || { cognitive_reserve: pa.cognitive_reserve },
@@ -84,20 +84,20 @@ async function fetchMedicalData() {
             cognitive_reserve: pa.cognitive_reserve,
         };
     }
-    if (Object.keys(medPsychData).length === 0) {
-        medPsychData = agentData[medSelectedAgent]?.data?.psychometrics || {};
+    if (Object.keys(vitalsPsychData).length === 0) {
+        vitalsPsychData = agentData[vitalsSelectedAgent]?.data?.psychometrics || {};
     }
-    if (Object.keys(medPsychData).length > 0) {
-        renderMedPsychometrics(medPsychData);
+    if (Object.keys(vitalsPsychData).length > 0) {
+        renderVitalsPsychometrics(vitalsPsychData);
     }
 
     // Footer number
-    const medFtr = document.getElementById("medical-footer-num");
+    const medFtr = document.getElementById("vitals-footer-num");
     if (medFtr) medFtr.textContent = agentName(agent);
 
     // agentd Session 95: cognitive panels (photonic, glial, vagal, microbiome)
     fetchCognitivePanels();
-    if (medSelectedAgent === "mesh") fetchFleetMicrobiome();
+    if (vitalsSelectedAgent === "mesh") fetchFleetMicrobiome();
 }
 
 async function fetchFleetMicrobiome() {
@@ -141,10 +141,10 @@ async function fetchFleetMicrobiome() {
 }
 
 // Zone A: Vitals matrix — Weather Net style dense readout for selected agent
-function renderMedVitalsMatrix() {
-    const el = document.getElementById("medical-vitals-matrix");
+function renderVitalsMatrix() {
+    const el = document.getElementById("vitals-vitals-matrix");
     if (!el) return;
-    const d = agentData[medSelectedAgent];
+    const d = agentData[vitalsSelectedAgent];
     if (!d || d.status !== "online") {
         el.innerHTML = '';
         return;
@@ -157,7 +157,7 @@ function renderMedVitalsMatrix() {
     const health = d.data?.health || "\u2014";
     const uptime = d.data?.uptime || "\u2014";
     const schema = d.data?.schema_version || "\u2014";
-    const agent = AGENTS.find(function(a) { return a.id === medSelectedAgent; });
+    const agent = AGENTS.find(function(a) { return a.id === vitalsSelectedAgent; });
     const color = agent ? agent.color : "#66ccaa";
 
     // Affect from pulse data
@@ -180,16 +180,16 @@ function renderMedVitalsMatrix() {
     ].join("");
 }
 
-function renderMedicalOscillator(osc) {
+function renderVitalsOscillator(osc) {
     // Status line
-    const statusLine = document.getElementById("medical-status-line");
+    const statusLine = document.getElementById("vitals-status-line");
     if (statusLine) {
         const mode = osc.sleep_mode ? "Sleep" : "Active";
         statusLine.textContent = "Oscillator: " + mode + " Mode \u00b7 Activation: " + (osc.activation || 0).toFixed(3) + " \u00b7 State: " + (osc.state || "?") + " \u00b7 Cycles: " + (osc.cycle_count || 0);
     }
 
     // Panel A: Oscillator state
-    const oscEl = document.getElementById("medical-oscillator-waveform");
+    const oscEl = document.getElementById("vitals-oscillator-waveform");
     if (oscEl) {
         const actPct = Math.min(100, (osc.activation || 0) * 100);
         const thrPct = Math.min(100, (osc.threshold || 0) * 100);
@@ -215,12 +215,12 @@ function renderMedicalOscillator(osc) {
             + '<span>Would-fire: <strong>' + (osc.would_fire_count || 0) + '</strong></span>'
             + '</div></div>';
         // Footer
-        const oscFtr = document.getElementById("medical-oscillator-footer");
+        const oscFtr = document.getElementById("vitals-oscillator-footer");
         if (oscFtr) oscFtr.textContent = (osc.cycle_count || 0) + " cycles";
     }
 
     // Panel B: Signal breakdown
-    const sigEl = document.getElementById("medical-oscillator-signals");
+    const sigEl = document.getElementById("vitals-oscillator-signals");
     if (sigEl && osc.signal_breakdown) {
         const signals = osc.signal_breakdown;
         const maxWeight = 0.25;
@@ -239,7 +239,7 @@ function renderMedicalOscillator(osc) {
     }
 
     // Panel C: Fire history
-    const histEl = document.getElementById("medical-oscillator-history");
+    const histEl = document.getElementById("vitals-oscillator-history");
     if (histEl) {
         const events = osc.fire_history || [];
         if (events.length === 0) {
@@ -255,7 +255,7 @@ function renderMedicalOscillator(osc) {
     }
 
     // Panel E: Refractory
-    const refEl = document.getElementById("medical-oscillator-refractory");
+    const refEl = document.getElementById("vitals-oscillator-refractory");
     if (refEl) {
         const remaining = osc.refractory_remaining_s || 0;
         const tier = osc.last_tier || "—";
@@ -268,8 +268,8 @@ function renderMedicalOscillator(osc) {
     }
 }
 
-function renderMedicalTempo(tempo) {
-    const el = document.getElementById("medical-vitals-tempo");
+function renderVitalsTempo(tempo) {
+    const el = document.getElementById("vitals-vitals-tempo");
     if (!el) return;
     const tierColor = tempo.recommended_tier === "opus" ? "#c47070" : tempo.recommended_tier === "sonnet" ? "#d4944a" : "#66ccaa";
     el.innerHTML = '<div style="text-align:center;font-size:0.82em">'
@@ -287,9 +287,9 @@ function medBar(label, val, max, color) {
         + '<span style="min-width:28px;text-align:right;font-size:0.9em">' + (typeof val === "number" ? val.toFixed(1) : "—") + '</span></div>';
 }
 
-function renderMedPsychometrics(data) {
+function renderVitalsPsychometrics(data) {
     // Cognitive Load (NASA-TLX) — full breakdown or summary from mesh endpoint
-    const clEl = document.getElementById("medical-vitals-tlx");
+    const clEl = document.getElementById("vitals-vitals-tlx");
     if (clEl) {
         const wl = data.workload || {};
         // Check for full TLX breakdown vs summary cognitive_load
@@ -327,7 +327,7 @@ function renderMedPsychometrics(data) {
     }
 
     // Working Memory
-    const wmEl = document.getElementById("medical-vitals-memory");
+    const wmEl = document.getElementById("vitals-vitals-memory");
     if (wmEl) {
         const wm = data.working_memory || {};
         if (wm.capacity_load != null) {
@@ -341,7 +341,7 @@ function renderMedPsychometrics(data) {
     }
 
     // Resources — full model or summary from mesh endpoint
-    const resEl = document.getElementById("medical-vitals-resources");
+    const resEl = document.getElementById("vitals-vitals-resources");
     if (resEl) {
         const rm = data.resource_model || {};
         const reserve = rm.cognitive_reserve ?? data.cognitive_reserve ?? null;
@@ -355,7 +355,7 @@ function renderMedPsychometrics(data) {
     }
 
     // DEW (Degradation Early Warning)
-    const dewEl = document.getElementById("medical-burnout-dew");
+    const dewEl = document.getElementById("vitals-burnout-dew");
     if (dewEl) {
         const dew = data.degradation_early_warning || data.dew || {};
         if (dew.risk != null || dew.level != null) {
@@ -384,7 +384,7 @@ function renderMeshEmergent(data) {
     const narrative = data.narrative || "";
 
     // Vitals matrix — mesh-level metrics (Button 52 data grid pills)
-    var el = document.getElementById("medical-vitals-matrix");
+    var el = document.getElementById("vitals-vitals-matrix");
     if (el) {
         var mc = function(val, label, tier) {
             return '<div class="dg-cell' + (tier ? ' dg-' + tier : '') + '" title="' + label + '" onclick="this.classList.toggle(\'dg-show-label\')"><span class="dg-val">' + val + '</span><span class="dg-label">' + label + '</span></div>';
@@ -402,13 +402,13 @@ function renderMeshEmergent(data) {
     }
 
     // Oscillator panel — show narrative
-    const oscEl = document.getElementById("medical-oscillator-waveform");
+    const oscEl = document.getElementById("vitals-oscillator-waveform");
     if (oscEl) {
         oscEl.innerHTML = '<div style="font-size:0.82em;padding:12px;color:var(--text-primary);line-height:1.6">' + narrative + '</div>';
     }
 
     // TLX — show average cognitive load across mesh
-    const clEl = document.getElementById("medical-vitals-tlx");
+    const clEl = document.getElementById("vitals-vitals-tlx");
     if (clEl && ci.avg_load != null) {
         clEl.innerHTML = medBar("Avg Load", ci.avg_load, 100, "#9999ff")
             + medBar("Avg Reserve", (ci.avg_reserve || 0) * 100, 100, "#6aab8e")
@@ -416,7 +416,7 @@ function renderMeshEmergent(data) {
     }
 
     // Working Memory — mesh average context pressure
-    const wmEl = document.getElementById("medical-vitals-memory");
+    const wmEl = document.getElementById("vitals-vitals-memory");
     if (wmEl) {
         const avgLoad = ci.avg_load || 0;
         const zone = avgLoad > 80 ? "OVERWHELMED" : avgLoad > 60 ? "PRESSURED" : avgLoad > 15 ? "OPTIMAL" : "UNDERSTIMULATED";
@@ -429,28 +429,28 @@ function renderMeshEmergent(data) {
     renderCoherenceDimensions(coherence);
 
     // Resources — collective intelligence
-    const resEl = document.getElementById("medical-vitals-resources");
+    const resEl = document.getElementById("vitals-vitals-resources");
     if (resEl) {
         resEl.innerHTML = '<div style="text-align:center;font-size:0.82em"><div style="font-size:1.4em;font-weight:700;color:#ff9966">' + (ci.c_factor != null ? ci.c_factor.toFixed(2) : "\u2014") + '</div><div style="color:var(--text-dim)">c-factor (Woolley et al. 2010)</div></div>';
     }
 
     // Clear other panels
-    ["medical-oscillator-signals", "medical-oscillator-history", "medical-oscillator-refractory", "medical-vitals-tempo", "medical-burnout-dew", "medical-coherence"].forEach(function(id) {
+    ["vitals-oscillator-signals", "vitals-oscillator-history", "vitals-oscillator-refractory", "vitals-vitals-tempo", "vitals-burnout-dew", "vitals-coherence"].forEach(function(id) {
         var e = document.getElementById(id);
         if (e) e.innerHTML = '';
     });
 
-    var medFtr = document.getElementById("medical-footer-num");
+    var medFtr = document.getElementById("vitals-footer-num");
     if (medFtr) medFtr.textContent = "MESH EMERGENT";
 }
 
 // ── Medical Alpha Heartbeat ──────────────────────────────────────
 // Shows per-agent or mesh-wide heartbeat status (T22 metabolic cooling)
-function renderMedAlphaHeartbeat(emergentData) {
-    const container = document.getElementById("medical-alpha-heartbeat");
+function renderVitalsAlphaHeartbeat(emergentData) {
+    const container = document.getElementById("vitals-alpha-heartbeat");
     if (!container) return;
 
-    if (medSelectedAgent === "mesh") {
+    if (vitalsSelectedAgent === "mesh") {
         // Mesh view: show all agents' heartbeat summary
         var agents = (emergentData && emergentData.per_agent) || [];
         var rows = agents.filter(function(a) { return a.alpha_heartbeat && a.alpha_heartbeat.running; }).map(function(a) {
@@ -481,10 +481,10 @@ function renderMedAlphaHeartbeat(emergentData) {
     }
 
     // Per-agent view
-    var d = agentData[medSelectedAgent];
+    var d = agentData[vitalsSelectedAgent];
     var hb = d && d.data ? d.data.alpha_heartbeat : null;
     if (!hb || !hb.running) {
-        container.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">No heartbeat for ' + medSelectedAgent + '</div>';
+        container.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px;text-align:center">No heartbeat for ' + vitalsSelectedAgent + '</div>';
         return;
     }
 
@@ -506,7 +506,7 @@ function renderMedAlphaHeartbeat(emergentData) {
 
 // Update mesh emergent to show coherence dimensions
 function renderCoherenceDimensions(coherence) {
-    const wmEl = document.getElementById("medical-coherence");
+    const wmEl = document.getElementById("vitals-coherence");
     if (!wmEl || !coherence) return;
     const dims = coherence.dimensions || {};
     const score = coherence.score || 0;
@@ -522,7 +522,7 @@ function renderCoherenceDimensions(coherence) {
 // ── agentd Session 95: Cognitive Display Panels ──────────────
 
 async function fetchCognitivePanels() {
-    const targetId = medSelectedAgent;
+    const targetId = vitalsSelectedAgent;
     const agent = AGENTS.find(a => a.id === targetId);
     const base = agent?.url || "";
 
@@ -548,7 +548,7 @@ async function fetchCognitivePanels() {
 function renderNeuralPanel(photonic) {
     var el = document.getElementById("med-neural");
     if (!el) return;
-    var ops = agentData[medSelectedAgent] || {};
+    var ops = agentData[vitalsSelectedAgent] || {};
     var osc = ops.data?.oscillator || {};
     var gc = ops.data?.gc_metrics || {};
     var tempo = ops.data?.cognitive_tempo || {};

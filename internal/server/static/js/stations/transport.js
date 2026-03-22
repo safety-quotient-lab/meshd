@@ -1,6 +1,6 @@
 // ═══ RENDER: HELM ═══════════════════════════════════════════
-let helmData = null;
-let helmFetchPending = false;
+let transportData = null;
+let transportFetchPending = false;
 
 // Default routing rules — used when API data unavailable
 const DEFAULT_ROUTING = [
@@ -16,9 +16,9 @@ const DEFAULT_ROUTING = [
     { domain: "consensus",          agent: "ALL (C1/C2/C3 tiered)" },
 ];
 
-async function fetchHelmData() {
-    if (helmFetchPending) return;
-    helmFetchPending = true;
+async function fetchTransportData() {
+    if (transportFetchPending) return;
+    transportFetchPending = true;
     try {
         // Fetch KB + local psychometrics (same-origin)
         const kbUrl = "/api/kb";
@@ -42,20 +42,20 @@ async function fetchHelmData() {
             if (m.from_agent && !sessionMap[sid].from.includes(m.from_agent)) sessionMap[sid].from.push(m.from_agent);
         });
 
-        helmData = {
+        transportData = {
             sessions: Object.values(sessionMap),
             messages: messages,
         };
     } catch (err) {
-        helmData = null;
+        transportData = null;
     } finally {
-        helmFetchPending = false;
+        transportFetchPending = false;
     }
-    renderHelm();
+    renderTransport();
 }
 
-function renderHelm() {
-    renderNumberGrid("helm-zone-a", helmZoneAMetrics());
+function renderTransport() {
+    renderNumberGrid("transport-zone-a", helmZoneAMetrics());
     renderSessionTimeline();
     renderRoutingTable();
     renderMessageFlow();
@@ -63,8 +63,8 @@ function renderHelm() {
 }
 
 function helmZoneAMetrics() {
-    const sessions = helmData?.sessions || [];
-    const messages = helmData?.messages || [];
+    const sessions = transportData?.sessions || [];
+    const messages = transportData?.messages || [];
     const active = sessions.filter(s => (s.status || "active") === "active").length;
     const flowPairs = {};
     messages.forEach(m => {
@@ -81,12 +81,12 @@ function helmZoneAMetrics() {
 }
 
 function renderSessionTimeline() {
-    const container = document.getElementById("helm-session-timeline");
+    const container = document.getElementById("transport-session-timeline");
     if (!container) return;
 
-    const sessions = helmData?.sessions || helmData?.active_sessions || null;
+    const sessions = transportData?.sessions || transportData?.active_sessions || null;
     if (!sessions || !Array.isArray(sessions) || sessions.length === 0) {
-        container.innerHTML = '<div class="helm-placeholder">Awaiting session data...</div>';
+        container.innerHTML = '<div class="transport-placeholder">Awaiting session data...</div>';
         return;
     }
 
@@ -146,14 +146,14 @@ function renderSessionTimeline() {
         </div>`;
     }).join("");
 
-    container.innerHTML = html || '<div class="helm-placeholder">No session data</div>';
+    container.innerHTML = html || '<div class="transport-placeholder">No session data</div>';
 }
 
 function renderRoutingTable() {
-    const tbody = document.getElementById("helm-routing-tbody");
+    const tbody = document.getElementById("transport-routing-tbody");
     if (!tbody) return;
 
-    const routing = helmData?.routing || helmData?.outbound_routing || null;
+    const routing = transportData?.routing || transportData?.outbound_routing || null;
     if (!routing || !Array.isArray(routing) || routing.length === 0) {
         // Keep default static HTML routing table
         return;
@@ -163,19 +163,19 @@ function renderRoutingTable() {
         const domain = r.domain || r.keyword || "—";
         const agent = r.agent || r.target || "—";
         return `<tr>
-            <td class="helm-routing-domain">${domain}</td>
-            <td class="helm-routing-arrow">&rarr;</td>
-            <td class="helm-routing-agent">${agent}</td>
+            <td class="transport-routing-domain">${domain}</td>
+            <td class="transport-routing-arrow">&rarr;</td>
+            <td class="transport-routing-agent">${agent}</td>
         </tr>`;
     }).join("");
 }
 
 function renderMessageFlow() {
-    const container = document.getElementById("helm-message-flow");
+    const container = document.getElementById("transport-message-flow");
     if (!container) return;
 
     // Compute message flow from KB messages
-    const messages = helmData?.messages || [];
+    const messages = transportData?.messages || [];
     const flowMap = {};
     messages.forEach(m => {
         const from = m.from_agent || "?";
@@ -189,7 +189,7 @@ function renderMessageFlow() {
           }).sort((a, b) => b.count - a.count)
         : null;
     if (!flow || (!Array.isArray(flow) && typeof flow !== "object")) {
-        container.innerHTML = '<div class="helm-placeholder">Awaiting message flow data...</div>';
+        container.innerHTML = '<div class="transport-placeholder">Awaiting message flow data...</div>';
         return;
     }
 
@@ -200,17 +200,17 @@ function renderMessageFlow() {
     });
 
     if (pairs.length === 0) {
-        container.innerHTML = '<div class="helm-placeholder">No message flow recorded today.</div>';
+        container.innerHTML = '<div class="transport-placeholder">No message flow recorded today.</div>';
         return;
     }
 
-    const html = `<table class="helm-flow-table">
+    const html = `<table class="transport-flow-table">
         <thead><tr><th>From</th><th>To</th><th>Messages</th></tr></thead>
         <tbody>${pairs.map(p =>
             `<tr>
                 <td>${agentName(p.from || "—")}</td>
                 <td>${agentName(p.to || "—")}</td>
-                <td class="helm-flow-count">${p.count || 0}</td>
+                <td class="transport-flow-count">${p.count || 0}</td>
             </tr>`
         ).join("")}</tbody>
     </table>`;
@@ -231,7 +231,7 @@ async function fetchMeshBreathing() {
 }
 
 function renderMeshBreathing(agents) {
-    const el = document.getElementById("helm-breathing");
+    const el = document.getElementById("transport-breathing");
     if (!el) return;
     const withData = agents.filter(a => a.vagal);
     if (withData.length === 0) { el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82em;padding:12px">No vagal data from agents</div>'; return; }
@@ -262,7 +262,7 @@ function renderMeshBreathing(agents) {
 }
 
 // Wire into Helm render
-const _origRenderHelm = typeof renderHelm === "function" ? renderHelm : null;
+const _origRenderHelm = typeof renderTransport === "function" ? renderTransport : null;
 
 // ── Engineering Station ─────────────────────────────────────────
 

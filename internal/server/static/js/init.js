@@ -16,7 +16,7 @@ window.openLcarsDetail = openLcarsDetail;
 window.closeLcarsDetail = closeLcarsDetail;
 window.toggleNarrativeDrawer = toggleNarrativeDrawer;
 window.runDiagnostic = runDiagnostic;
-window.switchOpsSubsystem = switchOpsSubsystem;
+window.switchGovSubsystem = switchGovSubsystem;
 
 // ── Init ───────────────────────────────────────────────────────
 (async function init() {
@@ -35,10 +35,10 @@ window.switchOpsSubsystem = switchOpsSubsystem;
         setTimeout(() => {
             const sciSubs = ["psychometrics", "linguistics", "ontology"];
             const opsSubs = ["pulse-status", "resources-autonomy", "transport-overview", "resources-capacity", "deliberations-log", "governance-record"];
-            if (sciSubs.includes(urlSub) && typeof switchSciSubsystem === "function") {
-                switchSciSubsystem(urlSub, false);
-            } else if (opsSubs.includes(urlSub) && typeof switchOpsSubsystem === "function") {
-                switchOpsSubsystem(urlSub);
+            if (sciSubs.includes(urlSub) && typeof switchAnalysisSubsystem === "function") {
+                switchAnalysisSubsystem(urlSub, false);
+            } else if (opsSubs.includes(urlSub) && typeof switchGovSubsystem === "function") {
+                switchGovSubsystem(urlSub);
             }
         }, 100);
     }

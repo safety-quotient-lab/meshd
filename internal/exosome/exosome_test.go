@@ -9,13 +9,13 @@ func TestNew(t *testing.T) {
 	msg := Message{
 		Protocol:  "interagent/v1",
 		Type:      "directive",
-		From:      "operations-agent",
+		From:      "mesh",
 		To:        "psychology-agent",
 		SessionID: "mesh-parity-v2",
 		Turn:      1,
 		Subject:   "Test directive",
 	}
-	origin := CellOrigin{AgentID: "operations-agent", Reason: "test"}
+	origin := CellOrigin{AgentID: "mesh", Reason: "test"}
 
 	exo := New(msg, origin)
 
@@ -65,11 +65,9 @@ func TestResolveTarget(t *testing.T) {
 		wantDomain string
 	}{
 		{"PSQ scoring", "PSQ scoring calibration results", "psychology-agent", "psychometrics"},
-		{"dashboard deploy", "compositor dashboard deploy failed", "operations-agent", "operations"},
 		{"blog content", "blog publication ICESCR ratification", "unratified-agent", "content"},
 		{"HRCB sweep", "HRCB corpus sweep results", "observatory-agent", "observatory"},
 		{"model training", "DistilBERT model training complete", "safety-quotient-agent", "model"},
-		{"vocabulary governance", "vocab naming convention update", "operations-agent", "operations"},
 	}
 
 	for _, tt := range tests {
@@ -180,13 +178,13 @@ func TestInsertSQL(t *testing.T) {
 	msg := Message{
 		Protocol:  "interagent/v1",
 		Type:      "directive",
-		From:      "operations-agent",
+		From:      "mesh",
 		SessionID: "test-session",
 		Turn:      1,
 		Subject:   "Test subject with 'quotes'",
 		Timestamp: "2026-03-14T01:00:00Z",
 	}
-	exo := New(msg, CellOrigin{AgentID: "operations-agent"})
+	exo := New(msg, CellOrigin{AgentID: "mesh"})
 	exo.SetTarget("psychology-agent")
 
 	sql := exo.InsertSQL()

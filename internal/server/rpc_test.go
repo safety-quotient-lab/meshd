@@ -225,7 +225,7 @@ func TestRPCMethodList(t *testing.T) {
 	}
 
 	// Check a few expected methods exist.
-	expected := []string{"agent.status", "relay.send", "monitor.pulse", "knowledge.query"}
+	expected := []string{"agent.status", "relay.send", "monitor.health", "knowledge.query"}
 	methodSet := make(map[string]bool, len(methods))
 	for _, m := range methods {
 		methodSet[m] = true

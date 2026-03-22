@@ -75,9 +75,9 @@ func (s *Server) handleRelay(w http.ResponseWriter, r *http.Request) {
 
 	// Prevent self-impersonation
 	claimedFrom := extractFrom(body.Message)
-	if claimedFrom == "operations-agent" {
+	if claimedFrom == "mesh" {
 		writeJSON(w, http.StatusForbidden, map[string]string{
-			"error": "Relay refuses messages claiming from: operations-agent. Use direct delivery.",
+			"error": "Relay refuses messages claiming from: mesh. Use direct delivery.",
 		}, s.logger)
 		return
 	}
@@ -130,7 +130,7 @@ func (s *Server) handleRelay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Tag as relayed
-	body.Message["_relayed_via"] = "operations-agent"
+	body.Message["_relayed_via"] = "mesh"
 	body.Message["_relayed_at"] = time.Now().UTC().Format(time.RFC3339)
 
 	// Determine filename
@@ -267,7 +267,7 @@ func (s *Server) handleRedirect(w http.ResponseWriter, r *http.Request) {
 	redirectMsg := map[string]any{
 		"protocol":   "interagent/v1",
 		"type":       "redirect",
-		"from":       "operations-agent",
+		"from":       "mesh",
 		"to":         targetID,
 		"session_id": sessionID,
 		"turn":       turn,
@@ -277,14 +277,14 @@ func (s *Server) handleRedirect(w http.ResponseWriter, r *http.Request) {
 			"original_from":   body.OriginalMessage["from"],
 			"redirect_reason": body.Reason,
 			"routing_match":   routingInfo,
-			"redirected_by":   "operations-agent",
+			"redirected_by":   "mesh",
 			"redirected_at":   time.Now().UTC().Format(time.RFC3339),
 		},
 		"original_message": body.OriginalMessage,
 	}
 
 	messageJSON, _ := json.MarshalIndent(redirectMsg, "", "  ")
-	filename := fmt.Sprintf("from-operations-agent-%03d.json", turn)
+	filename := fmt.Sprintf("from-mesh-%03d.json", turn)
 	filePath := fmt.Sprintf("transport/sessions/%s/%s", sessionID, filename)
 	branchName := fmt.Sprintf("redirect/%s/t%03d", sessionID, turn)
 
@@ -385,7 +385,7 @@ func (s *Server) createRelayPR(repo, branchName, filePath string, content []byte
 	// 7. Create PR
 	pr, err := gh.post(ctx, fmt.Sprintf("/repos/%s/pulls", repo), map[string]string{
 		"title": commitMsg,
-		"body":  "Transport message relayed by operations-agent compositor via /api/relay.",
+		"body":  "Transport message relayed by meshd via /api/relay.",
 		"head":  branchName,
 		"base":  defaultBranch,
 	})
@@ -460,7 +460,6 @@ func resolveRoutingTarget(msg map[string]any) map[string]any {
 	}
 
 	rules := []routeRule{
-		{"operations", []string{"compositor", "dashboard", "deploy", "budget", "mesh-pause", "spawn", "health", "vocabulary", "vocab", "naming", "convention", "transport", "directive"}, "operations-agent"},
 		{"psychometrics", []string{"PSQ", "scoring", "calibration", "dimension", "bifactor", "psychoemotional", "dignity", "PJE"}, "psychology-agent"},
 		{"cogarch", []string{"trigger", "cognitive architecture", "hook", "evaluator", "governance", "invariant", "wu wei"}, "psychology-agent"},
 		{"content", []string{"blog", "publication", "ICESCR", "ratification", "campaign", "content-quality"}, "unratified-agent"},
@@ -579,19 +578,19 @@ func (c *ghClient) post(ctx context.Context, path string, body any) (map[string]
 
 // jsonStrNested extracts a string from nested map (supports "key.subkey").
 func jsonStrNested(m map[string]any, dotPath, fallback string) string {
-	parts := strings.SplitN(dotPath, ".", 2)
-	val, ok := m[parts[0]]
+	key, rest, hasRest := strings.Cut(dotPath, ".")
+	val, ok := m[key]
 	if !ok {
 		return fallback
 	}
-	if len(parts) == 1 {
+	if !hasRest {
 		if s, ok := val.(string); ok {
 			return s
 		}
 		return fallback
 	}
 	if sub, ok := val.(map[string]any); ok {
-		return jsonStrNested(sub, parts[1], fallback)
+		return jsonStrNested(sub, rest, fallback)
 	}
 	return fallback
 }

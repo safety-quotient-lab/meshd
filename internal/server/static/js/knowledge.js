@@ -91,7 +91,7 @@ function renderKBVitals() {
         memory += t.memory_entries || 0;
         stale += t.stale_entries || 0;
     }
-    const setCount = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; else console.warn(`[kb] Missing element: ${id}`); };
+    const setCount = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setCount("kb-decisions-count", decisions);
     setCount("kb-triggers-count", triggers);
     setCount("kb-catalog-count", catalog);
@@ -106,6 +106,7 @@ function renderKBVitals() {
 // ── Decisions Table ──────────────────────────────────────────
 function renderDecisions() {
     const container = document.getElementById("kb-decisions");
+    if (!container) return;
 
     // Collect data (only on first render or refresh)
     if (tableState.decisions.data.length === 0) {
@@ -167,6 +168,7 @@ function renderDecisions() {
 // ── Triggers Table ───────────────────────────────────────────
 function renderTriggers() {
     const container = document.getElementById("kb-triggers");
+    if (!container) return;
 
     if (tableState.triggers.data.length === 0) {
         for (const agent of AGENTS) {
@@ -255,6 +257,7 @@ function renderDictionary() {
 
 function renderDictionaryFiltered(filter) {
     const container = document.getElementById("kb-dictionary");
+    if (!container) return;
     const infoEl = document.getElementById("page-info-dictionary");
 
     if (allDictTerms.length === 0) {
@@ -303,6 +306,7 @@ function renderDictionaryFiltered(filter) {
 // ── Discipline Catalog (PSH) ──────────────────────────────────
 function renderCatalog() {
     const container = document.getElementById("kb-catalog");
+    if (!container) return;
 
     if (tableState.catalog.data.length === 0) {
         for (const agent of AGENTS) {
@@ -366,6 +370,7 @@ function renderCatalog() {
 // ── Entity Schema (schema.org) ─────────────────────────────────
 function renderSchema() {
     const container = document.getElementById("kb-schema");
+    if (!container) return;
 
     if (tableState.schema.data.length === 0) {
         for (const agent of AGENTS) {
@@ -419,6 +424,7 @@ function renderSchema() {
 // ── Memory by Topic ──────────────────────────────────────────
 function renderMemoryTopics() {
     const container = document.getElementById("kb-memory");
+    if (!container) return;
     const allTopics = [];
     const agents = activeAgentFilter === "all" ? AGENTS : AGENTS.filter(a => a.id === activeAgentFilter);
 
@@ -729,6 +735,7 @@ function renderMessages() {
 // ── KB Tab: Claims ──────────────────────────────────────────
 function renderClaims() {
     const container = document.getElementById("kb-claims");
+    if (!container) return;
 
     if (tableState.claims.data.length === 0) {
         for (const agent of AGENTS) {
@@ -801,6 +808,7 @@ function renderClaims() {
 // ── KB Tab: Decision Chains ──────────────────────────────────
 function renderChains() {
     const container = document.getElementById("kb-chains");
+    if (!container) return;
 
     if (tableState.chains.data.length === 0) {
         for (const agent of AGENTS) {
@@ -867,6 +875,7 @@ function renderChains() {
 // ── KB Tab: Memory Facts ─────────────────────────────────────
 function renderFacts() {
     const container = document.getElementById("kb-facts");
+    if (!container) return;
 
     if (tableState.facts.data.length === 0) {
         for (const agent of AGENTS) {
@@ -928,6 +937,7 @@ function renderFacts() {
 // ── Wisdom Tab: Lessons ──────────────────────────────────────
 function renderLessons() {
     const container = document.getElementById("kb-lessons");
+    if (!container) return;
 
     if (tableState.lessons.data.length === 0) {
         for (const agent of AGENTS) {

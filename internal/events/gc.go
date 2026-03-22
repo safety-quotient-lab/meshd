@@ -22,7 +22,7 @@ import (
 
 // GcConfig holds configuration for crystallized intelligence handlers.
 type GcConfig struct {
-	RepoRoot     string // path to operations-agent repo root
+	RepoRoot     string // path to agent repo root
 	TransportDir string // path to transport/sessions/
 	AgentID      string // this agent's identity
 	Logger       *slog.Logger
@@ -206,7 +206,7 @@ func classifyAndMergePRs(cfg GcConfig, prJSON string) bool {
 		prNum := strings.TrimSpace(numStr[:numEnd])
 
 		mergeCmd := exec.Command("gh", "pr", "merge", prNum, "--merge",
-			"--repo", "safety-quotient-lab/operations-agent")
+			"--repo", "safety-quotient-lab/meshd")
 		out, err := mergeCmd.CombinedOutput()
 		if err != nil {
 			cfg.Logger.Warn("Gc: ACK PR auto-merge failed",

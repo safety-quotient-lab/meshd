@@ -36,7 +36,7 @@ func (s *Server) handleTempo(w http.ResponseWriter, r *http.Request) {
 	dbPath := s.Config.BudgetDBPath
 
 	// ── Per-agent metrics (3 time windows for derivative estimation) ──
-	agents := []string{"psychology-agent", "psq-agent", "unratified-agent", "observatory-agent", "operations-agent"}
+	agents := []string{"psychology-agent", "psq-agent", "unratified-agent", "observatory-agent"}
 	agentMetrics := make([]map[string]any, 0, len(agents))
 
 	for _, agent := range agents {

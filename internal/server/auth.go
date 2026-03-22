@@ -216,8 +216,8 @@ func sanitizeClientIP(r *http.Request) string {
 	xff := r.Header.Get("X-Forwarded-For")
 	if xff != "" {
 		// Take the first (leftmost = client) IP from comma-separated list.
-		parts := strings.SplitN(xff, ",", 2)
-		candidate := strings.TrimSpace(parts[0])
+		candidate, _, _ := strings.Cut(xff, ",")
+		candidate = strings.TrimSpace(candidate)
 		if parsed := net.ParseIP(candidate); parsed != nil {
 			return parsed.String()
 		}

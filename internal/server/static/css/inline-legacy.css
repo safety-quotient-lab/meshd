@@ -1932,7 +1932,7 @@ body {
 .sort-arrow { opacity: 0.3; font-size: 0.9em; }
 .sort-active .sort-arrow { opacity: 1; }
 
-/* ── Pulse Tab ───────────────────────────────────────────────── */
+/* ── MSD Tab ─────────────────────────────────────────────────── */
 
 /* Mesh vitals row */
 .vitals-grid {
@@ -4358,3 +4358,103 @@ body[data-alert-level="1"] .lcars-data-grid .dg-cell { background: var(--alert-b
     margin-bottom: var(--gap-xl, 21px);
 }
 .lcars-sidebar-exit:hover { filter: brightness(1.2); }
+
+/* ── MSD Tree ────────────────────────────────────────────── */
+#msd-tree { overflow-y: auto; max-height: 60vh; }
+#prom-metrics { overflow-y: auto; max-height: 40vh; }
+
+.msd-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 2px 0; white-space: nowrap;
+}
+.msd-root { margin-bottom: 4px; }
+.msd-root-label {
+    text-transform: uppercase; letter-spacing: 0.05em;
+    font-weight: 700; color: var(--text-primary, #f4e3c1);
+    font-size: 1.05em;
+}
+.msd-agent { margin-top: 6px; border-top: 1px solid var(--border, #333); padding-top: 4px; }
+.msd-agent-label {
+    text-transform: uppercase; letter-spacing: 0.04em;
+    font-weight: 700; font-size: 0.95em;
+}
+.msd-connector {
+    color: var(--text-dim, #888); font-family: 'SF Mono','Fira Code',monospace;
+    min-width: 20px; flex-shrink: 0;
+}
+.msd-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; flex-shrink: 0;
+    box-shadow: 0 0 4px currentColor;
+}
+.msd-label {
+    color: var(--text-secondary, #c4a66a); text-transform: uppercase;
+    letter-spacing: 0.03em; font-size: 0.85em;
+}
+.msd-value-group {
+    margin-left: auto; display: flex; align-items: center; gap: 8px;
+}
+.msd-val {
+    color: var(--text-primary, #f4e3c1); font-weight: 700;
+    font-size: 0.9em; font-family: 'SF Mono','Fira Code',monospace;
+}
+.msd-unit {
+    color: var(--text-dim, #888); font-size: 0.78em;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.msd-bar {
+    display: inline-block; width: 56px; height: 7px;
+    background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;
+}
+.msd-bar-fill {
+    display: block; height: 100%; border-radius: 4px;
+    transition: width 0.4s ease;
+}
+.msd-unreachable {
+    color: var(--c-alert, #cc6666); font-size: 0.82em; margin-left: auto;
+    text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+}
+.msd-toggle {
+    cursor: pointer; min-width: 14px; text-align: center;
+    color: var(--text-dim, #888); font-size: 0.7em;
+    user-select: none; flex-shrink: 0;
+    transition: color 0.15s;
+}
+.msd-toggle:hover { color: var(--text-primary, #f4e3c1); }
+.msd-toggle-spacer { min-width: 14px; flex-shrink: 0; }
+.msd-child-count {
+    color: var(--text-dim, #888); font-size: 0.75em;
+    margin-left: 6px; font-style: italic;
+}
+
+/* ── Prometheus Metrics Grid ─────────────────────────────── */
+.prom-grid {
+    display: flex; flex-direction: column; gap: 3px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    min-width: 0;
+}
+.prom-row {
+    display: flex; align-items: center; gap: 4px; padding: 2px 0;
+    min-width: max-content;
+}
+.prom-header {
+    border-bottom: 1px solid var(--border, #333);
+    padding-bottom: 4px; margin-bottom: 2px;
+}
+.prom-cell { min-width: 70px; flex-shrink: 0; }
+.prom-label-cell {
+    color: var(--text-dim, #888);
+    text-transform: uppercase; font-size: 0.82em;
+    letter-spacing: 0.04em;
+    min-width: 120px; flex-shrink: 0;
+}
+.prom-agent-cell {
+    text-align: right; font-weight: 700;
+    font-size: 0.78em; letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.prom-val-cell {
+    text-align: right; color: var(--text-primary, #f4e3c1);
+    font-weight: 600; font-size: 0.88em;
+    font-family: 'SF Mono','Fira Code',monospace;
+}

@@ -17,10 +17,13 @@ import (
 	"os"
 	"os/signal"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/safety-quotient-lab/meshd/internal/config"
 	"github.com/safety-quotient-lab/meshd/internal/db"
@@ -199,7 +202,27 @@ func (s *Server) RecordDeliberation(rec DeliberationRecord) {
 // ListenAndServe starts the HTTP server and blocks until a shutdown signal
 // arrives (SIGTERM or SIGINT). Active requests get up to 10 seconds to
 // drain before forced termination.
+//
+// Deprecated: Use ListenAndServeContext for external shutdown control.
 func (s *Server) ListenAndServe() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Listen for shutdown signals internally when no context provided.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		<-sigCh
+		cancel()
+	}()
+
+	return s.ListenAndServeContext(ctx)
+}
+
+// ListenAndServeContext starts the HTTP server and blocks until the context
+// cancels. Active requests get up to 5 seconds to drain before forced
+// termination. The caller controls shutdown through context cancellation.
+func (s *Server) ListenAndServeContext(ctx context.Context) error {
 	mux := http.NewServeMux()
 	s.registerRoutes(mux)
 
@@ -224,25 +247,22 @@ func (s *Server) ListenAndServe() error {
 		return fmt.Errorf("listen %s failed: %w", addr, err)
 	}
 
-	// Listen for shutdown signals.
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
-
 	errCh := make(chan error, 1)
 	go func() {
 		s.logger.Info("meshd server starting", "addr", addr, "version", Version)
-		if err := s.httpServer.Serve(ln); err != nil && err != http.ErrServerClosed {
-			errCh <- err
+		if serveErr := s.httpServer.Serve(ln); serveErr != nil && serveErr != http.ErrServerClosed {
+			errCh <- serveErr
 		}
 		close(errCh)
 	}()
 
+	// Wait for context cancellation or server error
 	select {
-	case sig := <-sigCh:
-		s.logger.Info("received shutdown signal", "signal", sig.String())
-	case err := <-errCh:
-		if err != nil {
-			return fmt.Errorf("server listen failed: %w", err)
+	case <-ctx.Done():
+		s.logger.Info("server shutdown triggered via context")
+	case serveErr := <-errCh:
+		if serveErr != nil {
+			return fmt.Errorf("server listen failed: %w", serveErr)
 		}
 	}
 
@@ -250,12 +270,12 @@ func (s *Server) ListenAndServe() error {
 }
 
 // shutdown gracefully stops the HTTP server, allowing active requests up to
-// 10 seconds to complete.
+// 5 seconds to complete.
 func (s *Server) shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	s.logger.Info("draining active requests", "timeout", "10s")
+	s.logger.Info("draining active requests", "timeout", "5s")
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		return fmt.Errorf("graceful shutdown failed: %w", err)
 	}
@@ -268,6 +288,7 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	// ── Existing meshd routes ───────────────────────────────────────
 	mux.HandleFunc("GET /api/status", s.handleStatus)
 	mux.HandleFunc("GET /health", s.Health.HTTPHandler())
+	mux.Handle("GET /metrics", promhttp.Handler())
 	mux.HandleFunc("GET /ws", s.handleWebSocket)
 	mux.HandleFunc("GET /api/events", s.handleEvents)
 	mux.HandleFunc("GET /api/events/stream", s.handleSSEStream)
@@ -294,10 +315,17 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /.well-known/agent-card.json", s.handleAgentCardStatic)
 	staticSub, _ := fs.Sub(staticFS, "static")
 	staticServer := http.FileServer(http.FS(staticSub))
-	mux.Handle("GET /static/", http.StripPrefix("/static/", staticServer))
+	// Wrap static server with cache-control headers to prevent CF edge caching stale JS
+	noCacheStatic := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, ".js") || strings.HasSuffix(r.URL.Path, ".css") {
+			w.Header().Set("Cache-Control", "no-cache, must-revalidate")
+		}
+		staticServer.ServeHTTP(w, r)
+	})
+	mux.Handle("GET /static/", http.StripPrefix("/static/", noCacheStatic))
 	// Serve at root-relative paths too (index.html uses relative href="css/..." and "js/...")
-	mux.Handle("GET /css/", staticServer)
-	mux.Handle("GET /js/", staticServer)
+	mux.Handle("GET /css/", noCacheStatic)
+	mux.Handle("GET /js/", noCacheStatic)
 	mux.Handle("GET /fonts/", staticServer)
 	mux.Handle("GET /favicon.svg", staticServer)
 
@@ -306,7 +334,6 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /.well-known/webfinger", s.handleWebFinger)
 
 	// Aggregation
-	mux.HandleFunc("GET /api/pulse", s.handlePulse)
 	mux.HandleFunc("GET /api/operations", s.handleOperations)
 	mux.HandleFunc("GET /api/health", s.handleMeshHealth)
 	mux.HandleFunc("GET /api/trust", s.handleTrust)
@@ -353,7 +380,7 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	// ── /api/mesh/* REST hierarchy (parallels agentd's /api/agent/*) ──
 	// New canonical paths — old paths kept above for backward compatibility.
 	// Root
-	mux.HandleFunc("GET /api/mesh", s.handlePulse)
+	mux.HandleFunc("GET /api/mesh", s.handleMeshAggregate)
 	// State (emergent properties — no single agent can compute)
 	mux.HandleFunc("GET /api/mesh/state", s.handleMeshAggregate)
 	mux.HandleFunc("GET /api/mesh/state/operational-health", s.handlePsychometricsMesh)
@@ -378,6 +405,12 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/mesh/transport/routing", s.handleRouting)
 	// Catalog (data discovery — parallels agentd /api/catalog)
 	mux.HandleFunc("GET /api/catalog", s.handleCatalog)
+
+	// Proxy endpoints — server-side aggregation from all agents.
+	// Eliminates cross-origin overhead for the dashboard.
+	mux.HandleFunc("GET /api/mesh/agents/status", s.handleAgentsStatus)
+	mux.HandleFunc("GET /api/mesh/agents/msd", s.handleAgentsMSD)
+	mux.HandleFunc("GET /api/mesh/agents/metrics", s.handleAgentsMetrics)
 }
 
 // middleware chains recovery, CORS, request logging, and version header
@@ -417,9 +450,29 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// CSP for HTML responses (prevents XSS via injected scripts).
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'")
+		// CSP for HTML responses — allows cross-origin fetch to agent domains
+		// for direct /api/status, /api/msd, and /metrics queries.
+		w.Header().Set("Content-Security-Policy", strings.Join([]string{
+			"default-src 'self'",
+			"script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+			"style-src 'self' 'unsafe-inline'",
+			"connect-src 'self' https://*.safety-quotient.dev https://*.unratified.org wss://mesh.safety-quotient.dev",
+		}, "; "))
 		w.Header().Set("X-Content-Type-Options", "nosniff")
+
+		// WebSocket upgrade needs raw ResponseWriter (Hijacker interface).
+		// Skip statusWriter wrapper for /ws to preserve the upgrade path.
+		if r.URL.Path == "/ws" {
+			next.ServeHTTP(w, r)
+			s.logger.Info("http request",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"status", 101,
+				"duration", time.Since(start).String(),
+				"remote", r.RemoteAddr,
+			)
+			return
+		}
 
 		// Wrap the ResponseWriter to capture the status code.
 		sw := &statusWriter{ResponseWriter: w, code: http.StatusOK}
@@ -467,18 +520,18 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 
 // buildStatusPayload constructs the status response map. Used by both
 // handleStatus (HTTP) and KV self-observation (background writer).
-func (s *Server) buildStatusPayload() map[string]interface{} {
+func (s *Server) buildStatusPayload() map[string]any {
 	uptime := time.Since(s.startTime)
 	dbPath := s.Config.BudgetDBPath
 
 	// Budget from state.db (budget_spent/budget_cutoff counter model, cutoff 0 = unlimited)
 	budgetRows, _ := db.QueryJSON(dbPath,
 		"SELECT agent_id, budget_spent, budget_cutoff, sleep_mode, consecutive_blocks, last_audit, updated_at, min_action_interval, last_action FROM autonomy_budget WHERE agent_id='"+db.SanitizeID(s.Config.AgentID)+"'")
-	var budget interface{}
+	var budget any
 	if len(budgetRows) > 0 {
 		budget = budgetRows[0]
 	} else {
-		budget = map[string]interface{}{}
+		budget = map[string]any{}
 	}
 
 	// Recent messages (last 20)
@@ -504,7 +557,7 @@ func (s *Server) buildStatusPayload() map[string]interface{} {
 		"SELECT count(*) FROM deliberation_log WHERE started_at > datetime('now', '-1 hour')")
 	totalEvents := s.eventCount()
 
-	return map[string]interface{}{
+	return map[string]any{
 		"agent_id":              s.Config.AgentID,
 		"version":               Version,
 		"uptime":                uptime.Truncate(time.Second).String(),
@@ -537,9 +590,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	s.mu.RUnlock()
 
 	// Reverse so the newest event appears first.
-	for i, j := 0, len(snapshot)-1; i < j; i, j = i+1, j-1 {
-		snapshot[i], snapshot[j] = snapshot[j], snapshot[i]
-	}
+	slices.Reverse(snapshot)
 
 	writeJSON(w, http.StatusOK, snapshot, s.logger)
 }
@@ -598,9 +649,7 @@ func (s *Server) handleDeliberations(w http.ResponseWriter, r *http.Request) {
 	s.mu.RUnlock()
 
 	// Reverse so the newest deliberation appears first.
-	for i, j := 0, len(snapshot)-1; i < j; i, j = i+1, j-1 {
-		snapshot[i], snapshot[j] = snapshot[j], snapshot[i]
-	}
+	slices.Reverse(snapshot)
 
 	writeJSON(w, http.StatusOK, snapshot, s.logger)
 }
@@ -609,7 +658,6 @@ func (s *Server) handleDeliberations(w http.ResponseWriter, r *http.Request) {
 // Localhost origins allowed for development.
 var allowedOrigins = []string{
 	"https://interagent.safety-quotient.dev",
-	"https://operations-agent.safety-quotient.dev",
 	"https://psychology-agent.safety-quotient.dev",
 	"https://psq-agent.safety-quotient.dev",
 	"https://observatory.unratified.org",

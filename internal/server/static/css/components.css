@@ -134,7 +134,7 @@
 .sort-arrow { opacity: 0.3; font-size: 0.9em; }
 .sort-active .sort-arrow { opacity: 1; }
 
-/* ── Pulse Tab ───────────────────────────────────────────────── */
+/* ── MSD Tab ─────────────────────────────────────────────────── */
 
 /* Vital cards */
 .vital-card {
@@ -2116,18 +2116,6 @@ a.activity-link:hover {
     border-color: var(--c-health);
     color: var(--c-health);
     background: rgba(106, 171, 142, 0.08);
-}
-
-/* ── Pulse Status Widgets ───────────────────────────────────── */
-.pulse-widgets {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
-    margin: 24px 0;
-}
-
-.pulse-widget {
-    min-height: 120px;
 }
 
 /* Organism Affect Widget */

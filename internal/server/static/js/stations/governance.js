@@ -1,23 +1,23 @@
-// ═══ RENDER: OPERATIONS ═════════════════════════════════════
+// ═══ RENDER: GOVERNANCE ══════════════════════════════════════
 function renderGovernance() {
     // Symmetric capsule bars (Ohniaka A1 §5.4)
-    renderOpsCapsuleBars();
+    renderGovCapsuleBars();
     // Zone A: dense number grid (three-zone layout §1.2)
     renderNumberGrid("gov-zone-a", opsZoneAMetrics());
     renderGovBudget();
     renderGovActivity();
     renderGovSchedule();
     renderGovVitals();
-    renderOpsAutonomyReadout();
-    renderOpsTransportReadout();
-    renderOpsCapacityReadout();
-    // Topology mirrors from Pulse (already rendered)
+    renderGovAutonomyReadout();
+    renderGovTransportReadout();
+    renderGovCapacityReadout();
+    // Topology mirrors from MSD (already rendered)
     mirrorToLcars("topology-svg", "lcars-topology-svg");
     // Governance — populate from KB decisions data
-    renderGovGovernance();
+    renderGovDecisionsList();
 }
 
-function renderGovGovernance() {
+function renderGovDecisionsList() {
     const el = document.getElementById("gov-governance-decisions");
     if (!el) return;
     // Collect decisions from all agents' KB data
@@ -64,7 +64,7 @@ function renderGovActivity() {
 
 // ── Status Monologue ─────────────────────────────────────
 function renderGovMonologue() {
-    const el = document.getElementById("gov-pulse-monologue");
+    const el = document.getElementById("gov-mesh-monologue");
     if (!el) return;
 
     // Guard: if no agent data yet, show loading state
@@ -268,7 +268,7 @@ function renderGovBudget() {
     // Ohniaka B3 "Starship Mission Status" pattern — structured table
     // with colored text columns (purple names, yellow IDs, white status).
     // No pill backgrounds — spacing + color creates structure.
-    const grid = document.getElementById("gov-pulse-agents");
+    const grid = document.getElementById("gov-mesh-agents");
     if (!grid) return;
 
 
@@ -365,7 +365,7 @@ function renderGovBudget() {
 }
 
 function renderMobilePills() {
-    const container = document.getElementById("gov-pulse-agents-mobile");
+    const container = document.getElementById("gov-mesh-agents-mobile");
     if (!container) return;
 
     // Group by domain
@@ -429,7 +429,7 @@ function renderMobilePills() {
     container.innerHTML = html;
 }
 
-function renderOpsAlphaMatrix() {
+function renderGovAlphaMatrix() {
     const el = document.getElementById("gov-alpha-matrix");
     if (!el) return;
 
@@ -607,7 +607,7 @@ function renderGovSchedule() {
 
 // ── Subsystem Readouts ──────────────────────────────────────────
 
-function renderOpsAutonomyReadout() {
+function renderGovAutonomyReadout() {
     const el = document.getElementById("gov-resources-budget");
     if (!el) return;
     const online = Object.values(agentData).filter(a => a.status === "online");
@@ -637,7 +637,7 @@ function renderOpsAutonomyReadout() {
     }).join("");
 }
 
-function renderOpsTransportReadout() {
+function renderGovTransportReadout() {
     const el = document.getElementById("gov-transport-sessions");
     if (!el) return;
     const online = Object.values(agentData).filter(a => a.status === "online");
@@ -679,7 +679,7 @@ function renderOpsTransportReadout() {
     </div>`;
 }
 
-function renderOpsCapacityReadout() {
+function renderGovCapacityReadout() {
     const el = document.getElementById("gov-resources-operations");
     if (!el) return;
     const online = Object.values(agentData).filter(a => a.status === "online");
@@ -719,7 +719,7 @@ function renderOpsCapacityReadout() {
 }
 
 // ── Operations Record Data Grid (Button 52 pattern) ─────────────
-function renderOpsCapsuleBars() {
+function renderGovCapsuleBars() {
     const grid = document.getElementById("gov-data-grid");
     if (!grid) return;
 

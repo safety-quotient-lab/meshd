@@ -111,7 +111,7 @@ func (s *Server) buildManifest() DashboardManifest {
 		case "compositor-management":
 			m.Widgets = append(m.Widgets, WidgetDecl{
 				Type: "custom", ID: "compositor-health", Title: "Compositor Health",
-				Priority: 7, Endpoint: "/api/pulse", Size: "full",
+				Priority: 7, Endpoint: "/api/mesh-aggregate", Size: "full",
 			})
 		case "health-monitoring":
 			m.Widgets = append(m.Widgets, WidgetDecl{
@@ -154,7 +154,6 @@ func agentColor(agentID string) string {
 		"psq-agent":             "#5da8a0",
 		"unratified-agent":      "#c4956a",
 		"observatory-agent":     "#9b8ec4",
-		"operations-agent":      "#7a9b6b",
 	}
 	if c, ok := colors[agentID]; ok {
 		return c

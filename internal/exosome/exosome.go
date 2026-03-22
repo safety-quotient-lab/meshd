@@ -60,7 +60,7 @@ type Message struct {
 	Timestamp string      `json:"timestamp"`
 	Subject   string      `json:"subject"`
 	Body      string      `json:"body,omitempty"`
-	Raw       interface{} `json:"raw,omitempty"`
+	Raw       any `json:"raw,omitempty"`
 }
 
 // RoutingMarkers carry surface markers that determine targeting.
@@ -146,7 +146,6 @@ type RoutingRule struct {
 // meshRoutingTable in internal/server/routing.go.
 func DefaultRoutingTable() []RoutingRule {
 	return []RoutingRule{
-		{Domain: "operations", RouteTo: "operations-agent", Keywords: []string{"compositor", "dashboard", "deploy", "budget", "mesh-pause", "spawn", "health", "vocabulary", "vocab", "naming", "convention", "transport", "directive", "compliance", "consistency", "credential", "sanitization", "opsec", "CORS", "secret", "scan", "hardening"}},
 		{Domain: "psychometrics", RouteTo: "psychology-agent", Keywords: []string{"PSQ", "scoring", "calibration", "dimension", "bifactor", "psychoemotional", "dignity", "PJE"}},
 		{Domain: "cogarch", RouteTo: "psychology-agent", Keywords: []string{"trigger", "cognitive architecture", "hook", "evaluator", "governance", "invariant", "wu wei"}},
 		{Domain: "content", RouteTo: "unratified-agent", Keywords: []string{"blog", "publication", "ICESCR", "ratification", "campaign", "content-quality"}},
@@ -357,8 +356,8 @@ func (e *Exosome) JSON() ([]byte, error) {
 
 // ToTransportMessage converts the exosome payload back to a flat
 // interagent/v1 message with exosome metadata attached.
-func (e *Exosome) ToTransportMessage() map[string]interface{} {
-	return map[string]interface{}{
+func (e *Exosome) ToTransportMessage() map[string]any {
+	return map[string]any{
 		"protocol":      e.Payload.Protocol,
 		"type":          e.Payload.Type,
 		"from":          e.Payload.From,

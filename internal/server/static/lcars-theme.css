@@ -343,3 +343,76 @@
         .sort-arrow { opacity: 0.3; font-size: 0.9em; }
         .sort-active .sort-arrow { opacity: 1; }
 
+        /* ── MSD Tree ────────────────────────────────────────────── */
+        .msd-row {
+            display: flex; align-items: center; gap: 6px;
+            padding: 1px 0; white-space: nowrap;
+        }
+        .msd-root { margin-bottom: 2px; }
+        .msd-root-label {
+            text-transform: uppercase; letter-spacing: 0.05em;
+            font-weight: 700; color: var(--text-primary);
+        }
+        .msd-agent { margin-top: 4px; }
+        .msd-agent-label {
+            text-transform: uppercase; letter-spacing: 0.04em;
+            font-weight: 600;
+        }
+        .msd-connector {
+            color: var(--text-dim); font-family: monospace;
+            min-width: 20px; flex-shrink: 0;
+        }
+        .msd-dot {
+            display: inline-block; width: 7px; height: 7px;
+            border-radius: 50%; flex-shrink: 0;
+        }
+        .msd-label {
+            color: var(--text-secondary); text-transform: uppercase;
+            letter-spacing: 0.03em; font-size: 0.88em;
+        }
+        .msd-value-group {
+            margin-left: auto; display: flex; align-items: center; gap: 6px;
+        }
+        .msd-val {
+            color: var(--text-primary); font-weight: 700; font-size: 0.9em;
+        }
+        .msd-unit {
+            color: var(--text-dim); font-size: 0.8em;
+        }
+        .msd-bar {
+            display: inline-block; width: 48px; height: 6px;
+            background: #111122; border-radius: 3px; overflow: hidden;
+        }
+        .msd-bar-fill {
+            display: block; height: 100%; border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .msd-unreachable {
+            color: var(--c-alert); font-size: 0.8em; margin-left: auto;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        /* ── Prometheus Metrics Grid ─────────────────────────────── */
+        .prom-grid { display: flex; flex-direction: column; gap: 2px; }
+        .prom-row {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .prom-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px; margin-bottom: 2px;
+        }
+        .prom-cell { flex: 1; min-width: 0; }
+        .prom-label-cell {
+            flex: 0 0 120px; color: var(--text-dim);
+            text-transform: uppercase; font-size: 0.85em;
+            letter-spacing: 0.03em;
+        }
+        .prom-agent-cell {
+            text-align: right; font-weight: 700;
+            font-size: 0.8em; letter-spacing: 0.04em;
+        }
+        .prom-val-cell {
+            text-align: right; color: var(--text-primary);
+            font-weight: 600; font-size: 0.9em;
+        }
+

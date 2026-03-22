@@ -160,7 +160,7 @@ function renderVitalsMatrix() {
     const agent = AGENTS.find(function(a) { return a.id === vitalsSelectedAgent; });
     const color = agent ? agent.color : "#66ccaa";
 
-    // Affect from pulse data
+    // Affect from agent status data
     const affect = d.data?.psychometrics?.emotional_state?.affect_category || d.data?.affect_category || "\u2014";
     const hb = d.data?.alpha_heartbeat;
     const hbInterval = hb ? Math.round(hb.interval_sec) + "s" : "\u2014";

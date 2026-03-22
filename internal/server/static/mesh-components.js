@@ -310,7 +310,7 @@
     }
     customElements.define('mesh-topology', MeshTopology);
 
-    // AgentHealthCard — agent status card for the Pulse tab
+    // AgentHealthCard — agent status card for the MSD tab
     class AgentHealthCard extends HTMLElement {
         constructor() {
             super();

@@ -98,7 +98,6 @@ func (s *Server) buildMethodTable() map[string]methodRoute {
 		"knowledge.search":        {s.handleSearch, "GET"},
 
 		// ── Monitor ──────────────────────────────────────────────
-		"monitor.pulse":           {s.handlePulse, "GET"},
 		"monitor.health":          {s.handleMeshHealth, "GET"},
 		"monitor.operations":      {s.handleOperations, "GET"},
 		"monitor.trust":           {s.handleTrust, "GET"},

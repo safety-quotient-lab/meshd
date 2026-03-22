@@ -1,124 +1,18 @@
-// Package server — pulse.go serves aggregated mesh health data.
+// Package server — aggregated mesh health and operations data.
 //
-// Ports buildPulseData, buildOperationsData, and fetchMeshHealth
-// from the Cloudflare Worker to native Go handlers. Fetches
-// /api/status from all agents in parallel and aggregates.
+// Provides handleOperations and handleMeshHealth handlers.
+// Fetches /api/status from all agents in parallel and aggregates.
 package server
 
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 )
 
 // ManualModeAgents tracks agents operated by a human (no autonomous cron).
 // Updated when agents transition between manual/autonomous.
-var ManualModeAgents = map[string]bool{
-	"operations-agent": true,
-}
-
-// handlePulse serves GET /api/pulse → aggregated mesh heartbeat.
-func (s *Server) handlePulse(w http.ResponseWriter, r *http.Request) {
-	agents := s.Registry.Agents()
-	statuses := s.Registry.FetchAllStatuses()
-
-	online := 0
-	totalBudgetCurrent := 0.0
-	totalBudgetMax := 0.0
-	pendingMessages := 0
-	activeGates := 0
-
-	type agentSummary struct {
-		ID             string  `json:"id"`
-		Role           string  `json:"role"`
-		Status         string  `json:"status"`
-		Version        string  `json:"version"`
-		Health         string  `json:"health"`
-		ManualMode     bool    `json:"manual_mode"`
-		BudgetSpent    float64 `json:"budget_spent"`
-		BudgetCutoff   float64 `json:"budget_cutoff"`
-		Unprocessed    int     `json:"unprocessed_messages"`
-		EpistemicDebt  int     `json:"epistemic_debt"`
-		Uptime         string  `json:"uptime,omitempty"`
-	}
-
-	summaries := make([]agentSummary, 0, len(agents))
-
-	for _, agent := range agents {
-		summary := agentSummary{
-			ID:         agent.ID,
-			Role:       agent.Role,
-			Version:    agent.Version,
-			Status:     "unreachable",
-			Health:     "unknown",
-			ManualMode: ManualModeAgents[agent.ID],
-		}
-
-		data, ok := statuses[agent.ID]
-		if ok {
-			online++
-			summary.Status = "online"
-			summary.Health = strFromMap(data, "health", "unknown")
-			summary.Uptime = strFromMap(data, "uptime", "")
-
-			// Budget
-			if budget, ok := data["autonomy_budget"].(map[string]any); ok {
-				summary.BudgetSpent = floatFromMap(budget, "budget_spent")
-				summary.BudgetCutoff = floatFromMap(budget, "budget_cutoff")
-				totalBudgetCurrent += summary.BudgetSpent
-				totalBudgetMax += summary.BudgetCutoff
-			}
-
-			// Unprocessed messages
-			if msgs, ok := data["unprocessed_messages"].([]any); ok {
-				summary.Unprocessed = len(msgs)
-				pendingMessages += len(msgs)
-			}
-
-			// Active gates
-			if gates, ok := data["active_gates"].([]any); ok {
-				activeGates += len(gates)
-			}
-		}
-
-		summaries = append(summaries, summary)
-	}
-
-	// Determine mesh health
-	meshHealth := "healthy"
-	if online == 0 {
-		meshHealth = "critical"
-	} else if online < len(agents) {
-		meshHealth = "degraded"
-	}
-
-	// Check for mesh pause sentinel file
-	meshMode := "active"
-	pausePath := filepath.Join(s.Config.RepoRoot, ".mesh-paused")
-	if _, err := os.Stat(pausePath); err == nil {
-		meshMode = "paused"
-	}
-
-	pulse := map[string]any{
-		"mesh_health":     meshHealth,
-		"mesh_mode":       meshMode,
-		"agents_online":   online,
-		"agents_total":    len(agents),
-		"pending_messages": pendingMessages,
-		"active_gates":    activeGates,
-		"autonomy_credits": map[string]any{
-			"total_spent":  totalBudgetCurrent,
-			"total_cutoff": totalBudgetMax,
-		},
-		"agents":       summaries,
-		"collected_at": time.Now().UTC().Format(time.RFC3339),
-	}
-
-	w.Header().Set("Cache-Control", "public, max-age=30")
-	writeJSON(w, http.StatusOK, pulse, s.logger)
-}
+var ManualModeAgents = map[string]bool{}
 
 // handleOperations serves GET /api/operations → budgets, actions, gates, schedules.
 func (s *Server) handleOperations(w http.ResponseWriter, r *http.Request) {

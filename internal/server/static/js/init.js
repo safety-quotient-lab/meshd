@@ -34,7 +34,7 @@ window.switchGovSubsystem = switchGovSubsystem;
     if (urlSub) {
         setTimeout(() => {
             const sciSubs = ["psychometrics", "linguistics", "ontology"];
-            const opsSubs = ["pulse-status", "resources-autonomy", "transport-overview", "resources-capacity", "deliberations-log", "governance-record"];
+            const opsSubs = ["mesh-status", "resources-autonomy", "transport-overview", "resources-capacity", "deliberations-log", "governance-record"];
             if (sciSubs.includes(urlSub) && typeof switchAnalysisSubsystem === "function") {
                 switchAnalysisSubsystem(urlSub, false);
             } else if (opsSubs.includes(urlSub) && typeof switchGovSubsystem === "function") {

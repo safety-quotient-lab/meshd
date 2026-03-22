@@ -17,19 +17,19 @@ func (s *Server) handleRouting(w http.ResponseWriter, r *http.Request) {
 	rules := exosome.DefaultRoutingTable()
 
 	// Convert to a JSON-friendly shape
-	domains := make([]map[string]interface{}, len(rules))
+	domains := make([]map[string]any, len(rules))
 	for i, rule := range rules {
-		domains[i] = map[string]interface{}{
+		domains[i] = map[string]any{
 			"domain":   rule.Domain,
 			"route_to": rule.RouteTo,
 			"keywords": rule.Keywords,
 		}
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
+	writeJSON(w, http.StatusOK, map[string]any{
 		"routing_domains":   domains,
 		"inbound_endpoint":  "/api/messages/inbound",
-		"redirect_endpoint": "https://operations-agent.safety-quotient.dev/api/redirect",
-		"usage":             "POST /api/messages/inbound with interagent/v1 message body for direct delivery. POST /api/redirect on compositor for misrouted messages.",
+		"redirect_endpoint": "/api/redirect",
+		"usage":             "POST /api/messages/inbound with interagent/v1 message body for direct delivery. POST /api/redirect on meshd for misrouted messages.",
 	}, s.logger)
 }

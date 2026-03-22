@@ -16,7 +16,6 @@ import (
 // handleCI serves GET /api/ci — aggregated CI status across mesh repos.
 func (s *Server) handleCI(w http.ResponseWriter, r *http.Request) {
 	repos := []string{
-		"safety-quotient-lab/operations-agent",
 		"safety-quotient-lab/psychology-agent",
 		"safety-quotient-lab/safety-quotient",
 		"safety-quotient-lab/unratified",

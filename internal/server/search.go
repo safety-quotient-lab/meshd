@@ -51,10 +51,11 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	limit := strconv.Itoa(limitVal)
 
 	dbPath := s.Config.BudgetDBPath
-	escapedQuery := db.EscapeString(query)
 	ftsQuery := escapeFTS5(query)
+	likePattern := db.EscapeLike(query)
+	likeEscape := ` ESCAPE '\'`
 
-	results := make(map[string]interface{})
+	results := make(map[string]any)
 
 	// Search transport messages
 	if scope == "all" || scope == "messages" {
@@ -67,10 +68,10 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 			msgs, _ = db.QueryJSON(dbPath,
 				"SELECT session_name, filename, from_agent, to_agent, message_type, subject, timestamp "+
 					"FROM transport_messages WHERE "+
-					"subject LIKE '%"+escapedQuery+"%' OR "+
-					"session_name LIKE '%"+escapedQuery+"%' OR "+
-					"from_agent LIKE '%"+escapedQuery+"%' OR "+
-					"message_type LIKE '%"+escapedQuery+"%' "+
+					"subject LIKE "+likePattern+likeEscape+" OR "+
+					"session_name LIKE "+likePattern+likeEscape+" OR "+
+					"from_agent LIKE "+likePattern+likeEscape+" OR "+
+					"message_type LIKE "+likePattern+likeEscape+" "+
 					"ORDER BY timestamp DESC LIMIT "+limit)
 		}
 		results["messages"] = msgs
@@ -86,9 +87,9 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 			decs, _ = db.QueryJSON(dbPath,
 				"SELECT decision_key, title, source, status, created_at "+
 					"FROM decisions WHERE "+
-					"title LIKE '%"+escapedQuery+"%' OR "+
-					"decision_key LIKE '%"+escapedQuery+"%' OR "+
-					"source LIKE '%"+escapedQuery+"%' "+
+					"title LIKE "+likePattern+likeEscape+" OR "+
+					"decision_key LIKE "+likePattern+likeEscape+" OR "+
+					"source LIKE "+likePattern+likeEscape+" "+
 					"ORDER BY created_at DESC LIMIT "+limit)
 		}
 		results["decisions"] = decs
@@ -107,7 +108,7 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
+	writeJSON(w, http.StatusOK, map[string]any{
 		"query":   query,
 		"scope":   scope,
 		"results": results,
@@ -125,23 +126,23 @@ func (s *Server) searchVocab(query string) []map[string]string {
 		return []map[string]string{}
 	}
 
-	var doc map[string]interface{}
+	var doc map[string]any
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return []map[string]string{}
 	}
 
 	// Extract terms from @graph or terms array
-	var rawTerms []interface{}
-	if graph, ok := doc["@graph"].([]interface{}); ok {
+	var rawTerms []any
+	if graph, ok := doc["@graph"].([]any); ok {
 		rawTerms = graph
-	} else if terms, ok := doc["terms"].([]interface{}); ok {
+	} else if terms, ok := doc["terms"].([]any); ok {
 		rawTerms = terms
 	}
 
 	lowerQuery := strings.ToLower(query)
 	var matches []map[string]string
 	for _, t := range rawTerms {
-		obj, ok := t.(map[string]interface{})
+		obj, ok := t.(map[string]any)
 		if !ok {
 			continue
 		}

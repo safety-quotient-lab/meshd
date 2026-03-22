@@ -6,15 +6,16 @@
 package transport
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/safety-quotient-lab/meshd/internal/events"
+	"github.com/safety-quotient-lab/meshd/internal/seenset"
 )
 
 const (
@@ -30,26 +31,35 @@ type Watcher struct {
 	PollInterval time.Duration
 	EventChan    chan<- events.Event
 	SeenFile     string // path to persist seen-set (prevents spawn storms on restart)
-	seen         map[string]time.Time
-	mu           sync.Mutex
+	seen         *seenset.SeenSet[string]
 	logger       *slog.Logger
-	stopCh       chan struct{}
+	ctx          context.Context
+	cancel       context.CancelFunc
 }
 
 // NewWatcher constructs a Watcher. The caller must invoke Run to start polling.
+// Deprecated: prefer NewWatcherWithContext for proper shutdown propagation.
 func NewWatcher(dir string, interval time.Duration, ch chan<- events.Event, logger *slog.Logger) *Watcher {
+	return NewWatcherWithContext(context.Background(), dir, interval, ch, logger)
+}
+
+// NewWatcherWithContext constructs a Watcher that respects the given context
+// for cancellation. Stop() also triggers shutdown for backward compatibility.
+func NewWatcherWithContext(ctx context.Context, dir string, interval time.Duration, ch chan<- events.Event, logger *slog.Logger) *Watcher {
+	derived, cancel := context.WithCancel(ctx)
 	return &Watcher{
 		Dir:          dir,
 		PollInterval: interval,
 		EventChan:    ch,
-		seen:         make(map[string]time.Time),
+		seen:         seenset.New[string](),
 		logger:       logger,
-		stopCh:       make(chan struct{}),
+		ctx:          derived,
+		cancel:       cancel,
 	}
 }
 
-// Run starts the polling loop. It blocks until Stop gets called or the
-// stopCh channel closes. Run the method in a dedicated goroutine.
+// Run starts the polling loop. It blocks until Stop gets called or the context
+// cancels. Run the method in a dedicated goroutine.
 func (w *Watcher) Run() {
 	// Load persisted seen-set before first scan (prevents spawn storms)
 	w.loadSeenSet()
@@ -67,8 +77,8 @@ func (w *Watcher) Run() {
 			w.scan()
 			w.pruneSeenSet()
 			w.saveSeenSet()
-		case <-w.stopCh:
-			w.logger.Info("watcher stopping")
+		case <-w.ctx.Done():
+			w.logger.Info("watcher stopping (context cancelled)")
 			return
 		}
 	}
@@ -76,7 +86,7 @@ func (w *Watcher) Run() {
 
 // Stop signals the polling loop to exit.
 func (w *Watcher) Stop() {
-	close(w.stopCh)
+	w.cancel()
 }
 
 // --------------------------------------------------------------------------
@@ -178,7 +188,7 @@ func flexString(raw json.RawMessage) string {
 		return arr[0]
 	}
 	// Try object with agent_id field (interagent/v1 "to"/"from" blocks)
-	var obj map[string]interface{}
+	var obj map[string]any
 	if json.Unmarshal(raw, &obj) == nil {
 		if aid, ok := obj["agent_id"].(string); ok {
 			return aid
@@ -249,38 +259,22 @@ func classifyPriority(msg transportMessage) events.Priority {
 // alreadySeen reports whether the watcher has previously processed the file at
 // the given path.
 func (w *Watcher) alreadySeen(path string) bool {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	_, found := w.seen[path]
-	return found
+	return w.seen.Contains(path)
 }
 
 // markSeen records that the watcher has processed the file at the given path.
 func (w *Watcher) markSeen(path string) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	w.seen[path] = time.Now()
+	w.seen.Add(path)
 }
 
 // pruneSeenSet removes entries older than seenTTL to prevent unbounded memory
 // growth during long-running operation.
 func (w *Watcher) pruneSeenSet() {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	cutoff := time.Now().Add(-seenTTL)
-	pruned := 0
-	for path, ts := range w.seen {
-		if ts.Before(cutoff) {
-			delete(w.seen, path)
-			pruned++
-		}
-	}
-
+	pruned := w.seen.Prune(seenTTL)
 	if pruned > 0 {
 		w.logger.Debug("pruned stale seen-set entries",
 			"pruned", pruned,
-			"remaining", len(w.seen),
+			"remaining", w.seen.Len(),
 		)
 	}
 }
@@ -317,17 +311,13 @@ func (w *Watcher) loadSeenSet() {
 		return
 	}
 
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	cutoff := time.Now().Add(-seenTTL)
-	loaded := 0
+	// Convert to map for LoadFiltered
+	entryMap := make(map[string]time.Time, len(entries))
 	for _, e := range entries {
-		if e.At.After(cutoff) {
-			w.seen[e.Path] = e.At
-			loaded++
-		}
+		entryMap[e.Path] = e.At
 	}
+
+	loaded := w.seen.LoadFiltered(entryMap, seenTTL)
 
 	w.logger.Info("loaded persisted seen-set",
 		"file", w.SeenFile,
@@ -343,12 +333,11 @@ func (w *Watcher) saveSeenSet() {
 		return
 	}
 
-	w.mu.Lock()
-	entries := make([]seenEntry, 0, len(w.seen))
-	for path, at := range w.seen {
+	snapshot := w.seen.Snapshot()
+	entries := make([]seenEntry, 0, len(snapshot))
+	for path, at := range snapshot {
 		entries = append(entries, seenEntry{Path: path, At: at})
 	}
-	w.mu.Unlock()
 
 	data, err := json.Marshal(entries)
 	if err != nil {
@@ -381,9 +370,7 @@ func (w *Watcher) emit(evt events.Event) {
 // SeenCount returns the current size of the deduplication set. Useful for
 // health checks and diagnostics.
 func (w *Watcher) SeenCount() int {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	return len(w.seen)
+	return w.seen.Len()
 }
 
 // String satisfies fmt.Stringer for diagnostic output.

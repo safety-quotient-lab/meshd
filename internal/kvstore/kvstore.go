@@ -1,7 +1,7 @@
 // Package kvstore writes agent self-observation data to Cloudflare KV.
-// Eliminates the same-zone SPOF: when the compositor cannot HTTP-fetch
-// operations-agent (both on the same Cloudflare zone), it reads from KV
-// instead. Zero network hop from the Worker's perspective.
+// Provides a fallback data path: when the compositor cannot HTTP-fetch
+// an agent, it reads from KV instead. Zero network hop from the
+// Worker's perspective.
 //
 // Uses the Cloudflare KV REST API:
 //   PUT /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/values/{key}

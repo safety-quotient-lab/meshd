@@ -8,6 +8,7 @@
 package transport
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -17,8 +18,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
+
+	"github.com/safety-quotient-lab/meshd/internal/seenset"
 )
 
 // PeerConfig describes a peer agent's repo for cross-repo fetching.
@@ -35,26 +37,37 @@ type Fetcher struct {
 	PollInterval time.Duration // how often to check
 	GitHubToken  string        // optional — for private repos (empty = public only)
 
-	seen   map[string]time.Time // "repo:path" → last fetched
-	mu     sync.Mutex
+	seen   *seenset.SeenSet[string]
 	logger *slog.Logger
-	stopCh chan struct{}
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
-// NewFetcher constructs a cross-repo fetcher.
+// NewFetcher constructs a cross-repo fetcher with an independent context.
+// Deprecated: prefer NewFetcherWithContext for proper shutdown propagation.
 func NewFetcher(agentID, transportDir string, peers []PeerConfig, interval time.Duration, logger *slog.Logger) *Fetcher {
+	return NewFetcherWithContext(context.Background(), agentID, transportDir, peers, interval, logger)
+}
+
+// NewFetcherWithContext constructs a cross-repo fetcher that respects the
+// given context for cancellation. Stop() also triggers shutdown for backward
+// compatibility.
+func NewFetcherWithContext(ctx context.Context, agentID, transportDir string, peers []PeerConfig, interval time.Duration, logger *slog.Logger) *Fetcher {
+	derived, cancel := context.WithCancel(ctx)
 	return &Fetcher{
 		AgentID:      agentID,
 		TransportDir: transportDir,
 		Peers:        peers,
 		PollInterval: interval,
-		seen:         make(map[string]time.Time),
+		seen:         seenset.New[string](),
 		logger:       logger,
-		stopCh:       make(chan struct{}),
+		ctx:          derived,
+		cancel:       cancel,
 	}
 }
 
-// Run starts the polling loop. Blocks until Stop gets called.
+// Run starts the polling loop. Blocks until Stop gets called or the context
+// cancels.
 func (f *Fetcher) Run() {
 	ticker := time.NewTicker(f.PollInterval)
 	defer ticker.Stop()
@@ -72,7 +85,7 @@ func (f *Fetcher) Run() {
 		select {
 		case <-ticker.C:
 			f.pollAll()
-		case <-f.stopCh:
+		case <-f.ctx.Done():
 			f.logger.Info("cross-repo fetcher stopped")
 			return
 		}
@@ -81,7 +94,7 @@ func (f *Fetcher) Run() {
 
 // Stop signals the fetcher to exit.
 func (f *Fetcher) Stop() {
-	close(f.stopCh)
+	f.cancel()
 }
 
 // pollAll checks every peer repo for messages addressed to this agent.
@@ -139,19 +152,14 @@ func (f *Fetcher) checkSession(peer PeerConfig, sessionName string) {
 
 		// Dedup check
 		seenKey := fmt.Sprintf("%s:%s/%s", peer.Repo, sessionName, file.Name)
-		f.mu.Lock()
-		if _, found := f.seen[seenKey]; found {
-			f.mu.Unlock()
+		if f.seen.Contains(seenKey) {
 			continue
 		}
-		f.mu.Unlock()
 
 		// Check if we already have this file locally
 		localPath := filepath.Join(f.TransportDir, sessionName, file.Name)
 		if fileExistsLocal(localPath) {
-			f.mu.Lock()
-			f.seen[seenKey] = time.Now()
-			f.mu.Unlock()
+			f.seen.Add(seenKey)
 			continue
 		}
 
@@ -166,9 +174,7 @@ func (f *Fetcher) checkSession(peer PeerConfig, sessionName string) {
 			continue
 		}
 
-		f.mu.Lock()
-		f.seen[seenKey] = time.Now()
-		f.mu.Unlock()
+		f.seen.Add(seenKey)
 
 		f.logger.Info("cross-repo message fetched",
 			"peer", peer.AgentID,

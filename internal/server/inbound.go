@@ -28,8 +28,8 @@ var sessionIDRe = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,64}$`)
 type inboundMessage struct {
 	Protocol  string      `json:"protocol"`
 	Type      string      `json:"type"`
-	From      interface{} `json:"from"`
-	To        interface{} `json:"to"`
+	From      any `json:"from"`
+	To        any `json:"to"`
 	SessionID string      `json:"session_id"`
 	Turn      int         `json:"turn"`
 	Timestamp string      `json:"timestamp"`
@@ -37,10 +37,10 @@ type inboundMessage struct {
 	Body      string      `json:"body,omitempty"`
 
 	// Redirect metadata (present when message type = "redirect" or "redirect-notification")
-	RedirectMetadata interface{} `json:"redirect_metadata,omitempty"`
+	RedirectMetadata any `json:"redirect_metadata,omitempty"`
 
 	// Original message (present in redirect envelopes)
-	OriginalMessage interface{} `json:"original_message,omitempty"`
+	OriginalMessage any `json:"original_message,omitempty"`
 }
 
 // handleInbound receives a transport message via HTTP and writes it to
@@ -174,7 +174,7 @@ func (s *Server) handleInbound(w http.ResponseWriter, r *http.Request) {
 
 	// Broadcast via ZMQ — notify mesh peers about the new message
 	if s.ZMQPublish != nil {
-		s.ZMQPublish("transport", map[string]interface{}{
+		s.ZMQPublish("transport", map[string]any{
 			"session_id": msg.SessionID,
 			"from":       fromAgent,
 			"to":         toAgent,
@@ -184,7 +184,7 @@ func (s *Server) handleInbound(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]interface{}{
+	writeJSON(w, http.StatusCreated, map[string]any{
 		"accepted":     true,
 		"exosome_id":   exo.ID,
 		"session_id":   msg.SessionID,
@@ -197,19 +197,19 @@ func (s *Server) handleInbound(w http.ResponseWriter, r *http.Request) {
 }
 
 // extractAgentID pulls an agent ID from a string, object, or array field.
-func extractAgentID(v interface{}) string {
+func extractAgentID(v any) string {
 	if v == nil {
 		return ""
 	}
 	switch val := v.(type) {
 	case string:
 		return val
-	case map[string]interface{}:
+	case map[string]any:
 		if id, ok := val["agent_id"].(string); ok {
 			return id
 		}
 		return ""
-	case []interface{}:
+	case []any:
 		if len(val) > 0 {
 			return extractAgentID(val[0])
 		}

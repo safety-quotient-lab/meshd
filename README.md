@@ -31,5 +31,5 @@ go build -o meshd ./cmd/meshd/
 
 ## Ownership
 
-Operations-agent owns this codebase. Source factored from
-`safety-quotient-lab/operations-agent/cmd/meshd/` + `internal/`.
+Meshd runs as a standalone service for the safety-quotient agent mesh.
+Originally factored from the dissolved operations-agent repository.

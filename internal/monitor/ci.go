@@ -4,6 +4,7 @@
 package monitor
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -35,21 +36,31 @@ type CIMonitor struct {
 	lastState map[string]string // repo → last known conclusion
 	mu        sync.Mutex
 	logger    *slog.Logger
-	stopCh    chan struct{}
+	ctx       context.Context
+	cancel    context.CancelFunc
 }
 
 // NewCIMonitor constructs a monitor for the given repos.
+// Deprecated: prefer NewCIMonitorWithContext for proper shutdown propagation.
 func NewCIMonitor(repos []string, interval time.Duration, logger *slog.Logger) *CIMonitor {
+	return NewCIMonitorWithContext(context.Background(), repos, interval, logger)
+}
+
+// NewCIMonitorWithContext constructs a monitor that respects the given context.
+func NewCIMonitorWithContext(ctx context.Context, repos []string, interval time.Duration, logger *slog.Logger) *CIMonitor {
+	derived, cancel := context.WithCancel(ctx)
 	return &CIMonitor{
 		Repos:        repos,
 		PollInterval: interval,
 		lastState:    make(map[string]string),
 		logger:       logger,
-		stopCh:       make(chan struct{}),
+		ctx:          derived,
+		cancel:       cancel,
 	}
 }
 
-// Run starts the polling loop. Blocks until Stop gets called.
+// Run starts the polling loop. Blocks until Stop gets called or the context
+// cancels.
 func (m *CIMonitor) Run() {
 	ticker := time.NewTicker(m.PollInterval)
 	defer ticker.Stop()
@@ -66,7 +77,7 @@ func (m *CIMonitor) Run() {
 		select {
 		case <-ticker.C:
 			m.pollAll()
-		case <-m.stopCh:
+		case <-m.ctx.Done():
 			m.logger.Info("CI monitor stopped")
 			return
 		}
@@ -75,7 +86,7 @@ func (m *CIMonitor) Run() {
 
 // Stop signals the monitor to exit.
 func (m *CIMonitor) Stop() {
-	close(m.stopCh)
+	m.cancel()
 }
 
 // Summary returns the last known CI status for all monitored repos.

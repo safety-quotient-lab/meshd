@@ -320,7 +320,7 @@ function setTheme(mode) {
     } else {
         stopLcarsStardate();
         window.removeEventListener("resize", scheduleFrameSVG);
-        // If leaving LCARS mode while on a LCARS-only tab, switch to Pulse
+        // If leaving LCARS mode while on a LCARS-only tab, switch to MSD
         const activeTab = document.querySelector('.lcars-tab.active');
         if (activeTab && activeTab.classList.contains('lcars-only')) {
             switchTab('msd');
@@ -389,7 +389,7 @@ const SPINE_CONFIG = {
 function updateSpine(tabId) {
     const spine = document.getElementById("lcars-spine");
     if (!spine) return;
-    const segments = SPINE_CONFIG[tabId] || SPINE_CONFIG.pulse;
+    const segments = SPINE_CONFIG[tabId] || SPINE_CONFIG.msd;
     spine.innerHTML = segments.map((seg, i) => {
         const radius = i === 0 ? "border-radius: var(--elbow-radius) 0 0 0;"
                      : i === segments.length - 1 ? "border-radius: 0 0 0 var(--elbow-radius);"
@@ -403,7 +403,7 @@ const TAB_COLORS = { msd: "--c-tab-architecture", kb: "--c-tab-kb", wisdom: "--c
 function switchTab(tabId, updateHash = true) {
     if (tabId === "knowledge") tabId = "kb"; // backward compat
     if (tabId === "meta") tabId = "analysis"; // meta merged into analysis
-    if (tabId === "overview" || tabId === "pulse") tabId = "msd"; // overview/pulse merged into msd
+    if (tabId === "overview") tabId = "msd"; // overview merged into msd
     if (!VALID_TABS.includes(tabId)) tabId = "msd";
     // Standard tabs
     document.querySelectorAll(".lcars-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabId));

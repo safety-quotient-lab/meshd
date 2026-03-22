@@ -568,7 +568,6 @@ body {
 
     /* All panels: stack to single column */
     .agents-grid        { grid-template-columns: 1fr; }
-    .pulse-widgets      { grid-template-columns: 1fr; }
     .vitals-grid        { grid-template-columns: repeat(3, 1fr); }
     .kb-vitals          { grid-template-columns: repeat(3, 1fr); }
     .dict-grid          { grid-template-columns: 1fr; }

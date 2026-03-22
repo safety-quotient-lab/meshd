@@ -41,19 +41,19 @@ deploy-transfer:
 
 deploy-restart:
 	@echo ""
-	@echo "═══ Restarting meshd processes ═══"
+	@echo "═══ Restarting meshd ═══"
 	@$(SSH_CMD) '\
-		echo "  Stopping all units..." && \
-		systemctl --user --no-block stop meshd-psychology meshd-psq meshd-observatory meshd-unratified meshd-interagent-mesh 2>/dev/null; \
-		sleep 2 && \
+		echo "  Stopping meshd-interagent-mesh..." && \
+		systemctl --user kill -s SIGKILL meshd-interagent-mesh.service 2>/dev/null; \
+		sleep 1 && \
 		echo "  Swapping binary..." && \
 		cp $(REMOTE_BIN) $(REMOTE_BACKUP) 2>/dev/null; \
 		mv $(REMOTE_BIN).new $(REMOTE_BIN) && chmod +x $(REMOTE_BIN) && \
-		echo "  Starting all units..." && \
-		systemctl --user --no-block start meshd-psychology meshd-psq meshd-observatory meshd-unratified meshd-interagent-mesh && \
+		echo "  Starting meshd-interagent-mesh..." && \
+		systemctl --user start meshd-interagent-mesh.service && \
 		sleep 3 && \
-		echo "" && echo "  Processes:" && \
-		pgrep -f "/home/kashif/platform/meshd --port" -la 2>/dev/null | head -6'
+		echo "" && echo "  Process:" && \
+		pgrep -f "/home/kashif/platform/meshd" -la 2>/dev/null | head -3'
 
 deploy-validate:
 	@echo ""
@@ -67,13 +67,20 @@ deploy-validate:
 status:
 	@$(SSH_CMD) 'pgrep -f "platform/meshd --port" -la'
 
+# ── Release (goreleaser) ─────────────────────────────────────
+release:
+	goreleaser release --snapshot --clean
+
+# ── Housekeeping ─────────────────────────────────────────────
 clean:
-	@rm -f meshd meshd-linux meshd-darwin
+	@rm -f meshd meshd-linux meshd-darwin meshd-linux-amd64
+	@rm -rf dist/
 
 help:
 	@echo "meshd Makefile ($(VERSION))"
 	@echo ""
 	@echo "  make build    Build linux/amd64 + darwin/arm64"
 	@echo "  make deploy   Build + transfer + restart + validate"
+	@echo "  make release  Build snapshot via goreleaser"
 	@echo "  make status   Show running meshd processes on $(DEPLOY_HOST)"
 	@echo "  make clean    Remove built binaries"

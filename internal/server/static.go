@@ -2,8 +2,8 @@
 //
 // Uses Go 1.16+ embed to bundle HTML, JSON, CSS, and JS files directly
 // into the meshd binary. Serves two dashboards:
-//   - operations-agent: full compositor (index.html)
-//   - all other agents: manifest-driven standalone LCARS dashboard
+//   - mesh (fleet): full compositor (fleet.html / index.html)
+//   - per-agent: manifest-driven standalone LCARS dashboard
 package server
 
 import (
@@ -13,6 +13,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"strings"
 )
 
 //go:embed static/*
@@ -33,7 +34,7 @@ func init() {
 // handleIndex serves GET / — routes to compositor or standalone dashboard
 // based on agent identity.
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	if s.Config.AgentID == "mesh" || s.Config.AgentID == "operations-agent" {
+	if s.Config.AgentID == "mesh" {
 		// Fleet compositor dashboard
 		s.serveCompositor(w, r)
 		return
@@ -44,20 +45,21 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 // serveCompositor serves the fleet LCARS dashboard.
 // Prefers fleet.html (modular v2); falls back to index.html (legacy monolith).
+// Injects build version into ?v= cache-buster parameters so deploys
+// automatically bust Cloudflare edge cache without manual hash updates.
 func (s *Server) serveCompositor(w http.ResponseWriter, r *http.Request) {
-	// Try fleet.html first (v2 modular dashboard)
 	data, err := staticFS.ReadFile("static/fleet.html")
 	if err != nil {
-		// Fall back to legacy monolith
 		data, err = staticFS.ReadFile("static/index.html")
 		if err != nil {
 			http.Error(w, "dashboard not available", http.StatusInternalServerError)
 			return
 		}
 	}
+	html := strings.ReplaceAll(string(data), "?v=BUILD_VERSION", "?v="+Version)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache")
-	w.Write(data)
+	w.Write([]byte(html))
 }
 
 // handleLegacyDashboard serves GET /legacy — the monolithic index.html.
@@ -100,7 +102,7 @@ func (s *Server) serveAgentDashboard(w http.ResponseWriter, r *http.Request) {
 	agentName := s.Config.AgentID
 	agentRole := "mesh agent"
 
-	// Try local agent card first (correct for non-operations agents)
+	// Try local agent card first (correct for per-agent dashboards)
 	var cardData []byte
 	localCard := s.Config.RepoRoot + "/.well-known/agent-card.json"
 	cardData, _ = os.ReadFile(localCard)

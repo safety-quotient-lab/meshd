@@ -59,8 +59,7 @@ func (s *Server) handleWebFinger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	parts := strings.SplitN(strings.TrimPrefix(resource, "acct:"), "@", 2)
-	agentName := parts[0]
+	agentName, _, _ := strings.Cut(strings.TrimPrefix(resource, "acct:"), "@")
 
 	// Find agent in registry
 	agents := s.Registry.Agents()

@@ -27,7 +27,7 @@ func (s *Server) handleZMQRegister(w http.ResponseWriter, r *http.Request) {
 
 	registered := s.ZMQRegister(json.RawMessage(body))
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
+	writeJSON(w, http.StatusOK, map[string]any{
 		"registered":    registered,
 		"agent_id":      s.Config.AgentID,
 	}, s.logger)

@@ -37,8 +37,8 @@ func QueryJSON(dbPath, query string) ([]map[string]string, error) {
 	}
 
 	// sqlite3 -json returns INTEGER columns as JSON numbers.
-	// Unmarshal into interface{} first, then convert to strings.
-	var rawRows []map[string]interface{}
+	// Unmarshal into any first, then convert to strings.
+	var rawRows []map[string]any
 	if jErr := json.Unmarshal([]byte(trimmed), &rawRows); jErr != nil {
 		return []map[string]string{}, fmt.Errorf("parse sqlite3 JSON: %w", jErr)
 	}
@@ -80,6 +80,18 @@ func QueryScalar(dbPath, query string) int {
 // For agent IDs and controlled strings only — not for arbitrary user input.
 func EscapeString(s string) string {
 	return strings.ReplaceAll(s, "'", "''")
+}
+
+// EscapeLike escapes a string for safe use inside a SQL LIKE pattern.
+// Escapes the LIKE wildcards (%, _) and the escape character (\) itself,
+// then wraps the result in single quotes with surrounding % for substring
+// match. The caller must append ESCAPE '\' to the LIKE clause.
+func EscapeLike(s string) string {
+	escaped := strings.ReplaceAll(s, `\`, `\\`)
+	escaped = strings.ReplaceAll(escaped, "%", `\%`)
+	escaped = strings.ReplaceAll(escaped, "_", `\_`)
+	escaped = EscapeString(escaped)
+	return "'%" + escaped + "%'"
 }
 
 // SanitizeID strips characters that could cause SQL injection from an

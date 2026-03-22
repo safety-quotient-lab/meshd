@@ -756,7 +756,13 @@ const HUMAN_LABELS = {
 function humanize(uri) {
     if (!uri) return "?";
     if (HUMAN_LABELS[uri]) return HUMAN_LABELS[uri];
-    // Strip prefix, split camelCase/PascalCase, lowercase
+    // Full URLs (http/https) display as-is — truncated but not humanized
+    if (uri.startsWith("http://") || uri.startsWith("https://")) {
+        return truncate(uri, 55);
+    }
+    // Blank nodes display as-is
+    if (uri.startsWith("_:")) return uri;
+    // Strip prefix, split camelCase/PascalCase
     const short = shortenURI(uri);
     const local = short.includes(":") ? short.split(":").pop() : short;
     return local

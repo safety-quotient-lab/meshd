@@ -421,7 +421,7 @@ function switchTab(tabId, updateHash = true) {
     document.documentElement.style.setProperty("--active-tab-color", computed || `var(${colorVar})`);
     updateSpine(tabId);
     if (tabId === "msd" || tabId === "governance") refreshAll();
-    if (tabId === "analysis") fetchAnalysisData();
+    if (tabId === "analysis" && typeof fetchAnalysisData === "function") fetchAnalysisData();
     if (tabId === "architecture") { fetchArchitectureData(); startWaveformAnimation(); }
     else if (tabId === "vitals") { fetchVitalsData(); startWaveformAnimation(); }
     else { stopWaveformAnimation(); }

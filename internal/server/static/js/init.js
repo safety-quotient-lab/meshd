@@ -32,15 +32,22 @@ window.switchGovSubsystem = switchGovSubsystem;
     // Restore subsystem from URL ?sub= parameter
     const urlSub = new URLSearchParams(location.search).get("sub");
     if (urlSub) {
-        setTimeout(() => {
+        // Station scripts load async via createElement — retry until available
+        const restoreSub = (attempts) => {
             const sciSubs = ["psychometrics", "linguistics", "ontology"];
             const opsSubs = ["mesh-status", "resources-autonomy", "transport-overview", "resources-capacity", "deliberations-log", "governance-record"];
-            if (sciSubs.includes(urlSub) && typeof switchAnalysisSubsystem === "function") {
-                switchAnalysisSubsystem(urlSub, false);
+            if (sciSubs.includes(urlSub)) {
+                if (typeof switchAnalysisSubsystem === "function") {
+                    if (hashTab !== "analysis") switchTab("analysis", false);
+                    switchAnalysisSubsystem(urlSub, false);
+                } else if (attempts > 0) {
+                    setTimeout(() => restoreSub(attempts - 1), 200);
+                }
             } else if (opsSubs.includes(urlSub) && typeof switchGovSubsystem === "function") {
                 switchGovSubsystem(urlSub);
             }
-        }, 100);
+        };
+        setTimeout(() => restoreSub(10), 200);
     }
 
     buildAgentSwitcher();

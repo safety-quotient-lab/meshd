@@ -618,7 +618,7 @@ function renderCognitiveLoad() {
 }
 
 function renderYerkesDodson() {
-    const container = document.getElementById("eng-yd-zones");
+    const container = document.getElementById("arch-yd-zones");
     if (!container) return;
 
     // Read Yerkes-Dodson zones from psychometrics cache
@@ -671,14 +671,14 @@ function renderTimingHierarchy() {
     // Layer 2: Ultradian — deliberation cycle (sleep mode = shadow, active if deliberations recent)
     const recentDelibs = ops?.data?.recent_deliberations || [];
     const hasRecentDelib = recentDelibs.length > 0 && recentDelibs[0]?.started_at;
-    const el2 = document.getElementById("eng-timing-ultradian");
+    const el2 = document.getElementById("arch-timing-ultradian");
     if (el2) {
         if (hasRecentDelib) { el2.textContent = "ACTIVE"; el2.style.color = "var(--lcars-medical)"; }
         else { el2.textContent = "SLEEP"; el2.style.color = "var(--text-dim)"; }
     }
 
     // Layer 3: Cardiac — oscillator state (from /api/status → oscillator snapshot)
-    const el3 = document.getElementById("eng-timing-cardiac");
+    const el3 = document.getElementById("arch-timing-cardiac");
     if (el3) {
         const oscState = osc.state || ops?.data?.oscillator?.state;
         const act = osc.activation || ops?.data?.oscillator?.activation || 0;
@@ -690,14 +690,14 @@ function renderTimingHierarchy() {
     }
 
     // Layer 4: Respiratory — health monitor
-    const el4 = document.getElementById("eng-timing-respiratory");
+    const el4 = document.getElementById("arch-timing-respiratory");
     if (el4) {
         if (health === "nominal") { el4.textContent = "ACTIVE"; el4.style.color = "var(--lcars-medical)"; }
         else if (health) { el4.textContent = health.toUpperCase(); el4.style.color = "var(--lcars-accent)"; }
     }
 
     // Layer 5: Neural — alpha heartbeat (T22 metabolic cooling)
-    const el5 = document.getElementById("eng-timing-neural");
+    const el5 = document.getElementById("arch-timing-neural");
     if (el5) {
         const hb = ops?.data?.alpha_heartbeat;
         const band = hb?.dominant_band || osc.dominant_band || "";
@@ -716,7 +716,7 @@ function renderTimingHierarchy() {
 
 // ── Alpha Heartbeat Panel ────────────────────────────────────────
 function renderAlphaHeartbeat() {
-    const container = document.getElementById("eng-alpha-heartbeat");
+    const container = document.getElementById("arch-alpha-heartbeat");
     if (!container) return;
 
     const ops = _opsAgent();
@@ -775,7 +775,7 @@ function renderAlphaHeartbeat() {
 
 // ── Gc Learning Panel ───────────────────────────────────────────
 function renderGcLearning() {
-    const container = document.getElementById("eng-gc-learning");
+    const container = document.getElementById("arch-gc-learning");
     if (!container) return;
 
     const ops = _opsAgent();
@@ -827,7 +827,7 @@ function renderGcLearning() {
 
 // ── agentd Session 95: Mode Transition Speed ────────────────────
 function renderModeTransitions() {
-    const el = document.getElementById("eng-mode-transitions");
+    const el = document.getElementById("arch-mode-transitions");
     if (!el) return;
     // Mock transition data — real data arrives with agentd Phase 4+
     const transitions = [

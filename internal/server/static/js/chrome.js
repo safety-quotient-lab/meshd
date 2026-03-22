@@ -304,7 +304,7 @@ function setTheme(mode) {
         if (hashTab && bridgeTabs.includes(hashTab)) {
             switchTab(hashTab, false);
         } else if (!bridgeTabs.includes(currentTab)) {
-            switchTab("governance");
+            switchTab("pulse");
         }
         updateLcarsHeaderData();
         // Render SVG L-shape frame + listen for resize

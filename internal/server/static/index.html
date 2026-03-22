@@ -54,12 +54,12 @@
     <nav class="lcars-sidebar" id="lcars-sidebar">
         <div class="lcars-sidebar-cap-top lcars-frame-element"></div>
         <div class="lcars-sidebar-drop lcars-frame-element"></div>
-        <button class="lcars-sidebar-btn active" data-tab="operations" data-short="OPS" onclick="switchTab('operations')">Operations</button>
-        <button class="lcars-sidebar-btn" data-tab="science" data-short="SCI" onclick="switchTab('science')">Science</button>
-        <button class="lcars-sidebar-btn" data-tab="engineering" data-short="ENG" onclick="switchTab('engineering')">Engineering</button>
-        <button class="lcars-sidebar-btn" data-tab="helm" data-short="HLM" onclick="switchTab('helm')">Helm</button>
-        <button class="lcars-sidebar-btn" data-tab="tactical" data-short="TAC" onclick="switchTab('tactical')">Tactical</button>
-        <button class="lcars-sidebar-btn" data-tab="medical" data-short="MED" onclick="switchTab('medical')">Medical</button>
+        <button class="lcars-sidebar-btn active" data-tab="operations" data-short="GOV" onclick="switchTab('operations')">Governance</button>
+        <button class="lcars-sidebar-btn" data-tab="science" data-short="ANL" onclick="switchTab('science')">Analysis</button>
+        <button class="lcars-sidebar-btn" data-tab="engineering" data-short="ARC" onclick="switchTab('engineering')">Architecture</button>
+        <button class="lcars-sidebar-btn" data-tab="helm" data-short="TRN" onclick="switchTab('helm')">Transport</button>
+        <button class="lcars-sidebar-btn" data-tab="tactical" data-short="INT" onclick="switchTab('tactical')">Integrity</button>
+        <button class="lcars-sidebar-btn" data-tab="medical" data-short="VTL" onclick="switchTab('medical')">Vitals</button>
         <div class="lcars-sidebar-arm lcars-frame-element"></div>
         <button class="lcars-sidebar-exit lcars-frame-element" onclick="setTheme('system')" title="Exit LCARS mode">&#x2716;</button>
     </nav>
@@ -112,17 +112,17 @@
 
     <!-- Tabs (dark/light mode — hidden in LCARS) -->
     <div class="lcars-tabs">
-        <button class="lcars-tab active" data-tab="pulse" onclick="switchTab('pulse')">Pulse</button>
+        <button class="lcars-tab active" data-tab="pulse" onclick="switchTab('pulse')">Overview</button>
         <button class="lcars-tab" data-tab="meta" onclick="switchTab('meta')">Meta</button>
         <button class="lcars-tab" data-tab="kb" onclick="switchTab('kb')">Knowledge</button>
         <button class="lcars-tab" data-tab="wisdom" onclick="switchTab('wisdom')">Wisdom</button>
         <button class="lcars-tab" data-tab="operations" onclick="switchTab('operations')">
-            Operations<span class="tab-badge" id="ops-badge" style="display:none">0</span>
+            Governance<span class="tab-badge" id="ops-badge" style="display:none">0</span>
         </button>
-        <button class="lcars-tab lcars-only" data-tab="science" onclick="switchTab('science')">Science</button>
-        <button class="lcars-tab lcars-only" data-tab="engineering" onclick="switchTab('engineering')">Engineering</button>
-        <button class="lcars-tab lcars-only" data-tab="helm" onclick="switchTab('helm')">Helm</button>
-        <button class="lcars-tab lcars-only" data-tab="tactical" onclick="switchTab('tactical')">Tactical</button>
+        <button class="lcars-tab lcars-only" data-tab="science" onclick="switchTab('science')">Analysis</button>
+        <button class="lcars-tab lcars-only" data-tab="engineering" onclick="switchTab('engineering')">Architecture</button>
+        <button class="lcars-tab lcars-only" data-tab="helm" onclick="switchTab('helm')">Transport</button>
+        <button class="lcars-tab lcars-only" data-tab="tactical" onclick="switchTab('tactical')">Integrity</button>
     </div>
 
     <!-- Content -->
@@ -483,7 +483,7 @@
             </div>
         </div>
 
-        <!-- Operations Tab — Defiant Bridge subsystem switcher pattern -->
+        <!-- Governance Tab — Defiant Bridge subsystem switcher pattern -->
         <div class="tab-pane" id="pane-operations">
 
             <!-- Subsystem mode selector — Defiant Engineering A2 subpanel -->
@@ -595,14 +595,14 @@
         </div>
             <!-- Operations Record — dense data pill grid (Button 52 pattern) -->
             <div class="lcars-zone-c" style="margin-top:var(--gap-l);margin-bottom:var(--gap-xs)">
-                <span class="zc-title">Operations Record</span>
+                <span class="zc-title">Governance Record</span>
                 <span class="zc-id" id="ops-record-num"></span>
             </div>
             <div class="lcars-data-grid" id="ops-data-grid"></div>
 
         </div><!-- /pane-operations -->
 
-        <!-- Science Tab -->
+        <!-- Analysis Tab -->
         <div class="tab-pane" id="pane-science">
             <!-- Science Record — zone-c title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
@@ -1015,11 +1015,11 @@
             </div><!-- /sci-ontology -->
         </div>
 
-        <!-- Engineering Tab -->
+        <!-- Architecture Tab -->
         <div class="tab-pane" id="pane-engineering">
             <!-- Engineering Record — zone-c title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
-                <span class="zc-title">Systems Engineering</span>
+                <span class="zc-title">Cognitive Architecture</span>
                 <span class="zc-id">04</span>
             </div>
 
@@ -1220,7 +1220,7 @@
             </div>
         </div>
 
-        <!-- Helm Tab -->
+        <!-- Transport Tab -->
         <div class="tab-pane" id="pane-helm">
             <!-- Zone C: title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
@@ -1310,11 +1310,11 @@
             </div>
         </div>
 
-        <!-- Tactical Tab -->
+        <!-- Integrity Tab -->
         <div class="tab-pane" id="pane-tactical">
             <!-- Zone C: title -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
-                <span class="zc-title">Security Operations</span>
+                <span class="zc-title">Epistemic Integrity</span>
                 <span class="zc-id">06</span>
             </div>
             <!-- Zone A: number grid -->
@@ -1443,11 +1443,11 @@
             </div>
         </div>
 
-        <!-- Medical Tab (Station 11 — per-agent diagnostics) -->
+        <!-- Vitals Tab (Station 11 — per-agent diagnostics) -->
         <div class="tab-pane" id="pane-medical">
             <!-- Medical Record — zone-c title + data grid -->
             <div class="lcars-zone-c" style="margin-bottom:var(--gap-xs)">
-                <span class="zc-title">Agent Diagnostics</span>
+                <span class="zc-title">Agent Vitals</span>
                 <span class="zc-id">11</span>
             </div>
             <div class="lcars-data-grid" id="medical-vitals-matrix"></div>

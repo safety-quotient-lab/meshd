@@ -547,10 +547,12 @@ async function renderTripleStore(stats) {
         return;
     }
 
+    const queryConsole = renderSparqlConsole();
+
     if (_tripleViewMode === "entity") {
-        el.innerHTML = header + renderEntityView(triples);
+        el.innerHTML = header + queryConsole + renderEntityView(triples);
     } else {
-        el.innerHTML = header + renderTableView(triples);
+        el.innerHTML = header + queryConsole + renderTableView(triples);
     }
 }
 
@@ -672,6 +674,124 @@ function renderTableView(triples) {
         </table>
     </div>` + overflow;
 }
+
+// ── SPARQL Query Console ──────────────────────────────────────
+let _sparqlResult = null;
+const SPARQL_EXAMPLES = [
+    { label: "All agents", query: 'SELECT ?agent ?name\nWHERE {\n  ?agent rdf:type schema:SoftwareApplication .\n  ?agent schema:name ?name .\n}' },
+    { label: "Agent availability", query: 'SELECT ?agent ?available\nWHERE {\n  ?agent rdf:type schema:SoftwareApplication .\n  ?agent mesh:available ?available .\n}' },
+    { label: "Recent observations", query: 'SELECT ?sensor ?property ?value ?time\nFROM <agent-status>\nWHERE {\n  ?obs sosa:madeBySensor ?sensor .\n  ?obs sosa:observedProperty ?property .\n  ?obs sosa:hasSimpleResult ?value .\n  ?obs sosa:resultTime ?time .\n}\nORDER BY DESC(?time)\nLIMIT 20' },
+    { label: "Mesh state", query: 'SELECT ?property ?value\nFROM <mesh-state>\nWHERE {\n  mesh:state/current ?property ?value .\n}' },
+];
+
+function renderSparqlConsole() {
+    const exampleBtns = SPARQL_EXAMPLES.map((ex, i) =>
+        `<button class="ops-panel-btn" onclick="loadSparqlExample(${i})"
+                 style="font-size:0.68em;padding:1px 6px;margin:1px">${ex.label}</button>`
+    ).join("");
+
+    const resultHtml = _sparqlResult ? renderSparqlResult(_sparqlResult) : "";
+
+    return `<details style="margin-bottom:var(--gap-s);border:1px solid var(--border);border-radius:0 4px 4px 0;border-left:3px solid var(--c-tab-science)">
+        <summary style="cursor:pointer;padding:6px 12px;font-size:0.75em;color:var(--lcars-secondary);text-transform:uppercase;letter-spacing:0.05em">
+            SPARQL Query Console
+        </summary>
+        <div style="padding:8px 12px">
+            <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:var(--gap-xs)">${exampleBtns}</div>
+            <textarea id="sparql-input" rows="5"
+                style="width:100%;background:var(--bg-inset);color:var(--text-primary);
+                       border:1px solid var(--border);border-radius:4px;padding:8px;
+                       font-family:monospace;font-size:0.82em;resize:vertical"
+                placeholder="SELECT ?s ?p ?o WHERE { ?s ?p ?o . } LIMIT 10"
+            >${_sparqlLastQuery || ""}</textarea>
+            <div style="display:flex;gap:8px;margin-top:var(--gap-xs)">
+                <button class="ops-panel-btn ops-panel-active" onclick="executeSparql()"
+                        style="font-size:0.75em;padding:3px 12px">EXECUTE</button>
+                <span id="sparql-status" style="font-size:0.72em;color:var(--text-dim);align-self:center"></span>
+            </div>
+            ${resultHtml}
+        </div>
+    </details>`;
+}
+
+let _sparqlLastQuery = "";
+
+function renderSparqlResult(result) {
+    if (result.error) {
+        return `<div style="color:var(--c-tab-tactical);font-size:0.82em;padding:8px 0;word-break:break-word">${result.error}</div>`;
+    }
+
+    const bindings = result.results || [];
+    if (bindings.length === 0) {
+        return `<div style="color:var(--text-dim);font-size:0.82em;padding:8px 0">No results</div>`;
+    }
+
+    // Extract column names from first row
+    const cols = Object.keys(bindings[0]);
+
+    const headerCells = cols.map(c => `<th>${humanize(c)}</th>`).join("");
+    const rows = bindings.map(row =>
+        `<tr>${cols.map(c => {
+            const val = row[c] || "";
+            const display = humanize(val);
+            return `<td style="color:var(--text-primary);font-size:0.82em;word-break:break-word" title="${val}">${display}</td>`;
+        }).join("")}</tr>`
+    ).join("");
+
+    const sqlNote = result.sql
+        ? `<details style="margin-top:4px"><summary style="font-size:0.68em;color:var(--text-dim);cursor:pointer">Generated SQL</summary><pre style="font-size:0.72em;color:var(--text-dim);white-space:pre-wrap;word-break:break-word;margin:4px 0">${result.sql}</pre></details>`
+        : "";
+
+    return `<div style="margin-top:var(--gap-s)">
+        <div style="font-size:0.72em;color:var(--text-dim);margin-bottom:4px">${bindings.length} result${bindings.length !== 1 ? "s" : ""}</div>
+        <div class="lcars-data-table-wrap" style="--panel-accent:var(--c-tab-science)">
+            <table class="lcars-data-table">
+                <thead><tr>${headerCells}</tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+        ${sqlNote}
+    </div>`;
+}
+
+async function executeSparql() {
+    const input = document.getElementById("sparql-input");
+    const status = document.getElementById("sparql-status");
+    if (!input) return;
+
+    const query = input.value.trim();
+    if (!query) return;
+
+    _sparqlLastQuery = query;
+    if (status) status.textContent = "executing...";
+
+    try {
+        const resp = await fetch("/api/sparql?query=" + encodeURIComponent(query), {
+            signal: AbortSignal.timeout(10000)
+        });
+        _sparqlResult = await resp.json();
+    } catch (err) {
+        _sparqlResult = { error: "Request failed: " + err.message };
+    }
+
+    if (status) status.textContent = _sparqlResult.error ? "error" : (_sparqlResult.results?.length || 0) + " results";
+
+    // Re-render the panel with results
+    fetch("/api/triples/stats", { signal: AbortSignal.timeout(3000) })
+        .then(r => r.ok ? r.json() : null)
+        .then(stats => renderTripleStore(stats))
+        .catch(() => renderTripleStore(null));
+}
+window.executeSparql = executeSparql;
+
+function loadSparqlExample(index) {
+    const ex = SPARQL_EXAMPLES[index];
+    if (!ex) return;
+    const input = document.getElementById("sparql-input");
+    if (input) input.value = ex.query;
+    _sparqlLastQuery = ex.query;
+}
+window.loadSparqlExample = loadSparqlExample;
 
 function filterTripleGraph(graph) {
     _triplesGraph = graph;

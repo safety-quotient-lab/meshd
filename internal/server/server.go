@@ -423,6 +423,8 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	// Triple store (RDF knowledge graph — ontology-driven)
 	mux.HandleFunc("GET /api/triples", s.handleTriples)
 	mux.HandleFunc("GET /api/triples/stats", s.handleTripleStats)
+	mux.HandleFunc("GET /api/sparql", s.handleSparql)
+	mux.HandleFunc("POST /api/sparql", s.handleSparql)
 	mux.HandleFunc("GET /ns/mesh/ontology.jsonld", s.handleOntologyFile)
 
 	// Proxy endpoints — server-side aggregation from all agents.

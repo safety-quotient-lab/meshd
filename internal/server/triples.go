@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/safety-quotient-lab/meshd/internal/triplestore"
 )
@@ -96,6 +97,48 @@ func (s *Server) handleTriples(w http.ResponseWriter, r *http.Request) {
 			"graph":     graph,
 		},
 	}, s.logger)
+}
+
+// handleSparql serves GET /api/sparql — execute a SPARQL query.
+// Query passed via ?query= parameter or POST body.
+func (s *Server) handleSparql(w http.ResponseWriter, r *http.Request) {
+	if s.TripleStore == nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]string{
+			"error": "triple store not initialized",
+		}, s.logger)
+		return
+	}
+
+	var query string
+	if r.Method == "POST" {
+		body := make([]byte, 1<<16) // 64KB max
+		n, _ := r.Body.Read(body)
+		query = string(body[:n])
+		// Check Content-Type for application/sparql-query
+		if ct := r.Header.Get("Content-Type"); ct == "application/sparql-query" {
+			// Query is the raw body
+		} else {
+			// Might be form-encoded
+			if q := r.FormValue("query"); q != "" {
+				query = q
+			}
+		}
+	} else {
+		query = r.URL.Query().Get("query")
+	}
+
+	if strings.TrimSpace(query) == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "missing query parameter — use ?query=SELECT...",
+		}, s.logger)
+		return
+	}
+
+	result := s.TripleStore.ExecuteSparql(query)
+
+	w.Header().Set("Content-Type", "application/sparql-results+json")
+	w.Header().Set("Cache-Control", "public, max-age=5")
+	writeJSON(w, http.StatusOK, result, s.logger)
 }
 
 // handleTripleStats serves GET /api/triples/stats — triple counts per graph.

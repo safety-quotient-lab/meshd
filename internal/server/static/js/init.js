@@ -26,28 +26,34 @@ window.switchGovSubsystem = switchGovSubsystem;
 
     // Restore tab from URL hash — AFTER theme, so it overrides any default
     const hashTab = location.hash.replace("#", "");
-    if (hashTab && VALID_TABS.includes(hashTab)) switchTab(hashTab, false);
-
-    // Restore subsystem from URL ?sub= parameter
-    // Restore subsystem from URL ?sub= parameter
     const urlSub = new URLSearchParams(location.search).get("sub");
+
+    // If URL specifies a subsystem, switch to its parent tab immediately
+    // to avoid flash of default tab content
+    const sciSubs = ["psychometrics", "linguistics", "ontology"];
+    const opsSubs = ["mesh-status", "resources-autonomy", "transport-overview", "resources-capacity", "deliberations-log", "governance-record"];
+    if (urlSub && sciSubs.includes(urlSub)) {
+        switchTab("analysis", false);
+    } else if (urlSub && opsSubs.includes(urlSub)) {
+        switchTab("governance", false);
+    } else if (hashTab && VALID_TABS.includes(hashTab)) {
+        switchTab(hashTab, false);
+    }
+
+    // Restore subsystem — retry until async station scripts load
     if (urlSub) {
-        // Station scripts load async via createElement — retry until available
         const restoreSub = (attempts) => {
-            const sciSubs = ["psychometrics", "linguistics", "ontology"];
-            const opsSubs = ["mesh-status", "resources-autonomy", "transport-overview", "resources-capacity", "deliberations-log", "governance-record"];
             if (sciSubs.includes(urlSub)) {
                 if (typeof switchAnalysisSubsystem === "function") {
-                    if (hashTab !== "analysis") switchTab("analysis", false);
                     switchAnalysisSubsystem(urlSub, false);
                 } else if (attempts > 0) {
-                    setTimeout(() => restoreSub(attempts - 1), 200);
+                    setTimeout(() => restoreSub(attempts - 1), 150);
                 }
             } else if (opsSubs.includes(urlSub) && typeof switchGovSubsystem === "function") {
                 switchGovSubsystem(urlSub);
             }
         };
-        setTimeout(() => restoreSub(10), 200);
+        restoreSub(15);
     }
 
     buildAgentSwitcher();

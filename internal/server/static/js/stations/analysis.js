@@ -9,8 +9,11 @@ function switchAnalysisSubsystem(subsys, updateUrl = true) {
         p.style.display = p.id === "sci-" + subsys ? "" : "none";
         p.classList.toggle("sci-panel-active", p.id === "sci-" + subsys);
     });
-    document.querySelectorAll("#pane-science .ops-panel-btn").forEach(b => {
-        b.classList.toggle("ops-panel-active", b.dataset.subsys === subsys);
+    // Toggle active state on subsystem selector buttons
+    document.querySelectorAll("#pane-science .gov-panel-btn, #pane-science .ops-panel-btn").forEach(b => {
+        const active = b.dataset.subsys === subsys;
+        b.classList.toggle("gov-panel-active", active);
+        b.classList.toggle("ops-panel-active", active);
     });
     const title = document.getElementById("analysis-zone-c-title");
     if (title) {

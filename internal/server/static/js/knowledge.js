@@ -91,13 +91,16 @@ function renderKBVitals() {
         memory += t.memory_entries || 0;
         stale += t.stale_entries || 0;
     }
-    document.getElementById("kb-decisions-count").textContent = decisions;
-    document.getElementById("kb-triggers-count").textContent = triggers;
-    document.getElementById("kb-catalog-count").textContent = catalog;
-    document.getElementById("kb-memory-count").textContent = memory;
+    const setCount = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setCount("kb-decisions-count", decisions);
+    setCount("kb-triggers-count", triggers);
+    setCount("kb-catalog-count", catalog);
+    setCount("kb-memory-count", memory);
     const staleEl = document.getElementById("kb-stale-count");
-    staleEl.textContent = stale;
-    staleEl.style.color = stale > 10 ? "var(--c-alert)" : stale > 0 ? "var(--c-knowledge)" : "";
+    if (staleEl) {
+        staleEl.textContent = stale;
+        staleEl.style.color = stale > 10 ? "var(--c-alert)" : stale > 0 ? "var(--c-knowledge)" : "";
+    }
 }
 
 // ── Decisions Table ──────────────────────────────────────────

@@ -566,14 +566,21 @@ function renderEntityView(triples) {
     }
 
     const subjects = Object.keys(bySubject).sort();
+    const namedSubjects = subjects.filter(s => !s.startsWith("_:"));
+    const blankSubjects = subjects.filter(s => s.startsWith("_:"));
 
     // If a subject is selected, show only that entity's detail
     if (_tripleSelectedSubject && bySubject[_tripleSelectedSubject]) {
         return renderEntityDetail(_tripleSelectedSubject, bySubject[_tripleSelectedSubject]);
     }
 
+    // If ALL subjects are blank nodes (e.g., observations), group by observed property
+    if (namedSubjects.length === 0 && blankSubjects.length > 0) {
+        return renderObservationSummary(triples);
+    }
+
     // Entity cards grid
-    const cards = subjects.filter(s => !s.startsWith("_:")).slice(0, 30).map(subject => {
+    const cards = namedSubjects.slice(0, 30).map(subject => {
         const props = bySubject[subject];
         const rdfType = props.find(p => p.predicate === "rdf:type")?.object || "";
         const name = props.find(p => p.predicate === "schema:name")?.object || "";
@@ -603,9 +610,8 @@ function renderEntityView(triples) {
         </div>`;
     }).join("");
 
-    const blankCount = subjects.filter(s => s.startsWith("_:")).length;
-    const blankNote = blankCount > 0
-        ? `<div style="color:var(--text-dim);font-size:0.72em;padding:4px 0">${blankCount} observation nodes (blank nodes)</div>`
+    const blankNote = blankSubjects.length > 0
+        ? `<div style="color:var(--text-dim);font-size:0.72em;padding:4px 0">${blankSubjects.length} observation nodes</div>`
         : "";
 
     return `<div>${cards}</div>${blankNote}`;
@@ -644,6 +650,50 @@ function renderEntityDetail(subject, props) {
             </table>
         </div>
     </div>`;
+}
+
+// Observation summary — groups blank-node observations by property
+function renderObservationSummary(triples) {
+    // Group by subject (each blank node = one observation)
+    const observations = {};
+    for (const t of triples) {
+        if (!observations[t.subject]) observations[t.subject] = {};
+        observations[t.subject][t.predicate] = t.object;
+    }
+
+    // Group by observed property
+    const byProperty = {};
+    for (const [, obs] of Object.entries(observations)) {
+        const prop = obs["sosa:observedProperty"] || "unknown";
+        if (!byProperty[prop]) byProperty[prop] = [];
+        byProperty[prop].push(obs);
+    }
+
+    // Sort each property's observations by time (newest first)
+    for (const prop of Object.keys(byProperty)) {
+        byProperty[prop].sort((a, b) => (b["sosa:resultTime"] || "").localeCompare(a["sosa:resultTime"] || ""));
+    }
+
+    const cards = Object.entries(byProperty).sort((a, b) => a[0].localeCompare(b[0])).map(([prop, obsList]) => {
+        const latest = obsList[0];
+        const value = latest["sosa:hasSimpleResult"] || "—";
+        const sensor = humanize(latest["sosa:madeBySensor"] || "");
+        const time = latest["sosa:resultTime"] || "";
+        const timeShort = time ? time.replace("T", " ").replace("Z", "") : "";
+        const color = GRAPH_COLORS["agent-status"] || "var(--lcars-secondary)";
+
+        return `<div style="padding:6px 12px;border-left:3px solid ${color};background:var(--bg-inset);margin-bottom:3px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="color:var(--lcars-accent);font-size:0.85em" title="${prop}">${humanize(prop)}</span>
+                <span style="color:var(--lcars-readout,var(--lcars-medical));font-family:monospace;font-size:1em;font-weight:600">${value}</span>
+            </div>
+            <div style="color:var(--text-dim);font-size:0.72em;margin-top:1px">
+                ${sensor} · ${timeShort} · ${obsList.length} observation${obsList.length !== 1 ? "s" : ""}
+            </div>
+        </div>`;
+    }).join("");
+
+    return `<div>${cards}</div>`;
 }
 
 // Flat table view (original P28 listing)

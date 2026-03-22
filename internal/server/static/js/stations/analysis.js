@@ -692,7 +692,8 @@ function renderSparqlConsole() {
 
     const resultHtml = _sparqlResult ? renderSparqlResult(_sparqlResult) : "";
 
-    return `<details style="margin-bottom:var(--gap-s);border:1px solid var(--border);border-radius:0 4px 4px 0;border-left:3px solid var(--c-tab-science)">
+    return `<details ${_sparqlConsoleOpen ? "open" : ""} ontoggle="window._sparqlConsoleOpen=this.open"
+        style="margin-bottom:var(--gap-s);border:1px solid var(--border);border-radius:0 4px 4px 0;border-left:3px solid var(--c-tab-science)">
         <summary style="cursor:pointer;padding:6px 12px;font-size:0.75em;color:var(--lcars-secondary);text-transform:uppercase;letter-spacing:0.05em">
             SPARQL Query Console
         </summary>
@@ -715,6 +716,7 @@ function renderSparqlConsole() {
 }
 
 let _sparqlLastQuery = "";
+let _sparqlConsoleOpen = false;
 
 function renderSparqlResult(result) {
     if (result.error) {
@@ -763,6 +765,7 @@ async function executeSparql() {
     if (!query) return;
 
     _sparqlLastQuery = query;
+    _sparqlConsoleOpen = true;
     if (status) status.textContent = "executing...";
 
     try {

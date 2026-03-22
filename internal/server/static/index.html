@@ -31,11 +31,10 @@
     }
     </script>
     <link rel="stylesheet" href="css/inline-legacy.css?v=BUILD_VERSION">
-    <!-- Deep link flash prevention — runs in <head> before first paint -->
+    <!-- Deep link: JS activates the correct tab; no pane visible until then -->
     <script>
     var _h=location.hash.replace("#",""),_ok={msd:1,governance:1,analysis:1,architecture:1,transport:1,integrity:1,vitals:1};
     window._initialTab=(_h&&_ok[_h])?_h:"msd";
-    if(window._initialTab!=="msd")document.write("<style>.tab-pane{display:none!important}#pane-"+window._initialTab+"{display:block!important}</style>");
     </script>
 </head>
 <body class="theme-lcars">
@@ -131,7 +130,7 @@
 
     <div class="lcars-content">
         <!-- MSD Tab (Master Systems Display — landing) -->
-        <div class="tab-pane active" id="pane-msd">
+        <div class="tab-pane" id="pane-msd">
             <div class="lcars-status-line" id="msd-status-line">Mesh Status: Connecting &middot; Agents: — &middot; Last Sync: —</div>
 
             <!-- MSD Tree (P02 — dependency tree with live values) -->

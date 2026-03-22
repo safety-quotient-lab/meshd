@@ -592,7 +592,7 @@ function renderEntityView(triples) {
                 <span style="color:var(--lcars-accent);font-size:0.85em" title="${subject}">${subjectHuman}</span>
                 <span style="color:var(--text-dim);font-size:0.72em" title="${rdfType}">${typeHuman}</span>
             </div>
-            ${name ? `<div style="color:var(--text-primary);font-size:0.82em;margin-top:2px">${truncate(name, 60)}</div>` : ""}
+            ${name ? `<div style="color:var(--text-primary);font-size:0.82em;margin-top:2px;word-break:break-word">${name}</div>` : ""}
             <div style="color:var(--text-dim);font-size:0.72em;margin-top:2px">
                 <span style="color:${color}">${graph}</span>
                 <span style="margin-left:8px">${propCount} properties</span>
@@ -617,13 +617,13 @@ function renderEntityDetail(subject, props) {
     const rows = props.filter(p => p.predicate !== "rdf:type").map(t => {
         const predHuman = humanize(t.predicate);
         const isURI = t.object_type === "uri";
-        const objDisplay = isURI ? humanize(t.object) : truncate(t.object, 60);
+        const objDisplay = isURI ? humanize(t.object) : t.object;
         const objClick = isURI && !t.object.startsWith("_:")
             ? ` onclick="selectTripleSubject('${escapeAttr(t.object)}')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted"`
             : "";
         return `<tr>
             <td style="color:var(--lcars-secondary);font-size:0.82em;white-space:nowrap;padding-right:12px" title="${t.predicate}">${predHuman}</td>
-            <td style="color:var(--text-primary);font-size:0.82em"${objClick} title="${t.object}">${objDisplay}</td>
+            <td style="color:var(--text-primary);font-size:0.82em;word-break:break-word"${objClick} title="${t.object}">${objDisplay}</td>
             <td style="color:var(--text-dim);font-size:0.72em">${t.datatype ? humanize(t.datatype) : ""}</td>
         </tr>`;
     }).join("");
@@ -649,14 +649,14 @@ function renderTableView(triples) {
     const rows = triples.slice(0, 100).map(t => {
         const subjectHuman = humanize(t.subject);
         const predHuman = humanize(t.predicate);
-        const objHuman = t.object_type === "uri" ? humanize(t.object) : truncate(t.object, 40);
+        const objHuman = t.object_type === "uri" ? humanize(t.object) : t.object;
         const graph = t.graph || "";
         const color = GRAPH_COLORS[graph] || "var(--text-dim)";
         return `<tr>
             <td style="color:var(--lcars-accent);font-size:0.82em;cursor:pointer"
                 onclick="selectTripleSubject('${escapeAttr(t.subject)}')" title="${t.subject}">${subjectHuman}</td>
             <td style="color:var(--lcars-secondary);font-size:0.82em" title="${t.predicate}">${predHuman}</td>
-            <td style="color:var(--text-primary);font-size:0.82em" title="${t.object}">${objHuman}</td>
+            <td style="color:var(--text-primary);font-size:0.82em;word-break:break-word" title="${t.object}">${objHuman}</td>
             <td><span style="color:${color};font-size:0.72em">${graph}</span></td>
         </tr>`;
     }).join("");
@@ -758,7 +758,7 @@ function humanize(uri) {
     if (HUMAN_LABELS[uri]) return HUMAN_LABELS[uri];
     // Full URLs (http/https) display as-is — truncated but not humanized
     if (uri.startsWith("http://") || uri.startsWith("https://")) {
-        return truncate(uri, 55);
+        return uri;
     }
     // Blank nodes display as-is
     if (uri.startsWith("_:")) return uri;

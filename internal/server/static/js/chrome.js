@@ -299,11 +299,10 @@ function setTheme(mode) {
         startLcarsStardate();
         // Switch to bridge station: prefer URL hash, then current tab, then Operations
         const bridgeTabs = ["msd", "governance", "analysis", "architecture", "transport", "integrity", "vitals"];
-        const hashTab = location.hash.replace("#", "");
-        const currentTab = document.querySelector('.lcars-tab.active')?.dataset?.tab;
-        if (hashTab && bridgeTabs.includes(hashTab)) {
-            switchTab(hashTab, false);
-        } else if (!bridgeTabs.includes(currentTab)) {
+        const initialTab = window._initialTab || location.hash.replace("#", "") || "msd";
+        if (bridgeTabs.includes(initialTab)) {
+            switchTab(initialTab, false);
+        } else {
             switchTab("msd");
         }
         updateLcarsHeaderData();

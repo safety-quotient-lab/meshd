@@ -125,13 +125,15 @@
         <button class="lcars-tab lcars-only" data-tab="integrity" onclick="switchTab('integrity')">Integrity</button>
     </div>
 
-    <!-- Flash prevention: if URL targets a specific tab, activate it before paint -->
+    <!-- Flash prevention: if URL targets a specific tab, swap active class before paint -->
     <script>
     (function() {
         var h = location.hash.replace("#","");
         var valid = ["msd","governance","analysis","architecture","transport","integrity","vitals"];
-        if (h && valid.indexOf(h) !== -1 && h !== "msd") {
-            document.write('<style>#pane-msd{display:none !important}#pane-'+h+'{display:block !important}</style>');
+        window._initialTab = (h && valid.indexOf(h) !== -1) ? h : "msd";
+        if (window._initialTab !== "msd") {
+            // Inject style that activates target pane and deactivates MSD — before first paint
+            document.write('<style>.tab-pane{display:none !important}.tab-pane#pane-'+window._initialTab+'{display:block !important}</style>');
         }
     })();
     </script>

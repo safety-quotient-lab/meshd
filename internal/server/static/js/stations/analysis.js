@@ -10,10 +10,8 @@ function switchAnalysisSubsystem(subsys, updateUrl = true) {
         p.classList.toggle("sci-panel-active", p.id === "sci-" + subsys);
     });
     // Toggle active state on subsystem selector buttons
-    document.querySelectorAll("#pane-science .gov-panel-btn, #pane-science .ops-panel-btn").forEach(b => {
-        const active = b.dataset.subsys === subsys;
-        b.classList.toggle("gov-panel-active", active);
-        b.classList.toggle("ops-panel-active", active);
+    document.querySelectorAll("#pane-analysis .gov-panel-btn").forEach(b => {
+        b.classList.toggle("gov-panel-active", b.dataset.subsys === subsys);
     });
     const title = document.getElementById("analysis-zone-c-title");
     if (title) {

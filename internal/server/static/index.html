@@ -125,8 +125,8 @@
         <button class="lcars-tab lcars-only" data-tab="integrity" onclick="switchTab('integrity')">Integrity</button>
     </div>
 
-    <!-- Content -->
-    <div class="lcars-content">
+    <!-- Content — hidden until JS init to prevent flash of wrong tab -->
+    <div class="lcars-content" style="visibility:hidden">
         <!-- MSD Tab (Master Systems Display — landing) -->
         <div class="tab-pane active" id="pane-msd">
             <div class="lcars-status-line" id="msd-status-line">Mesh Status: Connecting &middot; Agents: — &middot; Last Sync: —</div>

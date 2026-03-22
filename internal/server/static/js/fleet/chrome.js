@@ -68,17 +68,39 @@
         });
     }
 
-    // ── SSE ─────────────────────────────────────────────────
+    // ── Real-time (WebSocket preferred, SSE fallback) ──────
+    var ws = null;
+    function connectRealtime() {
+        var wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+        var wsUrl = wsProto + "//" + location.host + "/ws";
+        try {
+            ws = new WebSocket(wsUrl);
+            ws.onmessage = function (evt) {
+                try {
+                    var data = JSON.parse(evt.data);
+                    if (data.event === "refresh" || data.event === "event") {
+                        refreshStation(activeStation);
+                    }
+                } catch (e) {}
+            };
+            ws.onclose = function () {
+                ws = null;
+                setTimeout(connectRealtime, 5000);
+            };
+            ws.onerror = function () {
+                ws.close();
+                ws = null;
+                connectSSE();
+            };
+        } catch (e) {
+            connectSSE();
+        }
+    }
     function connectSSE() {
-        var url = "/events";
         if (eventSource) eventSource.close();
-        eventSource = new EventSource(url);
-        eventSource.onmessage = function () {
-            refreshStation(activeStation);
-        };
-        eventSource.onerror = function () {
-            console.warn("[sse] Connection lost, reconnecting...");
-        };
+        eventSource = new EventSource("/events");
+        eventSource.onmessage = function () { refreshStation(activeStation); };
+        eventSource.onerror = function () { console.warn("[sse] reconnecting..."); };
     }
 
     // ── Load agent registry ─────────────────────────────────
@@ -125,7 +147,7 @@
             } else {
                 refreshStation(activeStation);
             }
-            connectSSE();
+            connectRealtime();
             startPeriodicRefresh();
         });
     }

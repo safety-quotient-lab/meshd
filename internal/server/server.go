@@ -412,6 +412,14 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/mesh/transport/routing", s.handleRouting)
 	// Catalog (data discovery — parallels agentd /api/catalog)
 	mux.HandleFunc("GET /api/catalog", s.handleCatalog)
+	// Stubs for agentd-only endpoints that LCARS JS expects from same-origin
+	mux.HandleFunc("GET /api/facets", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"vocabulary": []any{}, "stats": map[string]int{}, "universal_facets": []any{}}, s.logger)
+	})
+	mux.HandleFunc("GET /api/eprime", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"violations": []any{}, "total": 0}, s.logger)
+	})
+
 	// Triple store (RDF knowledge graph — ontology-driven)
 	mux.HandleFunc("GET /api/triples", s.handleTriples)
 	mux.HandleFunc("GET /api/triples/stats", s.handleTripleStats)

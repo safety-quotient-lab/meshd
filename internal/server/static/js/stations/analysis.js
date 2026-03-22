@@ -891,6 +891,7 @@ const AGENT_DOT_DEFAULTS = [
     { agentIdx: 3, left: 40, top: 60 },  // observatory — slight negative valence, low arousal
 ];
 
+window.fetchAnalysisData = fetchAnalysisData;
 async function fetchAnalysisData() {
     if (analysisFetchPending) return;
     analysisFetchPending = true;

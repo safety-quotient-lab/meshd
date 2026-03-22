@@ -80,25 +80,37 @@
     overflow-y: auto;
 }
 
-/* Science subsystem panels — constrained scroll with LCARS scrollbar */
-.sci-panel {
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
+/* LCARS scrollbar — visible on all scrollable areas */
+.lcars-content,
+.sci-panel,
+.lcars-panel-body.scrollable {
     scrollbar-width: thin;
-    scrollbar-color: var(--c-transport, #cc9966) transparent;
+    scrollbar-color: var(--c-transport, #cc9966) rgba(255,255,255,0.05);
 }
-.sci-panel::-webkit-scrollbar {
-    width: 8px;
+.lcars-content::-webkit-scrollbar,
+.sci-panel::-webkit-scrollbar,
+.lcars-panel-body.scrollable::-webkit-scrollbar {
+    width: 10px;
 }
-.sci-panel::-webkit-scrollbar-track {
-    background: transparent;
+.lcars-content::-webkit-scrollbar-track,
+.sci-panel::-webkit-scrollbar-track,
+.lcars-panel-body.scrollable::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.03);
+    border-radius: 5px;
 }
-.sci-panel::-webkit-scrollbar-thumb {
+.lcars-content::-webkit-scrollbar-thumb,
+.sci-panel::-webkit-scrollbar-thumb,
+.lcars-panel-body.scrollable::-webkit-scrollbar-thumb {
     background: var(--c-transport, #cc9966);
-    border-radius: 4px;
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
 }
-.sci-panel::-webkit-scrollbar-thumb:hover {
+.lcars-content::-webkit-scrollbar-thumb:hover,
+.sci-panel::-webkit-scrollbar-thumb:hover,
+.lcars-panel-body.scrollable::-webkit-scrollbar-thumb:hover {
     background: var(--lcars-accent, #ff9966);
+    background-clip: padding-box;
 }
 
 /* ── Table Toolbar — filter + pagination ─────────────────────── */

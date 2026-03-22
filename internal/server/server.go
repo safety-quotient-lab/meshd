@@ -284,6 +284,7 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 	// ── Compositor routes (ported from CF Worker) ───────────────────
 	// Static assets
 	mux.HandleFunc("GET /{$}", s.handleIndex)
+	mux.HandleFunc("GET /legacy", s.handleLegacyDashboard)
 	mux.HandleFunc("GET /vocab", s.handleVocab)
 	mux.HandleFunc("GET /vocab.json", s.handleVocab)
 	mux.HandleFunc("GET /vocab/schema", s.handleVocabSchema)

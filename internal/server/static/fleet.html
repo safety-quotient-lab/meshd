@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interagent Mesh — Safety Quotient Lab</title>
+    <script type="application/ld+json">
+    {
+        "@context": ["https://schema.org", {"sqm": "https://interagent.safety-quotient.dev/vocab#"}],
+        "@type": "SoftwareApplication",
+        "@id": "https://interagent.safety-quotient.dev",
+        "name": "safety-quotient-mesh",
+        "description": "Federated inter-agent mesh for psychoemotional safety research.",
+        "applicationCategory": "Research Infrastructure",
+        "provider": { "@type": "Organization", "name": "Safety Quotient Lab" }
+    }
+    </script>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/patterns.css">
+    <link rel="stylesheet" href="/static/lcars-theme.css">
+</head>
+<body class="theme-lcars" style="opacity:0;transition:opacity 0.15s">
+<script>document.body.style.opacity="1";</script>
+
+<div class="lcars-frame">
+    <svg class="lcars-frame-svg" id="lcars-frame-svg" aria-hidden="true"></svg>
+    <div class="lcars-elbow-connector-top lcars-frame-element"></div>
+
+    <!-- Sidebar — professional station names -->
+    <nav class="lcars-sidebar" id="lcars-sidebar">
+        <div class="lcars-sidebar-cap-top lcars-frame-element"></div>
+        <div class="lcars-sidebar-drop lcars-frame-element"></div>
+        <button class="lcars-sidebar-btn active" data-tab="overview" data-short="OVR" onclick="switchStation('overview')">Overview</button>
+        <button class="lcars-sidebar-btn" data-tab="vitals" data-short="VTL" onclick="switchStation('vitals')">Vitals</button>
+        <button class="lcars-sidebar-btn" data-tab="knowledge" data-short="KNW" onclick="switchStation('knowledge')">Knowledge</button>
+        <button class="lcars-sidebar-btn" data-tab="analysis" data-short="ANL" onclick="switchStation('analysis')">Analysis</button>
+        <button class="lcars-sidebar-btn" data-tab="architecture" data-short="ARC" onclick="switchStation('architecture')">Architecture</button>
+        <button class="lcars-sidebar-btn" data-tab="transport" data-short="TRN" onclick="switchStation('transport')">Transport</button>
+        <button class="lcars-sidebar-btn" data-tab="governance" data-short="GOV" onclick="switchStation('governance')">Governance</button>
+        <button class="lcars-sidebar-btn" data-tab="integrity" data-short="INT" onclick="switchStation('integrity')">Integrity</button>
+        <div class="lcars-sidebar-arm lcars-frame-element"></div>
+    </nav>
+
+    <!-- Header band -->
+    <div class="lcars-header-band" id="lcars-header-band">
+        <div class="lcars-hdr-arm lcars-frame-element"></div>
+        <div class="lcars-header-seg lcars-hdr-title" style="background:transparent;color:var(--lcars-title);font-size:0.95em;letter-spacing:0.12em">INTERAGENT MESH</div>
+        <div class="lcars-hdr-arm lcars-frame-element"></div>
+        <div class="lcars-header-seg" style="background:var(--lcars-atomic-tangerine);position:relative" id="fleet-header-status">
+            <span id="fleet-agents-badge">—</span>
+        </div>
+        <div class="lcars-hdr-endcap lcars-frame-element"></div>
+    </div>
+
+    <!-- Content — stations render into these panes -->
+    <div class="lcars-content">
+        <div class="tab-pane active" id="pane-overview"></div>
+        <div class="tab-pane" id="pane-vitals"></div>
+        <div class="tab-pane" id="pane-knowledge"></div>
+        <div class="tab-pane" id="pane-analysis"></div>
+        <div class="tab-pane" id="pane-architecture"></div>
+        <div class="tab-pane" id="pane-transport"></div>
+        <div class="tab-pane" id="pane-governance"></div>
+        <div class="tab-pane" id="pane-integrity"></div>
+    </div>
+</div>
+
+<!-- Shared LCARS library -->
+<script src="/static/js/shared/catalog-resolver.js"></script>
+<script src="/static/js/shared/patterns.js"></script>
+<!-- Fleet chrome + station modules -->
+<script src="/static/js/fleet/chrome.js"></script>
+<script src="/static/js/fleet/overview.js"></script>
+<script src="/static/js/fleet/vitals.js"></script>
+<script src="/static/js/fleet/knowledge.js"></script>
+<script src="/static/js/fleet/analysis.js"></script>
+<script src="/static/js/fleet/architecture.js"></script>
+<script src="/static/js/fleet/transport.js"></script>
+<script src="/static/js/fleet/governance.js"></script>
+<script src="/static/js/fleet/integrity.js"></script>
+</body>
+</html>

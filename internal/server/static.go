@@ -42,11 +42,29 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	s.serveAgentDashboard(w, r)
 }
 
-// serveCompositor serves the full interagent compositor (index.html).
+// serveCompositor serves the fleet LCARS dashboard.
+// Prefers fleet.html (modular v2); falls back to index.html (legacy monolith).
 func (s *Server) serveCompositor(w http.ResponseWriter, r *http.Request) {
+	// Try fleet.html first (v2 modular dashboard)
+	data, err := staticFS.ReadFile("static/fleet.html")
+	if err != nil {
+		// Fall back to legacy monolith
+		data, err = staticFS.ReadFile("static/index.html")
+		if err != nil {
+			http.Error(w, "dashboard not available", http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Write(data)
+}
+
+// handleLegacyDashboard serves GET /legacy — the monolithic index.html.
+func (s *Server) handleLegacyDashboard(w http.ResponseWriter, r *http.Request) {
 	data, err := staticFS.ReadFile("static/index.html")
 	if err != nil {
-		http.Error(w, "dashboard not available", http.StatusInternalServerError)
+		http.Error(w, "legacy dashboard not available", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

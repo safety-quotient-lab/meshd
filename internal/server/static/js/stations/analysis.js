@@ -626,7 +626,7 @@ function renderEntityDetail(subject, props) {
     const rows = props.filter(p => p.predicate !== "rdf:type").map(t => {
         const predHuman = humanize(t.predicate);
         const isURI = t.object_type === "uri";
-        const objDisplay = isURI ? humanize(t.object) : t.object;
+        const objDisplay = isURI ? humanize(t.object) : fmtNum(t.object);
         const objClick = isURI && !t.object.startsWith("_:")
             ? ` onclick="selectTripleSubject('${escapeAttr(t.object)}')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted"`
             : "";
@@ -676,7 +676,7 @@ function renderObservationSummary(triples) {
 
     const cards = Object.entries(byProperty).sort((a, b) => a[0].localeCompare(b[0])).map(([prop, obsList]) => {
         const latest = obsList[0];
-        const value = latest["sosa:hasSimpleResult"] || "—";
+        const value = fmtNum(latest["sosa:hasSimpleResult"]) || "—";
         const sensor = humanize(latest["sosa:madeBySensor"] || "");
         const time = latest["sosa:resultTime"] || "";
         const timeShort = time ? time.replace("T", " ").replace("Z", "") : "";
@@ -701,7 +701,7 @@ function renderTableView(triples) {
     const rows = triples.slice(0, 100).map(t => {
         const subjectHuman = humanize(t.subject);
         const predHuman = humanize(t.predicate);
-        const objHuman = t.object_type === "uri" ? humanize(t.object) : t.object;
+        const objHuman = t.object_type === "uri" ? humanize(t.object) : fmtNum(t.object);
         const graph = t.graph || "";
         const color = GRAPH_COLORS[graph] || "var(--text-dim)";
         return `<tr>
@@ -787,7 +787,8 @@ function renderSparqlResult(result) {
         `<tr>${cols.map(c => {
             const val = row[c] || "";
             const display = humanize(val);
-            return `<td style="color:var(--text-primary);font-size:0.82em;word-break:break-word" title="${val}">${display}</td>`;
+            const formatted = fmtNum(display);
+            return `<td style="color:var(--text-primary);font-size:0.82em;word-break:break-word" title="${val}">${formatted}</td>`;
         }).join("")}</tr>`
     ).join("");
 
@@ -979,6 +980,24 @@ function truncate(str, max) {
 
 function escapeAttr(s) {
     return (s || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+// Format numbers: space-separated thousands, integers stay integers
+// "4" → "4", "1000" → "1 000", "0.7200" → "0.72", "1234567" → "1 234 567"
+function fmtNum(val) {
+    if (val == null || val === "") return val;
+    const s = String(val).trim();
+    const n = Number(s);
+    if (isNaN(n)) return s;
+    // Integer check: no decimal point in source, or all zeros after decimal
+    if (Number.isInteger(n) || /^-?\d+\.0+$/.test(s)) {
+        return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+    // Float: strip trailing zeros, then format integer part with spaces
+    const fixed = parseFloat(n.toPrecision(4)).toString();
+    const [intPart, decPart] = fixed.split(".");
+    const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return decPart ? intFormatted + "." + decPart : intFormatted;
 }
 
 // ── agentd Session 95: Fleet Cognitive Panels ─────────────────

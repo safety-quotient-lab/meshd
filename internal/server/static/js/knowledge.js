@@ -91,7 +91,7 @@ function renderKBVitals() {
         memory += t.memory_entries || 0;
         stale += t.stale_entries || 0;
     }
-    const setCount = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setCount = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; else console.warn(`[kb] Missing element: ${id}`); };
     setCount("kb-decisions-count", decisions);
     setCount("kb-triggers-count", triggers);
     setCount("kb-catalog-count", catalog);

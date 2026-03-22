@@ -514,7 +514,7 @@ function renderEpistemicDebt() {
 
     const totalDebt = unverified + staleMemory + staleLessons + transportFlags;
     const debtLevel = totalDebt > 100 ? "high" : totalDebt > 30 ? "moderate" : totalDebt > 0 ? "low" : "none";
-    const debtColor = debtLevel === "high" ? "var(--c-alert)" : debtLevel === "moderate" ? "var(--c-warning, #d4944a)" : debtLevel === "low" ? "var(--c-tab-kb)" : "var(--c-tab-pulse)";
+    const debtColor = debtLevel === "high" ? "var(--c-alert)" : debtLevel === "moderate" ? "var(--c-warning, #d4944a)" : debtLevel === "low" ? "var(--c-tab-kb)" : "var(--c-tab-overview)";
 
     // Confidence histogram bars
     const maxBucket = Math.max(...Object.values(confBuckets), 1);

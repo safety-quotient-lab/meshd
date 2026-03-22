@@ -119,8 +119,8 @@ body {
     transition: all 0.2s;
 }
 .lcars-tab:hover { color: var(--text-primary); }
-.lcars-tab.active { color: var(--c-tab-pulse); border-bottom-color: var(--c-tab-pulse); }
-.lcars-tab[data-tab="pulse"].active  { color: var(--c-tab-pulse); border-bottom-color: var(--c-tab-pulse); }
+.lcars-tab.active { color: var(--c-tab-overview); border-bottom-color: var(--c-tab-overview); }
+.lcars-tab[data-tab="overview"].active  { color: var(--c-tab-overview); border-bottom-color: var(--c-tab-overview); }
 .lcars-tab[data-tab="meta"].active   { color: var(--c-tab-meta);  border-bottom-color: var(--c-tab-meta); }
 .lcars-tab[data-tab="kb"].active     { color: var(--c-tab-kb);    border-bottom-color: var(--c-tab-kb); }
 .lcars-tab[data-tab="wisdom"].active { color: var(--c-tab-wisdom); border-bottom-color: var(--c-tab-wisdom); }

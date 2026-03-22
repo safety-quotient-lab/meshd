@@ -112,7 +112,7 @@
 
     <!-- Tabs (dark/light mode — hidden in LCARS) -->
     <div class="lcars-tabs">
-        <button class="lcars-tab active" data-tab="pulse" onclick="switchTab('pulse')">Overview</button>
+        <button class="lcars-tab active" data-tab="overview" onclick="switchTab('pulse')">Overview</button>
         <button class="lcars-tab" data-tab="meta" onclick="switchTab('meta')">Meta</button>
         <button class="lcars-tab" data-tab="kb" onclick="switchTab('kb')">Knowledge</button>
         <button class="lcars-tab" data-tab="wisdom" onclick="switchTab('wisdom')">Wisdom</button>
@@ -128,7 +128,7 @@
     <!-- Content -->
     <div class="lcars-content">
         <!-- Pulse Tab -->
-        <div class="tab-pane active" id="pane-pulse">
+        <div class="tab-pane active" id="pane-overview">
             <div class="lcars-status-line" id="pulse-status-line">Mesh Status: Connecting &middot; Agents: — &middot; Last Sync: —</div>
 
             <!-- Topology graph (moved to top — primary LCARS spatial display) -->
@@ -1638,7 +1638,7 @@
 <script src="js/core.js?v=26c4b1ca1"></script>
 <script src="js/chrome.js?v=26c4b1ca1"></script>
 <script src="js/data-fetch.js?v=26c4b1ca1"></script>
-<script src="js/pulse.js?v=26c4b1ca1"></script>
+<script src="js/overview.js?v=26c4b1ca1"></script>
 <script src="js/knowledge.js?v=26c4b1ca1"></script>
 <script src="js/ws-sse.js?v=26c4b1ca1"></script>
 <!-- Station plugins — loaded dynamically via /api/stations, fallback to static list -->

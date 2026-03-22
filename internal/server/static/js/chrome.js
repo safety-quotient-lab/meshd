@@ -304,7 +304,7 @@ function setTheme(mode) {
         if (hashTab && bridgeTabs.includes(hashTab)) {
             switchTab(hashTab, false);
         } else if (!bridgeTabs.includes(currentTab)) {
-            switchTab("pulse");
+            switchTab("governance");
         }
         updateLcarsHeaderData();
         // Render SVG L-shape frame + listen for resize
@@ -323,7 +323,7 @@ function setTheme(mode) {
         // If leaving LCARS mode while on a LCARS-only tab, switch to Pulse
         const activeTab = document.querySelector('.lcars-tab.active');
         if (activeTab && activeTab.classList.contains('lcars-only')) {
-            switchTab('pulse');
+            switchTab('overview');
         }
     }
 }
@@ -331,19 +331,19 @@ function setTheme(mode) {
 // ── Tabs ───────────────────────────────────────────────────────
 
 // ═══ TABS + NAV ═════════════════════════════════════════════
-const VALID_TABS = ["pulse", "meta", "kb", "wisdom", "governance", "analysis", "architecture", "transport", "integrity", "vitals"];
+const VALID_TABS = ["overview", "meta", "kb", "wisdom", "governance", "analysis", "architecture", "transport", "integrity", "vitals"];
 
 // ── LCARS Spine Content Tracking ─────────────────────────────
 // Each tab maps to a set of spine segments reflecting its content sections.
 const SPINE_CONFIG = {
-    pulse: [
+    overview: [
         { label: "Transport", color: "var(--c-transport)", flex: 2 },
-        { label: "Health",    color: "var(--c-tab-pulse)", flex: 3 },
+        { label: "Health",    color: "var(--c-tab-overview)", flex: 3 },
         { label: "Topology",  color: "var(--c-epistemic)", flex: 1 },
     ],
     meta: [
         { label: "Messages",  color: "var(--c-transport)", flex: 3 },
-        { label: "Memory",    color: "var(--c-tab-pulse)", flex: 2 },
+        { label: "Memory",    color: "var(--c-tab-overview)", flex: 2 },
         { label: "Debt",      color: "var(--c-alert)",     flex: 1 },
         { label: "Decisions", color: "var(--c-tab-meta)",  flex: 3 },
         { label: "Triggers",  color: "var(--c-epistemic)", flex: 2 },
@@ -351,13 +351,13 @@ const SPINE_CONFIG = {
     kb: [
         { label: "Claims",     color: "var(--c-tab-kb)",    flex: 4 },
         { label: "Chains",     color: "var(--c-epistemic)", flex: 2 },
-        { label: "Facts",      color: "var(--c-tab-pulse)", flex: 2 },
+        { label: "Facts",      color: "var(--c-tab-overview)", flex: 2 },
         { label: "Vocabulary", color: "var(--c-catalog)",   flex: 1 },
         { label: "Catalog",    color: "var(--c-transport)", flex: 1 },
     ],
     wisdom: [
         { label: "Lessons",    color: "var(--c-tab-wisdom)", flex: 4 },
-        { label: "Graduated",  color: "var(--c-tab-pulse)", flex: 2 },
+        { label: "Graduated",  color: "var(--c-tab-overview)", flex: 2 },
     ],
     governance: [
         { label: "Budget",    color: "var(--c-tab-governance)",   flex: 2 },
@@ -404,11 +404,11 @@ function updateSpine(tabId) {
     }).join("");
 }
 
-const TAB_COLORS = { pulse: "--c-tab-pulse", meta: "--c-tab-meta", kb: "--c-tab-kb", wisdom: "--c-tab-wisdom", governance: "--c-tab-governance", analysis: "--c-tab-analysis", integrity: "--c-tab-integrity", architecture: "--c-tab-architecture", transport: "--c-tab-transport", vitals: "--c-tab-vitals" };
+const TAB_COLORS = { overview: "--c-tab-overview", meta: "--c-tab-meta", kb: "--c-tab-kb", wisdom: "--c-tab-wisdom", governance: "--c-tab-governance", analysis: "--c-tab-analysis", integrity: "--c-tab-integrity", architecture: "--c-tab-architecture", transport: "--c-tab-transport", vitals: "--c-tab-vitals" };
 
 function switchTab(tabId, updateHash = true) {
     if (tabId === "knowledge") tabId = "meta"; // backward compat
-    if (!VALID_TABS.includes(tabId)) tabId = "pulse";
+    if (!VALID_TABS.includes(tabId)) tabId = "overview";
     // Standard tabs
     document.querySelectorAll(".lcars-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabId));
     // LCARS sidebar buttons
@@ -419,7 +419,7 @@ function switchTab(tabId, updateHash = true) {
         p.style.display = "";  // clear any inline display override
     });
     // Update header band + title color to match active tab
-    const colorVar = TAB_COLORS[tabId] || "--c-tab-pulse";
+    const colorVar = TAB_COLORS[tabId] || "--c-tab-overview";
     // Resolve the actual computed color (theme-lcars overrides live on body, not :root)
     const computed = getComputedStyle(document.body).getPropertyValue(colorVar).trim();
     document.documentElement.style.setProperty("--active-tab-color", computed || `var(${colorVar})`);
@@ -435,7 +435,7 @@ function switchTab(tabId, updateHash = true) {
 }
 
 window.addEventListener("hashchange", () => {
-    const tab = location.hash.replace("#", "") || "pulse";
+    const tab = location.hash.replace("#", "") || "overview";
     switchTab(tab, false);
 });
 

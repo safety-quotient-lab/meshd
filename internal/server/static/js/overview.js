@@ -1,5 +1,5 @@
 // ═══ RENDER: PULSE ══════════════════════════════════════════
-function renderPulse() {
+function renderOverview() {
     try { renderVitals(); } catch(e) { console.warn("renderVitals:", e.message); }
     try { renderLcarsDataGrid(); } catch(e) { console.warn("renderLcarsDataGrid:", e.message); }
     try { renderAgentCards(); } catch(e) { console.warn("renderAgentCards:", e.message); }

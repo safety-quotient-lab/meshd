@@ -11,7 +11,7 @@
             --c-warning: #d4944a;
 
             /* Tab identity — semantic color per tab */
-            --c-tab-pulse: #6aab8e;       /* green — operational health */
+            --c-tab-overview: #6aab8e;       /* green — operational health */
             --c-tab-meta: #9b8ec4;        /* purple — thought, reflection */
             --c-tab-kb: #c4956a;          /* amber — structured knowledge */
             --c-tab-wisdom: #b8956a;      /* warm bronze — accumulated insight */
@@ -51,7 +51,7 @@
             --c-inactive: #666688;
             --c-warning: #ff9944;
 
-            --c-tab-pulse: #9999ff;
+            --c-tab-overview: #9999ff;
             --c-tab-meta: #cc6699;
             --c-tab-kb: #cc99cc;
             --c-tab-wisdom: #ffcc66;
@@ -223,8 +223,8 @@
             transition: all 0.2s;
         }
         .lcars-tab:hover { color: var(--text-primary); }
-        .lcars-tab.active { color: var(--c-tab-pulse); border-bottom-color: var(--c-tab-pulse); }
-        .lcars-tab[data-tab="pulse"].active  { color: var(--c-tab-pulse); border-bottom-color: var(--c-tab-pulse); }
+        .lcars-tab.active { color: var(--c-tab-overview); border-bottom-color: var(--c-tab-overview); }
+        .lcars-tab[data-tab="overview"].active  { color: var(--c-tab-overview); border-bottom-color: var(--c-tab-overview); }
         .lcars-tab[data-tab="meta"].active   { color: var(--c-tab-meta);  border-bottom-color: var(--c-tab-meta); }
         .lcars-tab[data-tab="kb"].active     { color: var(--c-tab-kb);    border-bottom-color: var(--c-tab-kb); }
         .lcars-tab[data-tab="wisdom"].active { color: var(--c-tab-wisdom); border-bottom-color: var(--c-tab-wisdom); }

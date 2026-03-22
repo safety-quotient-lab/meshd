@@ -23,7 +23,7 @@
     --c-warning: #d4944a;
 
     /* Tab identity — semantic color per tab */
-    --c-tab-pulse: #6aab8e;       /* green — operational health */
+    --c-tab-overview: #6aab8e;       /* green — operational health */
     --c-tab-meta: #9b8ec4;        /* purple — thought, reflection */
     --c-tab-kb: #c4956a;          /* amber — structured knowledge */
     --c-tab-wisdom: #b8956a;      /* warm bronze — accumulated insight */
@@ -100,8 +100,8 @@
 }
 
 /* Standard-mode tabs: hidden in LCARS mode (works on both html and body) */
-.theme-lcars #pane-pulse,
-.theme-lcars #pane-pulse.active,
+.theme-lcars #pane-overview,
+.theme-lcars #pane-overview.active,
 .theme-lcars #pane-meta,
 .theme-lcars #pane-meta.active,
 .theme-lcars #pane-kb,
@@ -120,7 +120,7 @@
     --c-inactive: #666688;
     --c-warning: #ff9944;
 
-    --c-tab-pulse: #9999ff;
+    --c-tab-overview: #9999ff;
     --c-tab-meta: #cc6699;
     --c-tab-kb: #cc99cc;
     --c-tab-wisdom: #ffcc66;

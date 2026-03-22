@@ -17,7 +17,7 @@
  *   ═══ LCARS CHROME           — subsystem switcher, narrative, stardate, theme
  *   ═══ TABS + NAV             — switchTab, spine, agent switcher
  *   ═══ DATA FETCH             — refreshAll, fetchAgentStatus
- *   ═══ RENDER: PULSE          — renderPulse, renderAgentCards, topology
+ *   ═══ RENDER: PULSE          — renderOverview, renderAgentCards, topology
  *   ═══ RENDER: KNOWLEDGE      — KB tables, dictionary
  *   ═══ RENDER: OPERATIONS     — monologue, budget, actions, schedule, subsystems
  *   ═══ RENDER: SCIENCE        — affect grid, PAD, flow, DEW, LOA, generators

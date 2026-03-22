@@ -175,6 +175,11 @@ func (s *Server) initTripleStore() {
 		s.Registry.OnRefresh(func(agents []AgentInfo) {
 			s.emitAgentTriples(agents)
 		})
+		// Emit triples for any agents already in the registry
+		// (initial refresh may have completed before this callback registered)
+		if agents := s.Registry.Agents(); len(agents) > 0 {
+			go s.emitAgentTriples(agents)
+		}
 	}
 }
 

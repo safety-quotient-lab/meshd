@@ -16,12 +16,21 @@
     window.fleetStatuses = function () { return agentStatuses; };
 
     // ── Station switching ────────────────────────────────────
+    // Alias for legacy compat — meshd CSS uses switchTab
+    window.switchTab = function (station) { window.switchStation(station); };
     window.switchStation = function (station) {
         activeStation = station;
+        // Update sidebar buttons
         var buttons = document.querySelectorAll(".lcars-sidebar-btn");
         for (var i = 0; i < buttons.length; i++) {
             buttons[i].classList.toggle("active", buttons[i].dataset.tab === station);
         }
+        // Update tab buttons (dark/light mode)
+        var tabs = document.querySelectorAll(".lcars-tab");
+        for (var t = 0; t < tabs.length; t++) {
+            tabs[t].classList.toggle("active", tabs[t].dataset.tab === station);
+        }
+        // Update panes
         var panes = document.querySelectorAll(".tab-pane");
         for (var j = 0; j < panes.length; j++) {
             panes[j].classList.toggle("active", panes[j].id === "pane-" + station);

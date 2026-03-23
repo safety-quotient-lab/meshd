@@ -633,7 +633,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     background: #000;
     border: none;
     border-left: 20px solid var(--panel-accent, var(--c-transport));
-    border-radius: 0 0 0 18px; /* bottom-left only — SVG draws top-left curve */
+    border-radius: 18px 0 0 18px; /* both outer corners rounded */
     overflow: visible;
     position: relative;
     padding: 0; /* no gap between panel edge and header */

@@ -998,7 +998,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     height: 24px;
     background: transparent; /* SVG draws the footer bar behind; pills are colored segments */
     z-index: 2;
-    justify-content: flex-end; /* pills pushed to the right */
+    justify-content: center; /* pills centered, padding-left offsets rightward */
+    padding-left: 30%; /* off-center — pushed right of center */
 }
 /* Footer pills — colored segments like the stardate pill.
    Colored bg, dark text, bottom-aligned, full height. */

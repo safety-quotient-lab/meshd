@@ -52,27 +52,9 @@ function renderMSDTree() {
     const online = onlineAgents.length;
 
     // Initialize default collapse state: expand agents + top-level subsystems,
-    // collapse everything deeper (depth >= 2 in the subsystem tree).
+    // All tree nodes start expanded by default (undefined = expanded).
+    // Users can collapse individual nodes via the toggle arrows.
     if (!msdInitialized) {
-        for (const agent of AGENTS) {
-            // Agents start expanded
-            // msdCollapseState[`agent:${agent.id}`] left undefined = expanded
-            const msd = msdCache[agent.id];
-            if (msd?.tree) {
-                for (const node of msd.tree) {
-                    // Top-level subsystems (transport, oscillator, etc.) start expanded
-                    // msdCollapseState[`node:${agent.id}:${node.id}`] left undefined = expanded
-                    // Their children start collapsed
-                    if (node.children) {
-                        for (const child of node.children) {
-                            if (child.children && child.children.length > 0) {
-                                msdCollapseState[`node:${agent.id}:${child.id}`] = true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
         msdInitialized = true;
     }
 

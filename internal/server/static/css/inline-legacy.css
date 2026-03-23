@@ -660,7 +660,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     border-radius: 0;
     padding: 0 4px 0 0;
     margin-left: 0;
-    padding-left: 13px; /* 8px × φ ≈ 13px — golden ratio spacing from arm */
+    padding-left: 21px; /* 13px × φ ≈ 21px — 2× golden ratio from arm */
     height: 24px; /* match pill height */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;

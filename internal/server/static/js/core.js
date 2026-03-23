@@ -153,44 +153,53 @@ function renderPanelElbows() {
             const hdrStyle = getComputedStyle(header);
             const color = hdrStyle.backgroundColor || hdrStyle.getPropertyValue("background-color") || "#cc9966";
 
-            // L-shape path with inner concave arcs (matches main frame technique)
+            // Cargo Bay A (9) reference: arm as vertical pill, header/footer
+            // as horizontal bars extending from arm. Inner concave curves
+            // at all four junctions.
             //
-            //  ╭ro──── header bar ────────╮ (top-right: just squared off)
-            //  │                           │
-            //  │    ╭ri (inner concave)    │
-            //  │arm │                      │
-            //  │    │    body content       │
-            //  │    │                      │
-            //  │    ╰ri (inner concave)    │
-            //  │                           │
-            //  ╰ro──── footer bar ─────────╯
+            //  ╭─╮──── header bar ────────╮endcap
+            //  │ │                         │
+            //  │ │  ╭ri (inner concave)    │
+            //  │ │  │
+            //  │A│  │    body content
+            //  │R│  │
+            //  │M│  ╰ri (inner concave)    │
+            //  │ │                         │
+            //  ╰─╯──── footer bar ────────╯endcap
+
+            const endR = armW / 2; // arm endcap radius (half arm width = pill ends)
+            const hdrR = 8;       // header/footer right endcap radius
 
             const path = [
-                // Start at top-left, below outer radius
-                `M 0 ${ro}`,
-                // Outer top-left corner
-                `A ${ro} ${ro} 0 0 1 ${ro} 0`,
-                // Top edge to right
-                `L ${W} 0`,
-                // Right edge down to header bottom
-                `L ${W} ${hdrH}`,
-                // Header bottom back to inner elbow
+                // Arm top endcap (pill top — semicircle)
+                `M 0 ${endR}`,
+                `A ${endR} ${endR} 0 0 1 ${armW} ${endR}`,
+                // Arm right edge up to header connection
+                // (arm endcap meets header top)
+                `L ${armW} 0`,
+                // Header top edge to right endcap
+                `L ${W - hdrR} 0`,
+                // Header right endcap (rounded)
+                `A ${hdrR} ${hdrR} 0 0 1 ${W - hdrR} ${hdrH}`,
+                // Header bottom edge back to inner elbow
                 `L ${armW + ri} ${hdrH}`,
-                // Inner top concave curve (counter-clockwise arc)
+                // Inner top concave curve
                 `A ${ri} ${ri} 0 0 0 ${armW} ${hdrH + ri}`,
                 // Arm right edge down to inner bottom elbow
                 `L ${armW} ${H - footH - ri}`,
-                // Inner bottom concave curve (counter-clockwise arc)
+                // Inner bottom concave curve
                 `A ${ri} ${ri} 0 0 0 ${armW + ri} ${H - footH}`,
-                // Footer top edge to right
-                `L ${W} ${H - footH}`,
-                // Right edge down to bottom
-                `L ${W} ${H}`,
-                // Bottom edge to outer bottom-left radius
-                `L ${ro} ${H}`,
-                // Outer bottom-left corner
-                `A ${ro} ${ro} 0 0 1 0 ${H - ro}`,
-                // Left edge back up
+                // Footer top edge to right endcap
+                `L ${W - hdrR} ${H - footH}`,
+                // Footer right endcap (rounded)
+                `A ${hdrR} ${hdrR} 0 0 1 ${W - hdrR} ${H}`,
+                // Footer bottom edge back to arm
+                `L ${armW} ${H}`,
+                // Arm bottom endcap connection
+                `L ${armW} ${H - endR}`,
+                // Arm bottom endcap (pill bottom — semicircle)
+                `A ${endR} ${endR} 0 0 1 0 ${H - endR}`,
+                // Arm left edge back up
                 `Z`,
             ].join(" ");
 

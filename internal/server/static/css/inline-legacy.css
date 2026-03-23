@@ -651,22 +651,41 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     pointer-events: none;
     z-index: 1;
 }
-/* Header bar — background color read by SVG for frame drawing.
-   The header covers the top bar area; the SVG inner curve shows
-   in the gap between the arm and the header's left edge. */
+/* Header bar — colored bar with black title cutout.
+   Cargo Bay A (3) reference: title sits in a dark rectangle
+   punched into the colored header bar. */
 .theme-lcars .lcars-panel-header {
     background: var(--panel-accent, var(--c-transport));
-    color: #000;
+    color: var(--panel-accent, var(--c-transport)); /* title pill overrides to black bg + accent text */
     border-bottom: none;
     border-radius: 0;
-    padding: 8px 16px 6px 8px;
+    padding: 3px 4px 3px 8px;
     margin-left: 20px; /* clear SVG arm — inner curve visible in the gap */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     position: relative;
     z-index: 2;
+    min-height: 18px;
+    gap: 3px;
+}
+/* Title pill — black cutout rectangle inside the colored header bar.
+   Cargo Bay A (3): title text in dark rectangle punched into bar. */
+.theme-lcars .panel-title-pill {
+    background: #000;
+    color: var(--panel-accent, var(--c-transport));
+    padding: 2px 10px 1px;
+    border-radius: var(--gap-xs, 4px);
+    white-space: nowrap;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Panel ID number stays in the accent color bar (not inside the cutout) */
+.theme-lcars .lcars-panel-id {
+    color: #000;
+    flex-shrink: 0;
 }
 /* Body content sits in the black area between the arm and footer */
 .theme-lcars .lcars-panel-body {
@@ -954,12 +973,12 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
    as dark rectangular cutouts embedded in the horizontal arm. */
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
-    gap: 3px;
+    gap: 2px; /* thin dark gap between pills — like Cargo Bay A (3) */
     position: absolute;
-    bottom: 3px; /* 3px spacing below pills to footer arm edge */
-    left: 23px; /* 20px arm + 3px spacing */
-    right: 3px;
-    height: 18px; /* 24px footer - 3px top - 3px bottom = 18px pill */
+    bottom: 0;
+    left: 20px; /* flush with arm edge */
+    right: 0;
+    height: 24px; /* fill the full footer arm height */
     z-index: 2;
 }
 /* Individual footer pills — solid colored rectangles inside the arm,
@@ -973,15 +992,14 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     background: var(--panel-accent, var(--c-transport));
     color: #000;
     padding: 0 10px;
-    height: 100%; /* fill the row height (18px) */
-    border-radius: var(--gap-xs, 4px);
+    height: 100%; /* fill the full footer arm */
+    border-radius: 0; /* flush — dark gaps between pills provide separation */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     font-size: 0.62em;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
-    filter: brightness(0.85); /* slightly darker than the arm for contrast */
     position: relative;
     z-index: 2;
 }
@@ -989,8 +1007,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel > .lcars-panel-status,
 .theme-lcars .lcars-panel > .lcars-panel-footer {
     position: absolute;
-    bottom: 3px;
-    left: 22px;
+    bottom: 0;
+    left: 20px;
 }
 .theme-lcars .lcars-panel-footer-num {
     margin-left: 6px;

@@ -129,6 +129,20 @@ function renderPanelElbows() {
         const header = panel.querySelector(".lcars-panel-header");
         if (!header) return;
 
+        // Wrap header text in a title pill (dark cutout inside the colored bar)
+        if (!header.querySelector(".panel-title-pill")) {
+            const pill = document.createElement("span");
+            pill.className = "panel-title-pill";
+            // Move text nodes and the tristate ::before indicator into the pill
+            const nodes = Array.from(header.childNodes);
+            for (const node of nodes) {
+                // Keep .lcars-panel-id and .panel-fold-controls outside the pill
+                if (node.nodeType === 1 && (node.classList?.contains("lcars-panel-id") || node.classList?.contains("panel-fold-controls"))) continue;
+                pill.appendChild(node);
+            }
+            header.insertBefore(pill, header.firstChild);
+        }
+
         // Wrap footer/status elements in a footer-row for horizontal layout
         const footerEls = panel.querySelectorAll(".lcars-panel-footer, .lcars-panel-status");
         if (footerEls.length > 0 && !panel.querySelector(".lcars-panel-footer-row")) {

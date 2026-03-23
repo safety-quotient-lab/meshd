@@ -633,7 +633,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     background: #000;
     border: none;
     border-left: 20px solid var(--panel-accent, var(--c-transport));
-    border-radius: 18px 0 0 18px; /* outer corners on the arm */
+    border-radius: 0 0 0 18px; /* bottom-left only — SVG draws top-left curve */
     overflow: visible;
     position: relative;
     padding: 0; /* no gap between panel edge and header */
@@ -660,9 +660,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     border-bottom: none;
     border-radius: 0;
     padding: 0 4px 0 0;
-    margin-left: 0;
-    margin-top: -4px; /* overlap into the border-radius curve area */
-    padding-top: 4px; /* compensate so content stays in place */
+    margin: 0;
     padding-left: 21px; /* 2× golden ratio from arm */
     height: 24px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;

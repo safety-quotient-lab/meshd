@@ -685,16 +685,13 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     display: inline-flex;
     align-items: flex-end;
 }
-/* Tristate triangle — its own pill, vertically centered */
+/* Tristate triangle — accent-colored segment, dark triangle centered */
 .theme-lcars .pill-tristate-wrap {
-    background: #000;
-    color: var(--panel-accent, var(--c-transport));
+    background: var(--panel-accent, var(--c-transport));
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0 6px;
-    margin: 3px 0;
-    border-radius: var(--gap-xs, 4px);
+    padding: 0 8px;
     flex: 0 0 auto;
     cursor: pointer;
 }
@@ -991,29 +988,28 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 /* Footer pill row — wraps footer pills inside the SVG footer bar.
    Cargo Bay A (3) reference: RESET, EMERGENCY OVERRIDE, MAIN GENERATOR
    as dark rectangular cutouts embedded in the horizontal arm. */
+/* Footer row — black background, colored pill segments with black gaps.
+   Same pattern as the main LCARS frame header/footer bars. */
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
     align-items: stretch;
-    gap: 2px;
-    padding: 0 3px; /* gap from bar edges */
+    gap: 2px; /* black gaps between segments */
     position: relative;
     height: 24px;
-    background: var(--panel-accent, var(--c-transport));
+    background: #000; /* gaps show as black */
     z-index: 2;
+    justify-content: flex-end; /* pills pushed to the right */
 }
-/* Footer pills — black cutouts inside the accent footer bar.
-   Matches stardate pill: 3px gap between pill and bar edges. */
+/* Footer pills — colored segments like the stardate pill.
+   Colored bg, dark text, bottom-aligned, full height. */
 .theme-lcars .lcars-panel-status,
 .theme-lcars .lcars-panel-footer {
     display: inline-flex;
     align-items: flex-end;
     justify-content: center;
-    background: #000;
-    color: var(--panel-accent, var(--c-transport));
-    padding: 0 10px 2px;
-    margin: 3px 0; /* 3px gap top + bottom between pill and arm */
-    height: calc(100% - 6px); /* full height minus 3px top + 3px bottom */
-    border-radius: var(--gap-xs, 4px);
+    background: var(--panel-accent, var(--c-transport));
+    color: #000;
+    padding: 0 14px 2px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     font-size: 0.62em;
     font-weight: 700;

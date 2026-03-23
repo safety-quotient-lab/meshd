@@ -1977,8 +1977,6 @@ body {
 /* Collapsed: body hidden, arm radii merge into a closed U shape */
 .panel-tristate.panel-collapsed > .lcars-panel-body { display: none !important; }
 .panel-tristate.panel-collapsed > .lcars-panel-header { border-bottom: none; }
-.panel-tristate.panel-collapsed .panel-elbow-svg { display: none !important; }
-.panel-tristate.panel-collapsed .lcars-panel-footer-row { display: none !important; }
 .panel-tristate.panel-collapsed > .lcars-panel-header::before { transform: rotate(-90deg); }
 
 /* Table toolbar — filter + pagination */

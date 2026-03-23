@@ -1850,7 +1850,7 @@ body {
    Fixed = capped height with scroll. Expanded = full height. Collapsed = header only. */
 .panel-tristate > .lcars-panel-header { cursor: pointer; user-select: none; display: flex; align-items: baseline; }
 .panel-tristate > .lcars-panel-header::before {
-    content: "▶"; padding-right: 8px; opacity: 0.5; font-size: 0.7em; flex-shrink: 0;
+    content: "▶"; padding-right: 8px; opacity: 0.5; font-size: 0.7em; flex-shrink: 0; display: inline-block; width: 1.2em; text-align: center; transition: transform 0.15s;
 }
 .panel-tristate > .lcars-panel-header .lcars-panel-id { margin-left: auto; }
 /* Fixed (default): capped height, scrollable within cap */
@@ -1865,12 +1865,12 @@ body {
 .panel-tristate > .lcars-panel-body.scrollable {
     max-height: 420px; overflow-y: scroll; overflow-x: hidden;
 }
-/* Expanded: full height, no cap */
-.panel-tristate.panel-expanded > .lcars-panel-body { max-height: none; overflow: visible; }
-.panel-tristate.panel-expanded > .lcars-panel-header::before { content: "▼"; }
-/* Collapsed: header only */
-.panel-tristate.panel-collapsed > .lcars-panel-body { max-height: 0 !important; padding-top: 0; padding-bottom: 0; overflow: hidden; }
-.panel-tristate.panel-collapsed > .lcars-panel-header::before { content: "▲"; }
+/* Expanded: full height, no cap — !important overrides .scrollable max-height */
+.panel-tristate.panel-expanded > .lcars-panel-body { max-height: none !important; overflow: visible !important; }
+.panel-tristate.panel-expanded > .lcars-panel-header::before { content: "▶"; transform: rotate(90deg); }
+/* Collapsed: header only — !important overrides .scrollable */
+.panel-tristate.panel-collapsed > .lcars-panel-body { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; overflow: hidden !important; }
+.panel-tristate.panel-collapsed > .lcars-panel-header::before { content: "▶"; transform: rotate(-90deg); }
 
 /* Table toolbar — filter + pagination */
 .table-toolbar {

@@ -952,21 +952,24 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
    as dark rectangular cutouts embedded in the horizontal arm. */
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
-    gap: 3px;
+    gap: 2px;
     position: absolute;
     bottom: 3px;
     left: 22px; /* clear the SVG arm */
     right: 4px;
+    height: 18px;
     z-index: 2;
 }
-/* Individual footer pills — dark cutouts with accent text */
+/* Individual footer pills — solid colored rectangles inside the arm,
+   like the Cargo Bay A (3) RESET / EMERGENCY OVERRIDE / MAIN GENERATOR
+   buttons. Colored background, dark text — same as sidebar nav buttons. */
 .theme-lcars .lcars-panel-status,
 .theme-lcars .lcars-panel-footer {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #000;
-    color: var(--panel-accent, var(--c-transport));
+    background: var(--panel-accent, var(--c-transport));
+    color: #000;
     padding: 2px 10px 1px;
     height: 18px;
     border-radius: var(--gap-xs, 4px);
@@ -976,6 +979,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
+    filter: brightness(0.85); /* slightly darker than the arm for contrast */
     position: relative;
     z-index: 2;
 }

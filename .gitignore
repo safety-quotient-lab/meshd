@@ -6,9 +6,8 @@
 state.db
 state.db-wal
 state.db-shm
-meshd
-meshd-linux
-meshd-darwin
+/meshd
+/meshd-linux
+/meshd-darwin
+/meshd-linux-amd64
 .DS_Store
-meshd-linux
-meshd

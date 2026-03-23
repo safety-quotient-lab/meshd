@@ -118,6 +118,43 @@ document.addEventListener("click", function(e) {
     }
 });
 
+// ── Collapse All / Expand All ─────────────────────────────────
+// Operates on all .panel-tristate within the currently active tab pane.
+function collapseAllPanels() {
+    const active = document.querySelector(".tab-pane.active");
+    if (!active) return;
+    active.querySelectorAll(".panel-tristate").forEach(p => {
+        p.classList.remove("panel-expanded");
+        p.classList.add("panel-collapsed");
+    });
+}
+function expandAllPanels() {
+    const active = document.querySelector(".tab-pane.active");
+    if (!active) return;
+    active.querySelectorAll(".panel-tristate").forEach(p => {
+        p.classList.remove("panel-collapsed");
+        p.classList.add("panel-expanded");
+    });
+}
+window.collapseAllPanels = collapseAllPanels;
+window.expandAllPanels = expandAllPanels;
+
+// Inject collapse/expand controls into every zone-c header bar
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".lcars-zone-c").forEach(zc => {
+        // Skip if already has controls
+        if (zc.querySelector(".panel-fold-controls")) return;
+        const zcId = zc.querySelector(".zc-id");
+        if (!zcId) return;
+        const controls = document.createElement("span");
+        controls.className = "panel-fold-controls";
+        controls.style.cssText = "margin-left:auto;display:flex;gap:4px;margin-right:8px";
+        controls.innerHTML = '<button class="lcars-pill-btn lcars-pill-sm" onclick="expandAllPanels()" title="Expand all">▾</button>'
+            + '<button class="lcars-pill-btn lcars-pill-sm" onclick="collapseAllPanels()" title="Collapse all">▸</button>';
+        zc.insertBefore(controls, zcId);
+    });
+});
+
 // ── Reusable Agent Selector Component ─────────────────────────
 // Used by Medical, Engineering, and any station that supports mesh + per-agent views.
 // Usage: renderAgentSelector(containerId, selectedId, onSelect)

@@ -141,22 +141,26 @@ function renderPanelElbows() {
             const pill = document.createElement("span");
             pill.className = "panel-title-pill";
 
-            // Add tristate triangle indicator inside the pill
-            if (panel.classList.contains("panel-tristate")) {
-                const tri = document.createElement("span");
-                tri.className = "pill-tristate-indicator";
-                tri.style.cssText = "display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid currentColor;transition:transform 0.15s;flex-shrink:0";
-                pill.appendChild(tri);
-            }
-
-            // Move text nodes into the pill (keep panel-id and fold-controls outside)
+            // Move text nodes into the title pill
             const nodes = Array.from(header.childNodes);
             for (const node of nodes) {
                 if (node === pill) continue;
                 if (node.nodeType === 1 && (node.classList?.contains("lcars-panel-id") || node.classList?.contains("panel-fold-controls"))) continue;
                 pill.appendChild(node);
             }
-            header.insertBefore(pill, header.firstChild);
+
+            // Tristate triangle — its own separate pill, vertically centered
+            if (panel.classList.contains("panel-tristate")) {
+                const triWrap = document.createElement("span");
+                triWrap.className = "pill-tristate-wrap";
+                const tri = document.createElement("span");
+                tri.className = "pill-tristate-indicator";
+                tri.style.cssText = "display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #000;transition:transform 0.15s";
+                triWrap.appendChild(tri);
+                header.insertBefore(triWrap, header.firstChild);
+            }
+
+            header.insertBefore(pill, header.querySelector(".pill-tristate-wrap")?.nextSibling || header.firstChild);
         }
 
         // Wrap footer/status elements in a footer-row for horizontal layout

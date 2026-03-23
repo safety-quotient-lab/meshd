@@ -664,26 +664,34 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     height: 24px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
-    align-items: flex-end; /* bottom-aligned — matches main LCARS frame */
-    justify-content: space-between;
+    align-items: stretch; /* segments fill full height — matches main LCARS frame */
+    gap: 2px; /* black gaps between segments */
+    background: #000; /* gaps show as black */
     position: relative;
     z-index: 2;
     min-height: 18px;
-    gap: 3px;
 }
 /* Title pill — black cutout rectangle inside the colored header bar.
    Cargo Bay A (3): title text in dark rectangle punched into bar. */
 .theme-lcars .panel-title-pill {
     background: #000;
     color: var(--panel-accent, var(--c-transport));
-    padding: 0 10px 2px; /* bottom padding for text baseline */
-    height: 100%;
+    padding: 0 10px 2px;
     border-radius: var(--gap-xs, 4px);
     white-space: nowrap;
     flex: 0 0 auto;
     display: inline-flex;
-    align-items: flex-end; /* bottom-aligned like main LCARS frame pills */
-    gap: 6px;
+    align-items: flex-end; /* bottom-aligned */
+}
+/* Tristate triangle — its own pill, vertically centered */
+.theme-lcars .pill-tristate-wrap {
+    background: var(--panel-accent, var(--c-transport));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    flex: 0 0 auto;
+    cursor: pointer;
 }
 /* Hide the header-level ::before — triangle moves into the pill */
 .theme-lcars .panel-tristate > .lcars-panel-header::before { display: none !important; }
@@ -980,23 +988,26 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
    as dark rectangular cutouts embedded in the horizontal arm. */
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
-    gap: 2px; /* thin dark gap between pills — like Cargo Bay A (3) */
-    position: relative; /* flows after body — no overlap */
+    align-items: stretch;
+    gap: 2px;
+    padding: 0 3px; /* gap from bar edges */
+    position: relative;
     height: 24px;
     background: var(--panel-accent, var(--c-transport));
     z-index: 2;
 }
-/* Footer pills — black cutout rectangles inside the footer arm,
-   matching the header stardate pill treatment. */
+/* Footer pills — black cutouts inside the accent footer bar.
+   Matches stardate pill: 3px gap between pill and bar edges. */
 .theme-lcars .lcars-panel-status,
 .theme-lcars .lcars-panel-footer {
     display: inline-flex;
-    align-items: flex-end; /* bottom-aligned like main LCARS frame */
+    align-items: flex-end;
     justify-content: center;
     background: #000;
     color: var(--panel-accent, var(--c-transport));
-    padding: 0 10px 2px; /* bottom padding for text baseline */
-    height: 100%;
+    padding: 0 10px 2px;
+    margin: 3px 0; /* 3px gap top + bottom between pill and arm */
+    height: calc(100% - 6px); /* full height minus 3px top + 3px bottom */
     border-radius: var(--gap-xs, 4px);
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     font-size: 0.62em;

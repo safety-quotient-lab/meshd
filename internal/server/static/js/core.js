@@ -155,7 +155,7 @@ function renderPanelElbows() {
                 triWrap.className = "pill-tristate-wrap";
                 const tri = document.createElement("span");
                 tri.className = "pill-tristate-indicator";
-                tri.style.cssText = "display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #000;transition:transform 0.15s";
+                tri.style.cssText = "display:block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #000;transition:transform 0.15s;transform-origin:2px 4px";
                 triWrap.appendChild(tri);
                 header.insertBefore(triWrap, header.firstChild);
             }

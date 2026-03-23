@@ -996,7 +996,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     gap: 3px; /* black gaps between pills */
     position: relative;
     height: 24px;
-    background: transparent; /* SVG draws the footer bar */
+    background: #000; /* black gaps around footer pills */
     z-index: 2;
     justify-content: center;
     padding-left: 30%; /* off-center rightward */

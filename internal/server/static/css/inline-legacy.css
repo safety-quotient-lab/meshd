@@ -943,10 +943,12 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 }
 
 /* LCARS panel footer — status band at bottom of panels */
-.lcars-panel-status {
+.lcars-panel-status,
+.lcars-panel-footer {
     display: none;
 }
-.theme-lcars .lcars-panel-status {
+.theme-lcars .lcars-panel-status,
+.theme-lcars .lcars-panel-footer {
     display: inline-flex;
     align-items: center;
     background: var(--panel-accent, var(--c-transport));
@@ -962,6 +964,10 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     margin-bottom: 2px;
     position: relative;
     z-index: 2;
+}
+.theme-lcars .lcars-panel-footer-num {
+    margin-left: 8px;
+    opacity: 0.7;
 }
 
 /* ── LCARS Vertical Power-Level Gauge (Pattern #14) ──────── */

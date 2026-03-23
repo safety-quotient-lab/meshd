@@ -1850,7 +1850,9 @@ body {
    Fixed = capped height with scroll. Expanded = full height. Collapsed = header only. */
 .panel-tristate > .lcars-panel-header { cursor: pointer; user-select: none; display: flex; align-items: baseline; }
 .panel-tristate > .lcars-panel-header::before {
-    content: "▶"; padding-right: 8px; opacity: 0.5; font-size: 0.7em; flex-shrink: 0; display: inline-block; width: 1.2em; text-align: center; transition: transform 0.15s;
+    content: ""; padding-right: 8px; opacity: 0.5; flex-shrink: 0; display: inline-block; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid currentColor;
+    margin-right: 4px; transition: transform 0.15s; transform-origin: 3px 5px;
 }
 .panel-tristate > .lcars-panel-header .lcars-panel-id { margin-left: auto; }
 /* Fixed (default): capped height, scrollable within cap */
@@ -1867,10 +1869,11 @@ body {
 }
 /* Expanded: full height, no cap — !important overrides .scrollable max-height */
 .panel-tristate.panel-expanded > .lcars-panel-body { max-height: none !important; overflow: visible !important; }
-.panel-tristate.panel-expanded > .lcars-panel-header::before { content: "▶"; transform: rotate(90deg); }
+.panel-tristate.panel-expanded > .lcars-panel-header::before { transform: rotate(90deg); }
 /* Collapsed: header only — !important overrides .scrollable */
-.panel-tristate.panel-collapsed > .lcars-panel-body { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; overflow: hidden !important; }
-.panel-tristate.panel-collapsed > .lcars-panel-header::before { content: "▶"; transform: rotate(-90deg); }
+.panel-tristate.panel-collapsed > .lcars-panel-body { display: none !important; }
+.panel-tristate.panel-collapsed > .lcars-panel-header { border-bottom: none; }
+.panel-tristate.panel-collapsed > .lcars-panel-header::before { transform: rotate(-90deg); }
 
 /* Table toolbar — filter + pagination */
 .table-toolbar {

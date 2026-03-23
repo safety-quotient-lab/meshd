@@ -633,6 +633,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     background: #000;
     border: none;
     border-left: 20px solid var(--panel-accent, var(--c-transport));
+    border-radius: 18px 0 0 18px; /* outer top-left + bottom-left rounded */
     overflow: visible;
     position: relative;
 }
@@ -647,7 +648,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     width: calc(100% + 20px);
     height: 100%;
     pointer-events: none;
-    z-index: 3; /* above border-left, draws inner curves + footer */
+    z-index: 1; /* behind header (z:2) and body (z:2), draws curves + footer */
 }
 /* Header bar — colored bar with black title cutout.
    Cargo Bay A (3) reference: title sits in a dark rectangle

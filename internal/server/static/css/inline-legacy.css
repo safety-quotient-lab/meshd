@@ -666,7 +666,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     display: flex;
     align-items: stretch; /* segments fill full height */
     gap: 2px; /* black gaps between segments */
-    background: var(--panel-accent, var(--c-transport)); /* accent bar — pills cut into it */
+    background: transparent; /* SVG draws the header bar behind */
     position: relative;
     z-index: 2;
     min-height: 18px;
@@ -994,26 +994,25 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
     align-items: stretch;
-    gap: 2px; /* black gaps between segments */
+    gap: 3px; /* black gaps between pills */
     position: relative;
     height: 24px;
-    background: transparent; /* SVG draws the footer bar behind; pills are colored segments */
+    background: transparent; /* SVG draws the footer bar */
     z-index: 2;
-    justify-content: center; /* pills centered, padding-left offsets rightward */
-    padding-left: 30%; /* off-center — pushed right of center */
+    justify-content: center;
+    padding-left: 30%; /* off-center rightward */
 }
 /* Footer pills — colored segments like the stardate pill.
    Colored bg, dark text, bottom-aligned, full height. */
 .theme-lcars .lcars-panel-status,
 .theme-lcars .lcars-panel-footer {
-    display: inline-flex;
+    display: flex;
     align-items: flex-end;
     justify-content: center;
     background: var(--panel-accent, var(--c-transport));
     color: #000;
     padding: 0 14px;
-    margin: 0 3px; /* 3px black gap left/right */
-    height: 100%; /* full height of footer arm */
+    margin: 0; /* stretch fills height; gaps via row's gap property */
     border-radius: 0;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     font-size: 0.62em;

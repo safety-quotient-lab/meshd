@@ -192,9 +192,12 @@ function renderPanelElbows() {
             svg.setAttribute("width", W);
             svg.setAttribute("height", H);
 
-            // Read the accent color from the header background (matches station color)
-            const hdrStyle = getComputedStyle(header);
-            const color = hdrStyle.backgroundColor || hdrStyle.getPropertyValue("background-color") || "#cc9966";
+            // Read the accent color — resolve CSS variable via temp element
+            const tmp = document.createElement("div");
+            tmp.style.cssText = "color: var(--panel-accent, #cc9966); position:absolute; visibility:hidden";
+            panel.appendChild(tmp);
+            const color = getComputedStyle(tmp).color;
+            tmp.remove();
 
             // L-shape path with inner concave arcs (matches main frame technique)
             //

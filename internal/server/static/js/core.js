@@ -246,10 +246,16 @@ function renderPanelElbows() {
         panel.style.position = "relative";
         panel.insertBefore(svg, panel.firstChild);
 
-        // Initial draw + observe resizes
+        // Initial draw + observe resizes + alert color changes
         requestAnimationFrame(draw);
         if (typeof ResizeObserver !== "undefined") {
             new ResizeObserver(draw).observe(panel);
+        }
+        // Watch for alert-level changes (body attribute mutation)
+        if (typeof MutationObserver !== "undefined") {
+            new MutationObserver(draw).observe(document.body, {
+                attributes: true, attributeFilter: ["data-alert-level"]
+            });
         }
     });
 }

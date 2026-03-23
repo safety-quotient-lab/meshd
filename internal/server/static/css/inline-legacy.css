@@ -654,7 +654,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 /* Header sits on top of the SVG — the SVG provides the colored bar,
    header text renders over it in black. */
 .theme-lcars .lcars-panel-header {
-    background: transparent; /* SVG draws the color behind */
+    background: var(--panel-accent, var(--c-transport)); /* SVG reads this for color */
     color: #000;
     border-bottom: none;
     border-radius: 0;

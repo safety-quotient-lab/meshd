@@ -638,25 +638,35 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     overflow: visible;
     position: relative;
 }
-/* Inner top-left concave curve — same technique as lcars-frame-elbow-top */
+/* Concave inner corners — black squares with one rounded corner.
+   Positioned at the junctions where the accent-colored arm meets
+   the header (top) and footer (bottom). The rounded corner eats
+   into the arm, creating the characteristic LCARS inner curve.
+
+   Top: black square below header, border-top-left-radius rounds
+   into the arm. Extends left into the arm via negative margin.
+   Bottom: same, flipped, border-bottom-left-radius. */
 .theme-lcars .lcars-panel::before {
     content: '';
     position: absolute;
-    left: 0; top: 0;
-    width: 14px; height: 14px;
-    background:
-        radial-gradient(circle at 0px 14px, #000 12px, transparent 12px);
+    left: -14px; top: 0;
+    width: 26px; height: 26px;
+    background: transparent;
+    border-bottom-right-radius: 14px;
+    box-shadow: 8px 8px 0 0 #000;
     z-index: 1;
+    pointer-events: none;
 }
-/* Inner bottom-left concave curve — same technique as lcars-frame-elbow-bot */
 .theme-lcars .lcars-panel::after {
     content: '';
     position: absolute;
-    left: 0; bottom: 6px; /* above the bottom border */
-    width: 14px; height: 14px;
-    background:
-        radial-gradient(circle at 0px 0px, #000 12px, transparent 12px);
+    left: -14px; bottom: 6px;
+    width: 26px; height: 26px;
+    background: transparent;
+    border-top-right-radius: 14px;
+    box-shadow: 8px -8px 0 0 #000;
     z-index: 1;
+    pointer-events: none;
 }
 .theme-lcars .lcars-panel-header {
     background: var(--panel-accent, var(--c-transport));

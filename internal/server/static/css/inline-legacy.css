@@ -1453,7 +1453,6 @@ body[data-alert-level="3"] .lcars-sidebar-arm,
 body[data-alert-level="3"] .lcars-sidebar-spacer,
 body[data-alert-level="3"] .lcars-sidebar-drop,
 /* Override panel accent so SVG JS reads alert color on next redraw */
-body[data-alert-level="3"] .lcars-panel { --panel-accent: var(--alert-yellow-med, #CD870E) !important; }
 body[data-alert-level="3"] .lcars-sidebar-btn,
 body[data-alert-level="3"] .lcars-sidebar-exit,
 body[data-alert-level="3"] .lcars-hdr-arm,
@@ -1474,7 +1473,7 @@ body[data-alert-level="3"] .lcars-panel-status {
 body[data-alert-level="3"] .panel-elbow-svg path { fill: var(--alert-yellow-med, #CD870E) !important; }
 body[data-alert-level="3"] .panel-title-pill { background: #000 !important; color: var(--alert-yellow-bright, #FFA90E) !important; }
 body[data-alert-level="3"] .lcars-panel-footer-row { background: var(--alert-yellow-med, #CD870E) !important; }
-body[data-alert-level="3"] .lcars-panel-body { overflow: hidden !important; }
+body[data-alert-level="3"] .panel-tristate > .lcars-panel-body, body[data-alert-level="3"] .panel-tristate.panel-expanded > .lcars-panel-body { overflow: hidden !important; max-height: 300px !important; }
 body[data-alert-level="3"] .lcars-elbow-connector-top {
     background: radial-gradient(circle at 100% 100%, transparent var(--elbow-inner, 24px), var(--alert-yellow-med, #CD870E) var(--elbow-inner, 24px)) !important;
 }
@@ -1509,7 +1508,6 @@ body[data-alert-level="3"] .lcars-hdr-title {
 
 /* Red alert (level 2) — dark maroon per TNG canonical (Red display reference)
    Two colors only: dark red structural + white text */
-body[data-alert-level="2"] .lcars-panel { --panel-accent: var(--alert-red-dark, #990000) !important; }
 body[data-alert-level="2"] .lcars-sidebar-cap-top,
 body[data-alert-level="2"] .lcars-sidebar-cap-bottom,
 body[data-alert-level="2"] .lcars-sidebar-arm,
@@ -1535,7 +1533,7 @@ body[data-alert-level="2"] .lcars-panel-status {
 body[data-alert-level="2"] .panel-elbow-svg path { fill: var(--alert-red-dark, #990000) !important; }
 body[data-alert-level="2"] .panel-title-pill { background: #000 !important; color: var(--alert-red-light, #FF9190) !important; }
 body[data-alert-level="2"] .lcars-panel-footer-row { background: var(--alert-red-dark, #990000) !important; }
-body[data-alert-level="2"] .lcars-panel-body { overflow: hidden !important; }
+body[data-alert-level="2"] .panel-tristate > .lcars-panel-body, body[data-alert-level="2"] .panel-tristate.panel-expanded > .lcars-panel-body { overflow: hidden !important; max-height: 300px !important; }
 body[data-alert-level="2"] .lcars-sidebar-cap-top,
 body[data-alert-level="2"] .lcars-sidebar-cap-bottom,
 body[data-alert-level="2"] .lcars-sidebar-arm,
@@ -1579,7 +1577,6 @@ body[data-alert-level="2"] .lcars-hdr-title {
 /* Black alert (level 1) — deep blue/cyan (trekcolors canon)
    Used for maintenance windows, upgrades, deployments.
    Two colors: navy structural + cyan text/accents */
-body[data-alert-level="1"] .lcars-panel { --panel-accent: var(--alert-black-med, #0E3A9B) !important; }
 body[data-alert-level="1"] .lcars-sidebar-cap-top,
 body[data-alert-level="1"] .lcars-sidebar-cap-bottom,
 body[data-alert-level="1"] .lcars-sidebar-arm,
@@ -1605,7 +1602,7 @@ body[data-alert-level="1"] .lcars-panel-status {
 body[data-alert-level="1"] .panel-elbow-svg path { fill: var(--alert-black-med, #0E3A9B) !important; }
 body[data-alert-level="1"] .panel-title-pill { background: #000 !important; color: var(--alert-black-cyan, #64FFFF) !important; }
 body[data-alert-level="1"] .lcars-panel-footer-row { background: var(--alert-black-med, #0E3A9B) !important; }
-body[data-alert-level="1"] .lcars-panel-body { overflow: hidden !important; }
+body[data-alert-level="1"] .panel-tristate > .lcars-panel-body, body[data-alert-level="1"] .panel-tristate.panel-expanded > .lcars-panel-body { overflow: hidden !important; max-height: 300px !important; }
 body[data-alert-level="1"] .lcars-elbow-connector-top {
     background: radial-gradient(circle at 100% 100%, transparent var(--elbow-inner, 24px), var(--alert-black-med, #0E3A9B) var(--elbow-inner, 24px)) !important;
 }

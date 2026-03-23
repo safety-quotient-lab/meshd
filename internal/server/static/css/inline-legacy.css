@@ -651,19 +651,27 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     pointer-events: none;
     z-index: 1;
 }
+/* Header sits on top of the SVG — the SVG provides the colored bar,
+   header text renders over it in black. */
 .theme-lcars .lcars-panel-header {
-    background: var(--panel-accent, var(--c-transport));
+    background: transparent; /* SVG draws the color behind */
     color: #000;
     border-bottom: none;
-    border-radius: 0 var(--gap-m) 0 0;
-    margin-left: -14px; /* extend header over the arm */
-    padding-left: 16px;
+    border-radius: 0;
+    padding: 8px 16px 6px 16px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     position: relative;
-    z-index: 2; /* header sits above the inner curve pseudo-elements */
+    z-index: 2;
+}
+/* Body content sits in the black area between the arm and footer */
+.theme-lcars .lcars-panel-body {
+    margin-left: 14px; /* clear the SVG arm */
+    margin-bottom: 6px; /* clear the SVG footer */
+    position: relative;
+    z-index: 2;
 }
 /* Collapsed: body hidden, footer tightens against header */
 .theme-lcars .panel-tristate.panel-collapsed::after {

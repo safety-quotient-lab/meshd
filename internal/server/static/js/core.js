@@ -149,7 +149,9 @@ function renderPanelElbows() {
             svg.setAttribute("width", W);
             svg.setAttribute("height", H);
 
-            const color = getComputedStyle(panel).getPropertyValue("border-left-color") || "#cc9966";
+            // Read the accent color from the header background (matches station color)
+            const hdrStyle = getComputedStyle(header);
+            const color = hdrStyle.backgroundColor || hdrStyle.getPropertyValue("background-color") || "#cc9966";
 
             // L-shape path with inner concave arcs (matches main frame technique)
             //
@@ -210,7 +212,7 @@ function renderPanelElbows() {
 document.addEventListener("DOMContentLoaded", function() {
     if (!document.body.classList.contains("theme-lcars")) return;
     const style = document.createElement("style");
-    style.textContent = `.theme-lcars .lcars-panel { border-left: none !important; border-bottom: none !important; border-radius: 0 !important; }`;
+    style.textContent = `.theme-lcars .lcars-panel { border-left: none !important; border-bottom: none !important; border-radius: 0 !important; overflow: visible !important; }`;
     document.head.appendChild(style);
     setTimeout(renderPanelElbows, 300);
 });

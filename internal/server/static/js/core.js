@@ -135,13 +135,13 @@ function renderPanelElbows() {
 
         // Observer to re-draw on size changes
         const draw = () => {
-            const W = panel.offsetWidth + 14; // include arm width
+            const armW = 20;    // left arm width (proportional to frame --sidebar-width)
+            const footH = 10;  // bottom foot height (proportional to frame --band-size)
+            const W = panel.offsetWidth + armW;
             const H = panel.offsetHeight;
-            const armW = 14;    // left arm width
-            const footH = 6;   // bottom foot height
             const hdrH = header.offsetHeight;
-            const ro = 14;     // outer corner radius
-            const ri = 10;     // inner concave radius
+            const ro = 18;     // outer corner radius
+            const ri = 12;     // inner concave radius
 
             if (W < 20 || H < 20) return;
 

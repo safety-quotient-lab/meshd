@@ -645,8 +645,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 /* SVG elbow overlay — positioned to cover the panel frame */
 .theme-lcars .lcars-panel .panel-elbow-svg {
     position: absolute;
-    left: -14px; top: 0;
-    width: calc(100% + 14px);
+    left: -20px; top: 0;
+    width: calc(100% + 20px);
     height: 100%;
     pointer-events: none;
     z-index: 1;
@@ -668,8 +668,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 }
 /* Body content sits in the black area between the arm and footer */
 .theme-lcars .lcars-panel-body {
-    margin-left: 14px; /* clear the SVG arm */
-    margin-bottom: 6px; /* clear the SVG footer */
+    margin-left: 20px; /* clear the SVG arm */
+    margin-bottom: 10px; /* clear the SVG footer */
     position: relative;
     z-index: 2;
 }
@@ -947,16 +947,21 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     display: none;
 }
 .theme-lcars .lcars-panel-status {
-    display: block;
+    display: inline-flex;
+    align-items: center;
     background: var(--panel-accent, var(--c-transport));
     color: #000;
-    padding: 4px 16px;
-    border-radius: 0 0 var(--gap-m) 0;
+    padding: 3px 14px 2px;
+    border-radius: 50vh; /* pill shape */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     font-size: 0.68em;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
+    margin-left: 20px; /* clear the SVG arm */
+    margin-bottom: 2px;
+    position: relative;
+    z-index: 2;
 }
 
 /* ── LCARS Vertical Power-Level Gauge (Pattern #14) ──────── */

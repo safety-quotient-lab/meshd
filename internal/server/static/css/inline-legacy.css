@@ -1850,7 +1850,7 @@ body {
    Fixed = capped height with scroll. Expanded = full height. Collapsed = header only. */
 .panel-tristate > .lcars-panel-header { cursor: pointer; user-select: none; display: flex; align-items: baseline; }
 .panel-tristate > .lcars-panel-header::before {
-    content: "━"; padding-right: 8px; opacity: 0.5; font-size: 0.7em; flex-shrink: 0;
+    content: "▶"; padding-right: 8px; opacity: 0.5; font-size: 0.7em; flex-shrink: 0;
 }
 .panel-tristate > .lcars-panel-header .lcars-panel-id { margin-left: auto; }
 /* Fixed (default): capped height, scrollable within cap */
@@ -1867,10 +1867,10 @@ body {
 }
 /* Expanded: full height, no cap */
 .panel-tristate.panel-expanded > .lcars-panel-body { max-height: none; overflow: visible; }
-.panel-tristate.panel-expanded > .lcars-panel-header::before { content: "▾"; }
+.panel-tristate.panel-expanded > .lcars-panel-header::before { content: "▼"; }
 /* Collapsed: header only */
 .panel-tristate.panel-collapsed > .lcars-panel-body { max-height: 0 !important; padding-top: 0; padding-bottom: 0; overflow: hidden; }
-.panel-tristate.panel-collapsed > .lcars-panel-header::before { content: "▸"; }
+.panel-tristate.panel-collapsed > .lcars-panel-header::before { content: "▲"; }
 
 /* Table toolbar — filter + pagination */
 .table-toolbar {

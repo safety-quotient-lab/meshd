@@ -633,7 +633,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     background: #000;
     border: none;
     border-left: 20px solid var(--panel-accent, var(--c-transport));
-    border-radius: 18px 0 0 18px; /* outer top-left + bottom-left rounded */
+    border-radius: 0 0 0 18px; /* outer bottom-left only — SVG handles top-left curve */
     overflow: visible;
     position: relative;
     padding: 0; /* no gap between panel edge and header */
@@ -658,7 +658,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     background: var(--panel-accent, var(--c-transport));
     color: var(--panel-accent, var(--c-transport)); /* title pill overrides to black bg + accent text */
     border-bottom: none;
-    border-radius: 6px 0 0 0; /* inner curve matching panel's top-left border-radius */
+    border-radius: 0; /* flat left edge — arm provides the curve */
     padding: 0 4px 0 0;
     margin-left: 0;
     padding-left: 21px; /* 13px × φ ≈ 21px — 2× golden ratio from arm */

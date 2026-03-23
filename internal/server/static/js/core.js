@@ -129,6 +129,15 @@ function renderPanelElbows() {
         const header = panel.querySelector(".lcars-panel-header");
         if (!header) return;
 
+        // Wrap footer/status elements in a footer-row for horizontal layout
+        const footerEls = panel.querySelectorAll(".lcars-panel-footer, .lcars-panel-status");
+        if (footerEls.length > 0 && !panel.querySelector(".lcars-panel-footer-row")) {
+            const row = document.createElement("div");
+            row.className = "lcars-panel-footer-row";
+            footerEls.forEach(el => row.appendChild(el));
+            panel.appendChild(row);
+        }
+
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.classList.add("panel-elbow-svg");
         svg.setAttribute("preserveAspectRatio", "none");

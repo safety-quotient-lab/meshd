@@ -947,30 +947,47 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .lcars-panel-footer {
     display: none;
 }
-/* Footer pills — dark cutouts inside the SVG footer bar, matching
-   the Cargo Bay A (9) lower arm embedded rectangles. Same dimensions
-   as lcars-pill-sm (min-height 24px) so they fill the footer bar. */
+/* Footer pill row — wraps footer pills inside the SVG footer bar.
+   Cargo Bay A (3) reference: RESET, EMERGENCY OVERRIDE, MAIN GENERATOR
+   as dark rectangular cutouts embedded in the horizontal arm. */
+.theme-lcars .lcars-panel-footer-row {
+    display: flex;
+    gap: 3px;
+    position: absolute;
+    bottom: 3px;
+    left: 22px; /* clear the SVG arm */
+    right: 4px;
+    z-index: 2;
+}
+/* Individual footer pills — dark cutouts with accent text */
 .theme-lcars .lcars-panel-status,
 .theme-lcars .lcars-panel-footer {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     background: #000;
     color: var(--panel-accent, var(--c-transport));
-    padding: 4px 12px 3px;
-    min-height: 18px;
+    padding: 2px 10px 1px;
+    height: 18px;
     border-radius: var(--gap-xs, 4px);
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
-    font-size: 0.68em;
+    font-size: 0.62em;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin-left: 22px; /* clear the SVG arm */
-    position: absolute;
-    bottom: 3px; /* vertically centered in the 24px footer bar */
+    white-space: nowrap;
+    position: relative;
     z-index: 2;
 }
+/* Fallback positioning when no footer-row wrapper exists */
+.theme-lcars .lcars-panel > .lcars-panel-status,
+.theme-lcars .lcars-panel > .lcars-panel-footer {
+    position: absolute;
+    bottom: 3px;
+    left: 22px;
+}
 .theme-lcars .lcars-panel-footer-num {
-    margin-left: 8px;
+    margin-left: 6px;
     opacity: 0.8;
 }
 

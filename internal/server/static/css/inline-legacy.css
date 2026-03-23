@@ -651,14 +651,16 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     pointer-events: none;
     z-index: 1;
 }
-/* Header sits on top of the SVG — the SVG provides the colored bar,
-   header text renders over it in black. */
+/* Header bar — background color read by SVG for frame drawing.
+   The header covers the top bar area; the SVG inner curve shows
+   in the gap between the arm and the header's left edge. */
 .theme-lcars .lcars-panel-header {
-    background: var(--panel-accent, var(--c-transport)); /* SVG reads this for color */
+    background: var(--panel-accent, var(--c-transport));
     color: #000;
     border-bottom: none;
     border-radius: 0;
-    padding: 8px 16px 6px 16px;
+    padding: 8px 16px 6px 8px;
+    margin-left: 20px; /* clear SVG arm — inner curve visible in the gap */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
     align-items: flex-end;
@@ -952,12 +954,12 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
    as dark rectangular cutouts embedded in the horizontal arm. */
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
-    gap: 2px;
+    gap: 3px;
     position: absolute;
-    bottom: 3px;
-    left: 22px; /* clear the SVG arm */
-    right: 4px;
-    height: 18px;
+    bottom: 3px; /* 3px spacing below pills to footer arm edge */
+    left: 23px; /* 20px arm + 3px spacing */
+    right: 3px;
+    height: 18px; /* 24px footer - 3px top - 3px bottom = 18px pill */
     z-index: 2;
 }
 /* Individual footer pills — solid colored rectangles inside the arm,
@@ -970,8 +972,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     justify-content: center;
     background: var(--panel-accent, var(--c-transport));
     color: #000;
-    padding: 2px 10px 1px;
-    height: 18px;
+    padding: 0 10px;
+    height: 100%; /* fill the row height (18px) */
     border-radius: var(--gap-xs, 4px);
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     font-size: 0.62em;

@@ -618,39 +618,56 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 }
 
 /* ── LCARS Panel — elbow arm frame ────────────────────────── */
-/* The characteristic LCARS L-shape: header bar with left elbow cap,
-   vertical arm running down the left side of the panel body.
-   Collapsed: arm + header only, body hidden, bottom cap rounds the arm. */
+/* L-shaped frame: header bar across top, vertical arm on left, horizontal
+   foot across bottom. Inner corners (where arm meets header/footer) get
+   concave curves via pseudo-elements. Collapsed: body hidden, arm + header
+   + footer merge into a closed U-shape. */
 .theme-lcars .lcars-panel {
     background: #000;
     border: none;
     border-left: 14px solid var(--panel-accent, var(--c-transport));
-    border-radius: 0 0 0 14px;
+    border-bottom: 6px solid var(--panel-accent, var(--c-transport));
+    border-radius: 0 0 0 14px; /* outer bottom-left corner */
     overflow: visible;
     position: relative;
 }
 .theme-lcars .lcars-panel::before {
-    content: none;
+    /* Inner top-left curve — concave cutout where arm meets header */
+    content: '';
+    position: absolute;
+    left: 0; top: 0;
+    width: 14px; height: 14px;
+    background: radial-gradient(circle at 0 0, #000 10px, var(--panel-accent, var(--c-transport)) 10px);
+    z-index: 1;
+}
+.theme-lcars .lcars-panel::after {
+    /* Inner bottom-left curve — concave cutout where arm meets footer */
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 14px; height: 14px;
+    background: radial-gradient(circle at 0 100%, #000 10px, var(--panel-accent, var(--c-transport)) 10px);
+    z-index: 1;
 }
 .theme-lcars .lcars-panel-header {
     background: var(--panel-accent, var(--c-transport));
     color: #000;
     border-bottom: none;
-    border-radius: 0 var(--gap-m) 0 0;
-    margin-left: -14px; /* extend header over the arm border */
+    border-radius: 0 var(--gap-m) 0 0; /* outer top-right corner */
+    margin-left: -14px; /* extend header over the arm */
     padding-left: 16px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
 }
-/* Collapsed: arm bottom rounds into a cap (U-shape closure) */
-.theme-lcars .panel-tristate.panel-collapsed {
-    border-radius: 0 0 0 14px;
-    border-bottom: 6px solid var(--panel-accent, var(--c-transport));
+/* Panel body gets left padding to clear the inner curves */
+.theme-lcars .lcars-panel-body {
+    margin-left: 2px;
 }
-.theme-lcars .panel-tristate.panel-collapsed > .lcars-panel-header {
-    border-radius: 0 var(--gap-m) 0 0;
+/* Collapsed: body hidden, frame closes into U-shape */
+.theme-lcars .panel-tristate.panel-collapsed::after {
+    display: none; /* no inner bottom curve when collapsed — frame closes tight */
 }
 /* Panel section ID — right-aligned number in header bar (Ohniaka pattern) */
 .lcars-panel-id {

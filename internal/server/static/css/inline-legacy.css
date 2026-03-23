@@ -660,7 +660,10 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     margin: 0;
     padding: 0 3px 0 21px; /* left: golden ratio from arm; right: edge gap */
     height: 24px;
+    box-sizing: border-box;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
+    font-size: 0.75em;
+    line-height: 1;
     display: flex;
     align-items: stretch; /* pills fill full height */
     gap: 2px;
@@ -676,8 +679,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     margin: 0;
     border-radius: 0;
     white-space: nowrap;
-    flex: 0 0 auto;
-    display: inline-flex;
+    display: flex;
     align-items: flex-end;
 }
 /* Tristate triangle — accent-colored segment, dark triangle centered */

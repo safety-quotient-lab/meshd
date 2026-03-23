@@ -678,14 +678,20 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     padding: 2px 10px 1px;
     border-radius: var(--gap-xs, 4px);
     white-space: nowrap;
-    flex-shrink: 1;
+    flex: 1 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
+/* Hide the header-level ::before — triangle moves into the pill */
+.theme-lcars .panel-tristate > .lcars-panel-header::before { display: none !important; }
 /* Panel ID number stays in the accent color bar (not inside the cutout) */
 .theme-lcars .lcars-panel-id {
     color: #000;
     flex-shrink: 0;
+    margin-left: auto;
 }
 /* Body content sits in the black area between the arm and footer */
 .theme-lcars .lcars-panel-body {

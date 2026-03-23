@@ -106,7 +106,7 @@ document.addEventListener("click", function(e) {
     const header = e.target.closest(".panel-tristate > .lcars-panel-header");
     if (!header) return;
     const panel = header.parentElement;
-    // Tri-state: fixed (default ━) → expanded (▾) → collapsed (▸) → fixed
+    // Tri-state: fixed (▶) → expanded (▼) → collapsed (▲) → fixed
     if (panel.classList.contains("panel-collapsed")) {
         panel.classList.remove("panel-collapsed");
     } else if (panel.classList.contains("panel-expanded")) {
@@ -114,6 +114,13 @@ document.addEventListener("click", function(e) {
         panel.classList.add("panel-collapsed");
     } else {
         panel.classList.add("panel-expanded");
+    }
+    // Update pill indicator rotation
+    const tri = panel.querySelector(".pill-tristate-indicator");
+    if (tri) {
+        if (panel.classList.contains("panel-expanded")) tri.style.transform = "rotate(90deg)";
+        else if (panel.classList.contains("panel-collapsed")) tri.style.transform = "rotate(-90deg)";
+        else tri.style.transform = "rotate(0deg)";
     }
 });
 
@@ -133,10 +140,19 @@ function renderPanelElbows() {
         if (!header.querySelector(".panel-title-pill")) {
             const pill = document.createElement("span");
             pill.className = "panel-title-pill";
-            // Move text nodes and the tristate ::before indicator into the pill
+
+            // Add tristate triangle indicator inside the pill
+            if (panel.classList.contains("panel-tristate")) {
+                const tri = document.createElement("span");
+                tri.className = "pill-tristate-indicator";
+                tri.style.cssText = "display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid currentColor;transition:transform 0.15s;flex-shrink:0";
+                pill.appendChild(tri);
+            }
+
+            // Move text nodes into the pill (keep panel-id and fold-controls outside)
             const nodes = Array.from(header.childNodes);
             for (const node of nodes) {
-                // Keep .lcars-panel-id and .panel-fold-controls outside the pill
+                if (node === pill) continue;
                 if (node.nodeType === 1 && (node.classList?.contains("lcars-panel-id") || node.classList?.contains("panel-fold-controls"))) continue;
                 pill.appendChild(node);
             }

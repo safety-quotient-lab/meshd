@@ -659,7 +659,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     border-bottom: none;
     border-radius: 0;
     padding: 0 4px 0 0;
-    margin-left: 0; /* border-left provides the arm */
+    margin-left: 0;
+    padding-left: 8px; /* nudge title pill + triangle away from arm edge */
     height: 24px; /* match pill height */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
@@ -1988,6 +1989,7 @@ body {
     position: static !important;
     left: auto !important;
     right: auto !important;
+    width: 100% !important;
     margin-left: 0 !important;
     margin-top: 2px; /* thin black gap between header and footer arms */
 }

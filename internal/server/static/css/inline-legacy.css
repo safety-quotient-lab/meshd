@@ -1975,17 +1975,25 @@ body {
 .panel-tristate.panel-expanded > .lcars-panel-header::before { transform: rotate(90deg); }
 /* Collapsed: header only — !important overrides .scrollable */
 /* Collapsed: body hidden, arm radii merge into a closed U shape */
-/* Collapsed: body hidden, footer flows under header (not absolute), SVG hidden.
-   Result: header arm stacked over footer arm with thin black gap. */
+/* Collapsed: body hidden, footer flows under header, left arm via border.
+   Result: header arm stacked over footer arm with left arm connecting them. */
 .panel-tristate.panel-collapsed > .lcars-panel-body { display: none !important; }
 .panel-tristate.panel-collapsed > .lcars-panel-header { border-bottom: none; }
 .panel-tristate.panel-collapsed .panel-elbow-svg { display: none !important; }
+/* Left arm as CSS border when SVG hidden */
+.panel-tristate.panel-collapsed {
+    border-left: 20px solid var(--panel-accent, var(--c-transport)) !important;
+}
 .panel-tristate.panel-collapsed .lcars-panel-footer-row {
     position: static !important;
-    margin-left: 0 !important;
     left: auto !important;
     right: auto !important;
+    margin-left: 0 !important;
     margin-top: 2px; /* thin black gap between header and footer arms */
+}
+/* Header doesn't need extra margin when border provides the arm */
+.panel-tristate.panel-collapsed > .lcars-panel-header {
+    margin-left: 0 !important;
 }
 .panel-tristate.panel-collapsed > .lcars-panel-header::before { transform: rotate(-90deg); }
 

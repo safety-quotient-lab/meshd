@@ -117,6 +117,113 @@ document.addEventListener("click", function(e) {
     }
 });
 
+// ── LCARS Panel Elbow SVGs ────────────────────────────────────
+// Draws the L-shaped frame with inner concave arcs for each panel.
+// Same SVG arc technique as the main LCARS frame (renderLcarsFrameSVG).
+function renderPanelElbows() {
+    if (!document.body.classList.contains("theme-lcars")) return;
+    document.querySelectorAll(".theme-lcars .lcars-panel").forEach(panel => {
+        // Skip if already rendered
+        if (panel.querySelector(".panel-elbow-svg")) return;
+
+        const header = panel.querySelector(".lcars-panel-header");
+        if (!header) return;
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.classList.add("panel-elbow-svg");
+        svg.setAttribute("preserveAspectRatio", "none");
+
+        // Observer to re-draw on size changes
+        const draw = () => {
+            const W = panel.offsetWidth + 14; // include arm width
+            const H = panel.offsetHeight;
+            const armW = 14;    // left arm width
+            const footH = 6;   // bottom foot height
+            const hdrH = header.offsetHeight;
+            const ro = 14;     // outer corner radius
+            const ri = 10;     // inner concave radius
+
+            if (W < 20 || H < 20) return;
+
+            svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+            svg.setAttribute("width", W);
+            svg.setAttribute("height", H);
+
+            const color = getComputedStyle(panel).getPropertyValue("border-left-color") || "#cc9966";
+
+            // L-shape path with inner concave arcs (matches main frame technique)
+            //
+            //  ╭ro──── header bar ────────╮ (top-right: just squared off)
+            //  │                           │
+            //  │    ╭ri (inner concave)    │
+            //  │arm │                      │
+            //  │    │    body content       │
+            //  │    │                      │
+            //  │    ╰ri (inner concave)    │
+            //  │                           │
+            //  ╰ro──── footer bar ─────────╯
+
+            const path = [
+                // Start at top-left, below outer radius
+                `M 0 ${ro}`,
+                // Outer top-left corner
+                `A ${ro} ${ro} 0 0 1 ${ro} 0`,
+                // Top edge to right
+                `L ${W} 0`,
+                // Right edge down to header bottom
+                `L ${W} ${hdrH}`,
+                // Header bottom back to inner elbow
+                `L ${armW + ri} ${hdrH}`,
+                // Inner top concave curve (counter-clockwise arc)
+                `A ${ri} ${ri} 0 0 0 ${armW} ${hdrH + ri}`,
+                // Arm right edge down to inner bottom elbow
+                `L ${armW} ${H - footH - ri}`,
+                // Inner bottom concave curve (counter-clockwise arc)
+                `A ${ri} ${ri} 0 0 0 ${armW + ri} ${H - footH}`,
+                // Footer top edge to right
+                `L ${W} ${H - footH}`,
+                // Right edge down to bottom
+                `L ${W} ${H}`,
+                // Bottom edge to outer bottom-left radius
+                `L ${ro} ${H}`,
+                // Outer bottom-left corner
+                `A ${ro} ${ro} 0 0 1 0 ${H - ro}`,
+                // Left edge back up
+                `Z`,
+            ].join(" ");
+
+            svg.innerHTML = `<path d="${path}" fill="${color}"/>`;
+        };
+
+        panel.style.position = "relative";
+        panel.insertBefore(svg, panel.firstChild);
+
+        // Initial draw + observe resizes
+        requestAnimationFrame(draw);
+        if (typeof ResizeObserver !== "undefined") {
+            new ResizeObserver(draw).observe(panel);
+        }
+    });
+}
+
+// Remove CSS borders — SVG handles the frame now
+document.addEventListener("DOMContentLoaded", function() {
+    if (!document.body.classList.contains("theme-lcars")) return;
+    const style = document.createElement("style");
+    style.textContent = `.theme-lcars .lcars-panel { border-left: none !important; border-bottom: none !important; border-radius: 0 !important; }`;
+    document.head.appendChild(style);
+    setTimeout(renderPanelElbows, 300);
+});
+
+// Re-render after tab switch (panels may become visible)
+const _origSwitchTab = window.switchTab;
+if (typeof _origSwitchTab === "function") {
+    window.switchTab = function() {
+        _origSwitchTab.apply(this, arguments);
+        setTimeout(renderPanelElbows, 100);
+    };
+}
+
 // ── Collapse All / Expand All ─────────────────────────────────
 // Operates on all .panel-tristate within the currently active tab pane.
 function collapseAllPanels() {

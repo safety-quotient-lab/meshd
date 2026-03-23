@@ -632,11 +632,10 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel {
     background: #000;
     border: none;
-    border-left: 20px solid var(--panel-accent, var(--c-transport));
-    border-radius: 18px 0 0 18px; /* both outer corners rounded */
+    margin-left: 20px; /* space for the SVG arm */
     overflow: visible;
     position: relative;
-    padding: 0; /* no gap between panel edge and header */
+    padding: 0;
 }
 /* Inner curves rendered by SVG (injected by JS — renderPanelElbows).
    No CSS pseudo-element curves needed. */
@@ -660,8 +659,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     border-bottom: none;
     border-radius: 0;
     padding: 0 4px 0 0;
-    margin: 0 0 0 -20px; /* extend left INTO the border area — eliminates anti-alias seam */
-    padding-left: 41px; /* 20px (border overlap) + 21px (golden ratio spacing) */
+    margin: 0;
+    padding-left: 21px; /* 2× golden ratio from arm */
     height: 24px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
@@ -1979,18 +1978,10 @@ body {
    Result: header arm stacked over footer arm with left arm connecting them. */
 .panel-tristate.panel-collapsed > .lcars-panel-body { display: none !important; }
 .panel-tristate.panel-collapsed > .lcars-panel-header { border-bottom: none; }
-.panel-tristate.panel-collapsed .panel-elbow-svg { display: none !important; }
-/* Collapsed: arm stays (border-left always present), SVG hidden, body hidden */
-.theme-lcars .lcars-panel.panel-tristate.panel-collapsed {
-    overflow: hidden !important;
-}
-/* Collapsed footer: same as normal — flows after header with thin gap */
+/* Collapsed: SVG stays visible — redraws to collapsed height via ResizeObserver.
+   Footer flows after header with thin gap. */
 .panel-tristate.panel-collapsed .lcars-panel-footer-row {
-    margin-top: 2px; /* thin black gap between header and footer */
-}
-/* Header doesn't need extra margin when border provides the arm */
-.panel-tristate.panel-collapsed > .lcars-panel-header {
-    margin-left: 0 !important;
+    margin-top: 2px;
 }
 .panel-tristate.panel-collapsed > .lcars-panel-header::before { transform: rotate(-90deg); }
 

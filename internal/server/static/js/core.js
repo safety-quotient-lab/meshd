@@ -251,7 +251,7 @@ function renderPanelElbows() {
 document.addEventListener("DOMContentLoaded", function() {
     if (!document.body.classList.contains("theme-lcars")) return;
     const style = document.createElement("style");
-    style.textContent = `.theme-lcars .lcars-panel { border-bottom: none !important; overflow: visible !important; }`;
+    style.textContent = `.theme-lcars .lcars-panel { overflow: visible !important; }`;
     document.head.appendChild(style);
     setTimeout(renderPanelElbows, 300);
 });

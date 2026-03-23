@@ -626,7 +626,7 @@ function renderEntityDetail(subject, props) {
     const rows = props.filter(p => p.predicate !== "rdf:type").map(t => {
         const predHuman = humanize(t.predicate);
         const isURI = t.object_type === "uri";
-        const objDisplay = isURI ? humanize(t.object) : fmtNum(t.object);
+        const objDisplay = isURI ? humanize(t.object) : fmtNum(t.object, t.datatype);
         const objClick = isURI && !t.object.startsWith("_:")
             ? ` onclick="selectTripleSubject('${escapeAttr(t.object)}')" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted"`
             : "";
@@ -676,7 +676,7 @@ function renderObservationSummary(triples) {
 
     const cards = Object.entries(byProperty).sort((a, b) => a[0].localeCompare(b[0])).map(([prop, obsList]) => {
         const latest = obsList[0];
-        const value = fmtNum(latest["sosa:hasSimpleResult"]) || "—";
+        const value = fmtValue(latest["sosa:hasSimpleResult"], "xsd:decimal") || "—";
         const sensor = humanize(latest["sosa:madeBySensor"] || "");
         const time = latest["sosa:resultTime"] || "";
         const timeShort = time ? time.replace("T", " ").replace("Z", "") : "";
@@ -701,7 +701,7 @@ function renderTableView(triples) {
     const rows = triples.slice(0, 100).map(t => {
         const subjectHuman = humanize(t.subject);
         const predHuman = humanize(t.predicate);
-        const objHuman = t.object_type === "uri" ? humanize(t.object) : fmtNum(t.object);
+        const objHuman = t.object_type === "uri" ? humanize(t.object) : fmtValue(t.object, t.datatype);
         const graph = t.graph || "";
         const color = GRAPH_COLORS[graph] || "var(--text-dim)";
         return `<tr>
@@ -982,23 +982,57 @@ function escapeAttr(s) {
     return (s || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
 
-// Format numbers: space-separated thousands, integers stay integers
-// "4" → "4", "1000" → "1 000", "0.7200" → "0.72", "1234567" → "1 234 567"
-function fmtNum(val) {
-    if (val == null || val === "") return val;
+// Format a value based on its xsd datatype.
+// Drives display formatting from the ontology's type system.
+function fmtValue(val, datatype) {
+    if (val == null || val === "") return val || "";
     const s = String(val).trim();
-    const n = Number(s);
-    if (isNaN(n)) return s;
-    // Integer check: no decimal point in source, or all zeros after decimal
-    if (Number.isInteger(n) || /^-?\d+\.0+$/.test(s)) {
+    const dt = (datatype || "").toLowerCase();
+
+    // xsd:boolean → Yes/No badge
+    if (dt.includes("boolean")) {
+        const truthy = s === "true" || s === "1";
+        const color = truthy ? "var(--c-health,#6aab8e)" : "var(--c-alert,#cc6666)";
+        const label = truthy ? "Yes" : "No";
+        return `<span style="color:${color};font-weight:600">${label}</span>`;
+    }
+
+    // xsd:dateTime → readable date/time
+    if (dt.includes("datetime") || dt.includes("date")) {
+        return s.replace("T", " ").replace("Z", " UTC").replace(/\.\d+/, "");
+    }
+
+    // xsd:decimal, xsd:float, xsd:double → 2 decimal places
+    if (dt.includes("decimal") || dt.includes("float") || dt.includes("double")) {
+        const n = Number(s);
+        if (isNaN(n)) return s;
+        const [intPart, decPart] = n.toFixed(2).split(".");
+        return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + "." + decPart;
+    }
+
+    // xsd:integer, xsd:int, xsd:long → integer with space separators
+    if (dt.includes("integer") || dt.includes("int") || dt.includes("long")) {
+        const n = Number(s);
+        if (isNaN(n)) return s;
         return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
-    // Float: strip trailing zeros, then format integer part with spaces
-    const fixed = parseFloat(n.toPrecision(4)).toString();
-    const [intPart, decPart] = fixed.split(".");
-    const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-    return decPart ? intFormatted + "." + decPart : intFormatted;
+
+    // No datatype — infer from value
+    const n = Number(s);
+    if (!isNaN(n) && s !== "") {
+        if (s.includes(".") && !(/^-?\d+\.0+$/.test(s))) {
+            const [intPart, decPart] = n.toFixed(2).split(".");
+            return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + "." + decPart;
+        }
+        return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    // xsd:string or untyped — return as-is
+    return s;
 }
+
+// Backward compat alias
+function fmtNum(val, datatype) { return fmtValue(val, datatype); }
 
 // ── agentd Session 95: Fleet Cognitive Panels ─────────────────
 async function fetchFleetCognitive() {

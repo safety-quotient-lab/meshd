@@ -135,11 +135,11 @@ function renderPanelElbows() {
 
         // Observer to re-draw on size changes
         const draw = () => {
-            const armW = 20;    // left arm width (proportional to frame --sidebar-width)
-            const footH = 10;  // bottom foot height (proportional to frame --band-size)
+            const armW = 20;    // left arm width
+            const footH = 24;  // bottom foot — matches lcars-pill-sm min-height (24px)
             const W = panel.offsetWidth + armW;
             const H = panel.offsetHeight;
-            const hdrH = header.offsetHeight;
+            const hdrH = Math.max(header.offsetHeight, 24); // at least pill height
             const ro = 18;     // outer corner radius
             const ri = 12;     // inner concave radius
 

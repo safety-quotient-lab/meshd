@@ -664,12 +664,13 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     height: 24px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
-    align-items: stretch; /* segments fill full height — matches main LCARS frame */
+    align-items: stretch; /* segments fill full height */
     gap: 2px; /* black gaps between segments */
-    background: #000; /* gaps show as black */
+    background: var(--panel-accent, var(--c-transport)); /* accent bar — pills cut into it */
     position: relative;
     z-index: 2;
     min-height: 18px;
+    padding: 0 3px; /* edge gaps */
 }
 /* Title pill — black cutout rectangle inside the colored header bar.
    Cargo Bay A (3): title text in dark rectangle punched into bar. */
@@ -677,19 +678,23 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     background: #000;
     color: var(--panel-accent, var(--c-transport));
     padding: 0 10px 2px;
+    margin: 3px 0; /* 3px gap top+bottom — matches stardate pill */
     border-radius: var(--gap-xs, 4px);
     white-space: nowrap;
     flex: 0 0 auto;
     display: inline-flex;
-    align-items: flex-end; /* bottom-aligned */
+    align-items: flex-end;
 }
 /* Tristate triangle — its own pill, vertically centered */
 .theme-lcars .pill-tristate-wrap {
-    background: var(--panel-accent, var(--c-transport));
+    background: #000;
+    color: var(--panel-accent, var(--c-transport));
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0 6px;
+    margin: 3px 0;
+    border-radius: var(--gap-xs, 4px);
     flex: 0 0 auto;
     cursor: pointer;
 }

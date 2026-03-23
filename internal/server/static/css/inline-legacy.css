@@ -697,7 +697,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel-body {
     margin-left: 0; /* border-left provides the arm */
     margin-bottom: 0;
-    padding-bottom: 32px; /* clear the SVG footer (24px arm + 8px gap) */
+    padding-bottom: 4px; /* footer flows after body, no overlap to clear */
     position: relative;
     z-index: 2;
 }
@@ -981,11 +981,9 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
     gap: 2px; /* thin dark gap between pills — like Cargo Bay A (3) */
-    position: absolute;
-    bottom: 0;
-    left: 2px; /* small gap from content edge (arm provided by border-left) */
-    right: 0;
-    height: 24px; /* fill the full footer arm height */
+    position: relative; /* flows after body — no overlap */
+    height: 24px;
+    background: var(--panel-accent, var(--c-transport));
     z-index: 2;
 }
 /* Individual footer pills — solid colored rectangles inside the arm,
@@ -1985,13 +1983,9 @@ body {
 .theme-lcars .lcars-panel.panel-tristate.panel-collapsed {
     overflow: hidden !important;
 }
+/* Collapsed footer: same as normal — flows after header with thin gap */
 .panel-tristate.panel-collapsed .lcars-panel-footer-row {
-    position: relative !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: auto !important;
-    margin-left: 0 !important;
-    margin-top: 2px; /* thin black gap between header and footer arms */
+    margin-top: 2px; /* thin black gap between header and footer */
 }
 /* Header doesn't need extra margin when border provides the arm */
 .panel-tristate.panel-collapsed > .lcars-panel-header {

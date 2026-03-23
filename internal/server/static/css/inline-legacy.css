@@ -996,7 +996,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     gap: 2px; /* black gaps between segments */
     position: relative;
     height: 24px;
-    background: #000; /* gaps show as black */
+    background: transparent; /* SVG draws the footer bar behind; pills are colored segments */
     z-index: 2;
     justify-content: flex-end; /* pills pushed to the right */
 }

@@ -426,7 +426,12 @@ function switchTab(tabId, updateHash = true) {
     else { stopWaveformAnimation(); }
     if (tabId === "transport") fetchTransportData();
     if (tabId === "integrity") fetchIntegrityData();
-    if (updateHash) history.replaceState(null, "", `#${tabId}`);
+    if (updateHash) {
+        const url = new URL(location);
+        url.hash = tabId;
+        url.searchParams.delete("sub");
+        history.replaceState(null, "", url);
+    }
 }
 
 window.addEventListener("hashchange", () => {

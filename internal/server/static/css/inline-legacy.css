@@ -632,9 +632,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel {
     background: #000;
     border: none;
-    border-left: 14px solid var(--panel-accent, var(--c-transport));
-    border-bottom: 6px solid var(--panel-accent, var(--c-transport));
-    border-radius: 0 0 0 14px; /* outer bottom-left corner */
+    border-left: 20px solid var(--panel-accent, var(--c-transport));
     overflow: visible;
     position: relative;
 }
@@ -649,7 +647,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     width: calc(100% + 20px);
     height: 100%;
     pointer-events: none;
-    z-index: 1;
+    z-index: 3; /* above border-left, draws inner curves + footer */
 }
 /* Header bar — colored bar with black title cutout.
    Cargo Bay A (3) reference: title sits in a dark rectangle
@@ -660,7 +658,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     border-bottom: none;
     border-radius: 0;
     padding: 0 4px 0 0;
-    margin-left: 20px; /* clear SVG arm — inner curve visible in the gap */
+    margin-left: 0; /* border-left provides the arm */
     height: 24px; /* match pill height */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
@@ -695,9 +693,9 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 }
 /* Body content sits in the black area between the arm and footer */
 .theme-lcars .lcars-panel-body {
-    margin-left: 20px; /* clear the SVG arm */
+    margin-left: 0; /* border-left provides the arm */
     margin-bottom: 0;
-    padding-bottom: 28px; /* clear the SVG footer — inside the scroll boundary */
+    padding-bottom: 28px; /* clear the SVG footer */
     position: relative;
     z-index: 2;
 }
@@ -983,7 +981,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     gap: 2px; /* thin dark gap between pills — like Cargo Bay A (3) */
     position: absolute;
     bottom: 0;
-    left: 20px; /* flush with arm edge */
+    left: 2px; /* small gap from content edge (arm provided by border-left) */
     right: 0;
     height: 24px; /* fill the full footer arm height */
     z-index: 2;
@@ -1981,11 +1979,9 @@ body {
 .panel-tristate.panel-collapsed > .lcars-panel-body { display: none !important; }
 .panel-tristate.panel-collapsed > .lcars-panel-header { border-bottom: none; }
 .panel-tristate.panel-collapsed .panel-elbow-svg { display: none !important; }
-/* Left arm as CSS border when SVG hidden — extra specificity to beat
-   the JS-injected border-left:none rule */
+/* Collapsed: arm stays (border-left always present), SVG hidden, body hidden */
 .theme-lcars .lcars-panel.panel-tristate.panel-collapsed {
-    border-left: 20px solid var(--panel-accent, var(--c-transport)) !important;
-    border-bottom: none !important;
+    overflow: hidden !important;
 }
 .panel-tristate.panel-collapsed .lcars-panel-footer-row {
     position: static !important;

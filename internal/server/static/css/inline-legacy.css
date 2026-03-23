@@ -660,8 +660,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     border-bottom: none;
     border-radius: 0;
     padding: 0 4px 0 0;
-    margin: 0;
-    padding-left: 21px; /* 2× golden ratio from arm */
+    margin: 0 0 0 -20px; /* extend left INTO the border area — eliminates anti-alias seam */
+    padding-left: 41px; /* 20px (border overlap) + 21px (golden ratio spacing) */
     height: 24px;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;

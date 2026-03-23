@@ -1846,33 +1846,31 @@ body {
 }
 
 /* ── Three-state panel: collapsed / fixed / expanded ──────── */
-/* Click header to cycle. Add .panel-tristate to the .lcars-panel. */
-.panel-tristate > .lcars-panel-header { cursor: pointer; user-select: none; }
-.panel-tristate > .lcars-panel-header::after { content: none; }
+/* Tri-state panel: fixed (default) → expanded → collapsed → fixed.
+   Fixed = capped height with scroll. Expanded = full height. Collapsed = header only. */
+.panel-tristate > .lcars-panel-header { cursor: pointer; user-select: none; display: flex; align-items: baseline; }
 .panel-tristate > .lcars-panel-header::before {
-    content: "▾"; padding-right: 8px; opacity: 0.5; font-size: 0.8em;
+    content: "━"; padding-right: 8px; opacity: 0.5; font-size: 0.7em; flex-shrink: 0;
 }
-/* State: fixed (default) — capped height, clipped (tap to expand for full content) */
+.panel-tristate > .lcars-panel-header .lcars-panel-id { margin-left: auto; }
+/* Fixed (default): capped height, scrollable within cap */
 .panel-tristate > .lcars-panel-body {
-    max-height: 300px; overflow: hidden; transition: max-height 0.2s ease;
-}
-/* Scrollable override — panel body with .scrollable scrolls instead of clipping */
-.panel-tristate > .lcars-panel-body.scrollable {
-    max-height: 420px; overflow-y: scroll; overflow-x: hidden;
+    max-height: 300px; overflow-y: auto; transition: max-height 0.2s ease, padding 0.2s ease;
     scrollbar-width: thin; scrollbar-color: #cc9966 #1a1a2e;
 }
-.panel-tristate > .lcars-panel-body.scrollable::-webkit-scrollbar { width: 10px; }
-.panel-tristate > .lcars-panel-body.scrollable::-webkit-scrollbar-track { background: #1a1a2e; }
-.panel-tristate > .lcars-panel-body.scrollable::-webkit-scrollbar-thumb { background: #cc9966; border-radius: 5px; }
-.panel-tristate > .lcars-panel-body.scrollable::-webkit-scrollbar-thumb:hover { background: #ff9966; }
-/* State: collapsed — header only */
-.panel-tristate.panel-collapsed > .lcars-panel-body { max-height: 0; padding: 0 16px; overflow: hidden; }
-.panel-tristate.panel-collapsed > .lcars-panel-header::after { content: none; }
-.panel-tristate.panel-collapsed > .lcars-panel-header::before { content: "▸"; }
-/* State: expanded — full height, no scroll cap */
+.panel-tristate > .lcars-panel-body::-webkit-scrollbar { width: 10px; }
+.panel-tristate > .lcars-panel-body::-webkit-scrollbar-track { background: #1a1a2e; }
+.panel-tristate > .lcars-panel-body::-webkit-scrollbar-thumb { background: #cc9966; border-radius: 5px; }
+/* Scrollable override (Knowledge Graph etc) — taller cap */
+.panel-tristate > .lcars-panel-body.scrollable {
+    max-height: 420px; overflow-y: scroll; overflow-x: hidden;
+}
+/* Expanded: full height, no cap */
 .panel-tristate.panel-expanded > .lcars-panel-body { max-height: none; overflow: visible; }
-.panel-tristate.panel-expanded > .lcars-panel-header::after { content: none; }
-.panel-tristate.panel-expanded > .lcars-panel-header::before { content: "▴"; }
+.panel-tristate.panel-expanded > .lcars-panel-header::before { content: "▾"; }
+/* Collapsed: header only */
+.panel-tristate.panel-collapsed > .lcars-panel-body { max-height: 0 !important; padding-top: 0; padding-bottom: 0; overflow: hidden; }
+.panel-tristate.panel-collapsed > .lcars-panel-header::before { content: "▸"; }
 
 /* Table toolbar — filter + pagination */
 .table-toolbar {

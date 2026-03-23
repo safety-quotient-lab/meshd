@@ -106,10 +106,9 @@ document.addEventListener("click", function(e) {
     const header = e.target.closest(".panel-tristate > .lcars-panel-header");
     if (!header) return;
     const panel = header.parentElement;
-    // Cycle: fixed (default) → expanded → collapsed → fixed
+    // Tri-state: fixed (default ━) → expanded (▾) → collapsed (▸) → fixed
     if (panel.classList.contains("panel-collapsed")) {
         panel.classList.remove("panel-collapsed");
-        // back to fixed (default)
     } else if (panel.classList.contains("panel-expanded")) {
         panel.classList.remove("panel-expanded");
         panel.classList.add("panel-collapsed");

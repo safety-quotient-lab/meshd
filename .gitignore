@@ -10,3 +10,5 @@ meshd
 meshd-linux
 meshd-darwin
 .DS_Store
+meshd-linux
+meshd

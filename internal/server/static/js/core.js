@@ -251,7 +251,7 @@ function renderPanelElbows() {
 document.addEventListener("DOMContentLoaded", function() {
     if (!document.body.classList.contains("theme-lcars")) return;
     const style = document.createElement("style");
-    style.textContent = `.theme-lcars .lcars-panel { border-left: none !important; border-bottom: none !important; border-radius: 0 !important; overflow: visible !important; }`;
+    style.textContent = `.theme-lcars .lcars-panel:not(.panel-collapsed) { border-left: none !important; border-bottom: none !important; border-radius: 0 !important; overflow: visible !important; }`;
     document.head.appendChild(style);
     setTimeout(renderPanelElbows, 300);
 });

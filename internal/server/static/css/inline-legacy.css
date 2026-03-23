@@ -696,7 +696,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 /* Body content sits in the black area between the arm and footer */
 .theme-lcars .lcars-panel-body {
     margin-left: 20px; /* clear the SVG arm */
-    margin-bottom: 24px; /* clear the SVG footer (matches pill height) */
+    margin-bottom: 0;
+    padding-bottom: 28px; /* clear the SVG footer — inside the scroll boundary */
     position: relative;
     z-index: 2;
 }
@@ -1980,9 +1981,11 @@ body {
 .panel-tristate.panel-collapsed > .lcars-panel-body { display: none !important; }
 .panel-tristate.panel-collapsed > .lcars-panel-header { border-bottom: none; }
 .panel-tristate.panel-collapsed .panel-elbow-svg { display: none !important; }
-/* Left arm as CSS border when SVG hidden */
-.panel-tristate.panel-collapsed {
+/* Left arm as CSS border when SVG hidden — extra specificity to beat
+   the JS-injected border-left:none rule */
+.theme-lcars .lcars-panel.panel-tristate.panel-collapsed {
     border-left: 20px solid var(--panel-accent, var(--c-transport)) !important;
+    border-bottom: none !important;
 }
 .panel-tristate.panel-collapsed .lcars-panel-footer-row {
     position: static !important;

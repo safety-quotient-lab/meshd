@@ -660,7 +660,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     border-radius: 0;
     padding: 0 4px 0 0;
     margin-left: 0;
-    padding-left: 8px; /* nudge title pill + triangle away from arm edge */
+    padding-left: 13px; /* 8px × φ ≈ 13px — golden ratio spacing from arm */
     height: 24px; /* match pill height */
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     display: flex;
@@ -697,7 +697,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel-body {
     margin-left: 0; /* border-left provides the arm */
     margin-bottom: 0;
-    padding-bottom: 28px; /* clear the SVG footer */
+    padding-bottom: 32px; /* clear the SVG footer (24px arm + 8px gap) */
     position: relative;
     z-index: 2;
 }
@@ -1986,10 +1986,10 @@ body {
     overflow: hidden !important;
 }
 .panel-tristate.panel-collapsed .lcars-panel-footer-row {
-    position: static !important;
-    left: auto !important;
-    right: auto !important;
-    width: 100% !important;
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
     margin-left: 0 !important;
     margin-top: 2px; /* thin black gap between header and footer arms */
 }

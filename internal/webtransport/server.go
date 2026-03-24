@@ -166,10 +166,20 @@ func (s *Server) HandleCertHash() http.HandlerFunc {
 			json.NewEncoder(w).Encode(map[string]any{"error": "cert not ready"})
 			return
 		}
+		// Include session list for observability
+		s.mu.RLock()
+		sessionIDs := make([]string, 0, len(s.sessions))
+		for id := range s.sessions {
+			sessionIDs = append(sessionIDs, id)
+		}
+		s.mu.RUnlock()
+
 		json.NewEncoder(w).Encode(map[string]any{
 			"hash":      fmt.Sprintf("%x", s.certHash),
 			"algorithm": "sha-256",
 			"port":      s.addr,
+			"sessions":  len(sessionIDs),
+			"connected": sessionIDs,
 		})
 	}
 }

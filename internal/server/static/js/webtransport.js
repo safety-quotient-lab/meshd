@@ -77,19 +77,12 @@ async function listenForDatagrams(transport) {
 }
 
 function handleDatagram(msg) {
-    // Route broadcast signals to existing dashboard handlers
-    if (msg.type === "alert") {
-        if (typeof setManualAlert === "function") setManualAlert(msg.level);
-    } else if (msg.type === "status") {
-        // Real-time agent status update via datagram
-        if (msg.agent_id && typeof agentData !== "undefined") {
-            agentData[msg.agent_id] = {
-                id: msg.agent_id,
-                status: "online",
-                data: msg.data || { agent_id: msg.agent_id },
-            };
-            if (typeof renderAll === "function") renderAll();
-        }
+    // Route all datagrams through the existing realtime event handler
+    // (ws-sse.js handleRealtimeEvent). Unified event pipeline —
+    // WebTransport datagrams, WebSocket messages, and SSE events
+    // all converge on the same handler.
+    if (typeof handleRealtimeEvent === "function") {
+        handleRealtimeEvent(msg);
     }
 }
 

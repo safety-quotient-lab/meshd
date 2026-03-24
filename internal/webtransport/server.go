@@ -34,9 +34,10 @@ type Server struct {
 	addr     string
 	certFile string // PEM cert path (empty = self-signed)
 	keyFile  string // PEM key path (empty = self-signed)
-	logger   *slog.Logger
-	wtServer *webtransport.Server
-	certHash []byte // SHA-256 of the cert DER
+	logger    *slog.Logger
+	wtServer  *webtransport.Server
+	certHash  []byte // SHA-256 of the cert DER
+	onMessage MessageHandler
 
 	mu       sync.RWMutex
 	sessions map[string]*webtransport.Session // agentID → session
@@ -180,6 +181,13 @@ func (s *Server) SessionCount() int {
 	return len(s.sessions)
 }
 
+// MessageHandler processes an inbound interagent/v1 message received via stream.
+// Set via OnMessage before Start.
+type MessageHandler func(fromAgent string, msg json.RawMessage)
+
+// OnMessage sets the handler for inbound stream messages.
+func (s *Server) OnMessage(h MessageHandler) { s.onMessage = h }
+
 func (s *Server) handleSession(ctx context.Context, session *webtransport.Session) {
 	// Read the first stream to get the agent's identity
 	stream, err := session.AcceptStream(ctx)
@@ -213,11 +221,18 @@ func (s *Server) handleSession(ctx context.Context, session *webtransport.Sessio
 
 	// Send welcome acknowledgment on the identity stream
 	json.NewEncoder(stream).Encode(map[string]any{
-		"status":   "connected",
-		"agent_id": agentID,
-		"server":   "meshd",
+		"status":     "connected",
+		"agent_id":   agentID,
+		"server":     "meshd",
+		"session_count": s.SessionCount(),
 	})
 	stream.Close()
+
+	// Accept incoming datagrams from agent (status updates)
+	go s.readDatagrams(agentID, session)
+
+	// Accept subsequent streams (interagent/v1 messages)
+	go s.acceptStreams(ctx, agentID, session)
 
 	// Keep session alive until it closes
 	<-session.Context().Done()
@@ -226,6 +241,66 @@ func (s *Server) handleSession(ctx context.Context, session *webtransport.Sessio
 	delete(s.sessions, agentID)
 	s.mu.Unlock()
 	s.logger.Info("webtransport session closed", "agent", agentID)
+}
+
+// readDatagrams reads datagrams from an agent session and rebroadcasts
+// them to all other sessions (fan-out). Agent status updates flow this way.
+func (s *Server) readDatagrams(agentID string, session *webtransport.Session) {
+	for {
+		data, err := session.ReceiveDatagram(session.Context())
+		if err != nil {
+			return // session closed
+		}
+
+		// Parse to extract type for logging
+		var msg struct {
+			Type string `json:"type"`
+		}
+		json.Unmarshal(data, &msg)
+		s.logger.Debug("datagram received", "from", agentID, "type", msg.Type, "bytes", len(data))
+
+		// Rebroadcast to all OTHER sessions (not back to sender)
+		s.mu.RLock()
+		for id, sess := range s.sessions {
+			if id == agentID {
+				continue
+			}
+			sess.SendDatagram(data)
+		}
+		s.mu.RUnlock()
+	}
+}
+
+// acceptStreams accepts bidirectional streams after the identity stream.
+// Each stream carries one interagent/v1 JSON message.
+func (s *Server) acceptStreams(ctx context.Context, agentID string, session *webtransport.Session) {
+	for {
+		stream, err := session.AcceptStream(ctx)
+		if err != nil {
+			return // session closed
+		}
+
+		go func() {
+			defer stream.Close()
+			var raw json.RawMessage
+			if err := json.NewDecoder(stream).Decode(&raw); err != nil {
+				s.logger.Debug("stream decode error", "from", agentID, "err", err)
+				return
+			}
+
+			s.logger.Info("stream message received", "from", agentID, "bytes", len(raw))
+
+			// Send acknowledgment
+			json.NewEncoder(stream).Encode(map[string]string{
+				"status": "received",
+			})
+
+			// Route to message handler
+			if s.onMessage != nil {
+				s.onMessage(agentID, raw)
+			}
+		}()
+	}
 }
 
 // generateSelfSignedCert creates a self-signed ECDSA certificate valid for

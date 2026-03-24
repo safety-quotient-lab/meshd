@@ -640,6 +640,13 @@ func main() {
 	// Expose cert hash on the main HTTP server (TCP) so browsers can fetch
 	// it before opening the QUIC connection
 	srv.HandleFunc("GET /api/webtransport/certhash", wtSrv.HandleCertHash())
+	// Wire WT broadcast into the event pipeline
+	srv.WTBroadcast = func(v any) { wtSrv.BroadcastJSON(v) }
+	// Wire inbound WT messages to the event pipeline
+	wtSrv.OnMessage(func(fromAgent string, msg json.RawMessage) {
+		logger.Info("webtransport message received", "from", fromAgent, "bytes", len(msg))
+		// TODO: parse interagent/v1 message and route to event queue
+	})
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

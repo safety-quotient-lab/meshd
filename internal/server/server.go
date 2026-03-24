@@ -111,6 +111,10 @@ type Server struct {
 	// SSEBroadcast exposes the broker's Broadcast for external callers (ZMQ handler).
 	SSEBroadcast func(SSEEvent)
 
+	// WTBroadcast sends a datagram to all connected WebTransport sessions.
+	// Set by main.go after the WT server starts.
+	WTBroadcast func(any)
+
 	// rpcMethods maps JSON-RPC method names to HTTP handlers.
 	// Built once during route registration via buildMethodTable().
 	rpcMethods map[string]methodRoute
@@ -184,6 +188,14 @@ func (s *Server) RecordEvent(ev events.Event) {
 		s.sseBroker.Broadcast(SSEEvent{
 			Type: string(ev.Type),
 			Data: ev,
+		})
+	}
+
+	// Broadcast to WebTransport clients
+	if s.WTBroadcast != nil {
+		s.WTBroadcast(map[string]any{
+			"type": string(ev.Type),
+			"data": ev,
 		})
 	}
 }

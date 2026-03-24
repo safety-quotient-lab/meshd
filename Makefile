@@ -35,7 +35,7 @@ deploy-restart:
 deploy-validate:
 	@echo ""
 	@echo "═══ Post-deploy validation ═══"
-	@sleep 5
+	@sleep 8
 	@curl -sf http://localhost:8081/health && echo "  localhost:8081 OK" || echo "  localhost:8081 FAILED"
 	@curl -sf https://mesh.safety-quotient.dev/health && echo "  mesh.safety-quotient.dev OK" || echo "  mesh.safety-quotient.dev FAILED"
 

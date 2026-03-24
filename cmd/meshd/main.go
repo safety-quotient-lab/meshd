@@ -41,6 +41,7 @@ import (
 	"github.com/safety-quotient-lab/meshd/internal/spawner"
 	"github.com/safety-quotient-lab/meshd/internal/transport"
 	"github.com/safety-quotient-lab/meshd/internal/webhook"
+	wt "github.com/safety-quotient-lab/meshd/internal/webtransport"
 	"github.com/safety-quotient-lab/meshd/internal/zmqbus"
 )
 
@@ -627,9 +628,30 @@ func main() {
 		}
 	}()
 
+	// ── WebTransport server (QUIC/HTTP3, separate port) ─────────
+	wtAddr := fmt.Sprintf(":%d", cfg.Port+1000) // e.g., 8081 → 9081
+	wtCert := filepath.Join(cfg.RepoRoot, "certs", "localhost+2.pem")
+	wtKey := filepath.Join(cfg.RepoRoot, "certs", "localhost+2-key.pem")
+	// Fall back to self-signed if mkcert certs not present
+	if _, err := os.Stat(wtCert); err != nil {
+		wtCert, wtKey = "", ""
+	}
+	wtSrv := wt.New(wtAddr, wtCert, wtKey, logger)
+	// Expose cert hash on the main HTTP server (TCP) so browsers can fetch
+	// it before opening the QUIC connection
+	srv.HandleFunc("GET /api/webtransport/certhash", wtSrv.HandleCertHash())
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := wtSrv.Start(ctx); err != nil && ctx.Err() == nil {
+			logger.Error("webtransport server stopped", "error", err)
+		}
+	}()
+
 	logger.Info("meshd ready",
 		"port", cfg.Port,
-		"subsystems", "queue,dispatcher,watcher,monitor,server,poll,fetcher",
+		"wt_port", cfg.Port+1000,
+		"subsystems", "queue,dispatcher,watcher,monitor,server,poll,fetcher,webtransport",
 	)
 
 	// ── Wait for shutdown signal ───────────────────────────────────

@@ -11,3 +11,4 @@ state.db-shm
 /meshd-darwin
 /meshd-linux-amd64
 .DS_Store
+certs/

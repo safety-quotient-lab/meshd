@@ -62,6 +62,7 @@ type Server struct {
 	Config     *config.Config
 	Health     *health.Monitor
 	httpServer *http.Server
+	mux        *http.ServeMux // exposed for late-binding routes (e.g. WebTransport certhash)
 	startTime  time.Time
 	logger     *slog.Logger
 	eventLog   []events.Event
@@ -231,14 +232,25 @@ func (s *Server) ListenAndServe() error {
 // ListenAndServeContext starts the HTTP server and blocks until the context
 // cancels. Active requests get up to 5 seconds to drain before forced
 // termination. The caller controls shutdown through context cancellation.
+// HandleFunc registers an additional route on the server's mux.
+// Must call before ListenAndServeContext or after InitRoutes.
+func (s *Server) HandleFunc(pattern string, handler http.HandlerFunc) {
+	if s.mux == nil {
+		s.mux = http.NewServeMux()
+	}
+	s.mux.HandleFunc(pattern, handler)
+}
+
 func (s *Server) ListenAndServeContext(ctx context.Context) error {
 	s.initTripleStore()
-	mux := http.NewServeMux()
-	s.registerRoutes(mux)
+	if s.mux == nil {
+		s.mux = http.NewServeMux()
+	}
+	s.registerRoutes(s.mux)
 
 	addr := fmt.Sprintf("127.0.0.1:%d", s.Config.Port)
 	s.httpServer = &http.Server{
-		Handler:           s.middleware(mux),
+		Handler:           s.middleware(s.mux),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
@@ -481,7 +493,7 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			"default-src 'self'",
 			"script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
 			"style-src 'self' 'unsafe-inline'",
-			"connect-src 'self' https://*.safety-quotient.dev https://*.unratified.org wss://mesh.safety-quotient.dev",
+			fmt.Sprintf("connect-src 'self' https://*.safety-quotient.dev https://*.unratified.org wss://mesh.safety-quotient.dev https://localhost:%d", s.Config.Port+1000),
 		}, "; "))
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 

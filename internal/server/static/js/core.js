@@ -33,7 +33,7 @@
 // Agent registry — daemon processes serving /api/status
 const AGENTS = [
     { id: "psychology-agent", name: "psychology", url: "https://psychology-agent.safety-quotient.dev", color: "#5b9cf6" },
-    { id: "psq-agent", name: "safety-quotient", url: "https://psq-agent.safety-quotient.dev", color: "#4ecdc4" },
+    { id: "safety-quotient-agent", name: "safety-quotient", url: "https://psq-agent.safety-quotient.dev", color: "#4ecdc4" },
     { id: "unratified-agent", name: "unratified", url: "https://unratified-agent.unratified.org", color: "#e5a735" },
     { id: "observatory-agent", name: "observatory", url: "https://observatory-agent.unratified.org", color: "#a78bfa" },
     { id: "psy-session", name: "psy-session", url: "https://psy-session.safety-quotient.dev", color: "#7ba4d4" },
@@ -130,11 +130,34 @@ document.addEventListener("click", function(e) {
 function renderPanelElbows() {
     if (!document.body.classList.contains("theme-lcars")) return;
     document.querySelectorAll(".theme-lcars .lcars-panel").forEach(panel => {
-        // Skip if already rendered
-        if (panel.querySelector(".panel-elbow-svg")) return;
-
         const header = panel.querySelector(".lcars-panel-header");
         if (!header) return;
+
+        // Ensure every panel has a footer — the L-shape always draws a footer bar.
+        // Runs before SVG skip so late-rendered panels still get footers.
+        let footerEls = panel.querySelectorAll(".lcars-panel-footer, .lcars-panel-status");
+        if (footerEls.length === 0) {
+            const emptyFooter = document.createElement("div");
+            emptyFooter.className = "lcars-panel-footer";
+            panel.appendChild(emptyFooter);
+            footerEls = panel.querySelectorAll(".lcars-panel-footer");
+        }
+        if (!panel.querySelector(".lcars-panel-footer-row")) {
+            const row = document.createElement("div");
+            row.className = "lcars-panel-footer-row";
+            footerEls.forEach(el => row.appendChild(el));
+            panel.appendChild(row);
+        }
+        // Mark footer-row as empty when all children lack text content —
+        // transparent background lets SVG bar color show through
+        const fRow = panel.querySelector(".lcars-panel-footer-row");
+        if (fRow) {
+            const hasContent = Array.from(fRow.children).some(c => c.textContent.trim() !== "");
+            fRow.classList.toggle("footer-row-empty", !hasContent);
+        }
+
+        // Skip if SVG already rendered
+        if (panel.querySelector(".panel-elbow-svg")) return;
 
         // Wrap header text in a title pill (dark cutout inside the colored bar)
         if (!header.querySelector(".panel-title-pill")) {
@@ -155,21 +178,12 @@ function renderPanelElbows() {
                 triWrap.className = "pill-tristate-wrap";
                 const tri = document.createElement("span");
                 tri.className = "pill-tristate-indicator";
-                tri.style.cssText = "display:block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #000;transition:transform 0.15s;transform-origin:2px 4px";
+                tri.style.cssText = "display:block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid currentColor;transition:transform 0.15s;transform-origin:2px 4px";
                 triWrap.appendChild(tri);
                 header.insertBefore(triWrap, header.firstChild);
             }
 
             header.insertBefore(pill, header.querySelector(".pill-tristate-wrap")?.nextSibling || header.firstChild);
-        }
-
-        // Wrap footer/status elements in a footer-row for horizontal layout
-        const footerEls = panel.querySelectorAll(".lcars-panel-footer, .lcars-panel-status");
-        if (footerEls.length > 0 && !panel.querySelector(".lcars-panel-footer-row")) {
-            const row = document.createElement("div");
-            row.className = "lcars-panel-footer-row";
-            footerEls.forEach(el => row.appendChild(el));
-            panel.appendChild(row);
         }
 
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -178,13 +192,13 @@ function renderPanelElbows() {
 
         // Observer to re-draw on size changes
         const draw = () => {
-            const armW = 20;    // left arm width
-            const footH = 24;  // bottom foot — matches lcars-pill-sm min-height (24px)
+            const armW = 32;    // left arm width (bulkier — TNG reference)
+            const footH = 32;  // bottom foot height
             const W = panel.offsetWidth + armW;
             const H = panel.offsetHeight;
-            const hdrH = Math.max(header.offsetHeight, 24); // at least pill height
-            const ro = 18;     // outer corner radius
-            const ri = 12;     // inner concave radius
+            const hdrH = Math.max(header.offsetHeight, 32); // at least bar height
+            const ro = 24;     // outer corner radius (chunkier)
+            const ri = 16;     // inner concave radius
 
             if (W < 20 || H < 20) return;
 
@@ -192,9 +206,12 @@ function renderPanelElbows() {
             svg.setAttribute("width", W);
             svg.setAttribute("height", H);
 
-            // Read the accent color — resolve CSS variable via temp element
+            // Read the accent color — alert-chrome overrides panel-accent
             const tmp = document.createElement("div");
-            tmp.style.cssText = "color: var(--panel-accent, #cc9966); position:absolute; visibility:hidden";
+            const alertActive = document.body.dataset.alertLevel && document.body.dataset.alertLevel < 5;
+            tmp.style.cssText = alertActive
+                ? "color: var(--alert-chrome, var(--panel-accent, #cc9966)); position:absolute; visibility:hidden"
+                : "color: var(--panel-accent, #cc9966); position:absolute; visibility:hidden";
             panel.appendChild(tmp);
             const color = getComputedStyle(tmp).color;
             tmp.remove();
@@ -583,6 +600,55 @@ function renderNumberGrid(containerId, metrics) {
     }).join("");
 }
 
+// ── Subpanel Footer Pills ─────────────────────────────────
+// Populates black cutout data pills in subpanel lower bars.
+// Each station provides a pill spec: [{label, value?, id}].
+function renderSubpanelPills(containerId, pills) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!pills || pills.length === 0) { el.innerHTML = ""; return; }
+    el.innerHTML = pills.map(p => {
+        const val = p.value ? ` <span style="opacity:0.7">${p.value}</span>` : "";
+        return `<span class="subpanel-pill"${p.id ? ` id="${p.id}"` : ""}>${p.label}${val}</span>`;
+    }).join("");
+}
+
+// Populate all station subpanel footers from current data
+function updateSubpanelFooters() {
+    const online = Object.values(agentData).filter(a => a?.status === "online");
+    const total = Object.keys(agentData).length;
+    const alertNames = { 5: "GREEN", 4: "BLUE", 3: "YELLOW", 2: "RED", 1: "BLACK" };
+
+    // Governance footer: agent count + alert level
+    renderSubpanelPills("gov-subpanel-footer", [
+        { label: `${online.length}/${total} ONLINE` },
+        { label: alertNames[currentAlertLevel] || "—", id: "gov-pill-alert" },
+    ]);
+
+    // Analysis footer: scoring status
+    const psqAgent = Object.values(agentData).find(a => a?.id === "psq-agent" || a?.id === "safety-quotient-agent");
+    const psqStatus = psqAgent?.status === "online" ? "SCORING ONLINE" : "SCORING OFFLINE";
+    renderSubpanelPills("analysis-subpanel-footer", [
+        { label: psqStatus },
+    ]);
+
+    // Architecture footer: mesh version + agent count
+    const versions = online.map(a => a.data?.version).filter(Boolean);
+    const uniqueVersions = [...new Set(versions)];
+    renderSubpanelPills("arch-subpanel-footer", [
+        { label: `${uniqueVersions.length} VERSION${uniqueVersions.length !== 1 ? "S" : ""}` },
+        { label: `${total} AGENTS` },
+    ]);
+
+    // Vitals footer: uptime
+    const uptimeSec = online.reduce((s, a) => s + (a.data?.uptime_seconds || 0), 0);
+    const uptimeHrs = Math.round(uptimeSec / 3600);
+    renderSubpanelPills("vitals-subpanel-footer", [
+        { label: `UPTIME ${uptimeHrs}h` },
+        { label: `${online.length} REPORTING` },
+    ]);
+}
+
 // Operations Zone A — mesh-wide summary metrics
 function opsZoneAMetrics() {
     const online = Object.values(agentData).filter(a => a.status === "online");
@@ -961,7 +1027,14 @@ function evaluateAlertLevel() {
 
     if (effectiveLevel !== currentAlertLevel) {
         currentAlertLevel = effectiveLevel;
-        document.body.dataset.alertLevel = effectiveLevel;
+        // Only set data-alert-level for actual alerts (1-3) — CSS custom
+        // property architecture requires the attribute absent at GREEN/BLUE
+        // so body[data-alert-level] selectors don't fire with undefined vars.
+        if (effectiveLevel <= 3) {
+            document.body.dataset.alertLevel = effectiveLevel;
+        } else {
+            delete document.body.dataset.alertLevel;
+        }
         const names = { 5: "GREEN", 4: "BLUE", 3: "YELLOW", 2: "RED", 1: "BLACK" };
         addNarrativeEntry(`Alert condition changed to ${names[effectiveLevel]}${activeReasons.length ? ": " + activeReasons.join("; ") : ""}`);
     }

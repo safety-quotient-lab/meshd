@@ -64,7 +64,7 @@ func (s *Server) serveCompositor(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	html := strings.ReplaceAll(string(data), "?v=BUILD_VERSION", "?v="+Version)
+	html := strings.ReplaceAll(string(data), "?v=BUILD_VERSION", "?v="+Version+"."+BuildTime)
 
 	// Server-side tab activation: if ?sub= targets a specific tab,
 	// inject a <style> in <head> that shows only that tab's pane.
@@ -88,9 +88,10 @@ func (s *Server) handleLegacyDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "legacy dashboard not available", http.StatusInternalServerError)
 		return
 	}
+	html := strings.ReplaceAll(string(data), "?v=BUILD_VERSION", "?v="+Version+"."+BuildTime)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache")
-	w.Write(data)
+	w.Write([]byte(html))
 }
 
 // serveAgentDashboard renders the per-agent LCARS template with manifest data.

@@ -36,6 +36,10 @@ import (
 // Falls back to "dev" when unset.
 var Version = "dev"
 
+// BuildTime gets embedded at build time via -ldflags.
+// Used for cache-busting static assets — changes on every build.
+var BuildTime = "0"
+
 // maxEventLog caps the in-memory event ring buffer.
 const maxEventLog = 100
 

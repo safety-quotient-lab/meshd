@@ -271,9 +271,9 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     --topo-label: #9999aa;
     --topo-label-hover: #ffcc99;
 
-    --band-height: 8px;
-    --elbow-width: 28px;
-    --elbow-radius: 20px;
+    --band-height: 10px;
+    --elbow-width: 36px;
+    --elbow-radius: 28px;
 
     /* LCARS sidebar geometry */
     --sidebar-width: 160px;
@@ -632,7 +632,7 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel {
     background: #000;
     border: none;
-    margin-left: 20px; /* space for the SVG arm */
+    margin-left: 32px; /* space for the SVG arm (bulkier TNG chrome) */
     overflow: visible;
     position: relative;
     padding: 0;
@@ -644,8 +644,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 /* SVG elbow overlay — positioned to cover the panel frame */
 .theme-lcars .lcars-panel .panel-elbow-svg {
     position: absolute;
-    left: -20px; top: 0;
-    width: calc(100% + 20px);
+    left: -32px; top: 0;
+    width: calc(100% + 32px);
     height: 100%;
     pointer-events: none;
     z-index: 1; /* behind header (z:2) and body (z:2), draws curves + footer */
@@ -658,8 +658,8 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     color: #000;
     border: none;
     margin: 0;
-    padding: 0 3px 0 21px; /* left: golden ratio from arm; right: edge gap */
-    height: 24px;
+    padding: 0 3px 0 13px; /* left: tighter to arm (1/φ spacing); right: edge gap */
+    height: 32px;
     box-sizing: border-box;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
     font-size: 0.75em;
@@ -679,10 +679,11 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     margin: 0;
     border-radius: 0;
     white-space: nowrap;
-    height: 24px !important;
+    height: 32px !important;
     box-sizing: border-box;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
+    line-height: 32px;
 }
 /* Tristate triangle — accent-colored segment, dark triangle centered */
 .theme-lcars .pill-tristate-wrap {
@@ -993,26 +994,29 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
 .theme-lcars .lcars-panel-footer-row {
     display: flex;
     align-items: stretch;
-    gap: 3px; /* black gaps between pills */
+    gap: 0;
     position: relative;
-    height: 24px;
-    background: #000; /* black gaps around footer pills */
+    height: 32px;
+    background: transparent; /* SVG bar provides the colored background */
     z-index: 2;
     justify-content: center;
-    padding-left: 30%; /* off-center rightward */
+    padding-left: 30%; /* off-center rightward — stardate tray pattern */
 }
-/* Footer pills — colored segments like the stardate pill.
-   Colored bg, dark text, bottom-aligned, full height. */
+/* Footer pills — colored segments on the SVG footer bar.
+   Transparent bg (SVG provides color). 3px black border-left creates
+   the gap. Same visual pattern as stardate header segments. */
 .theme-lcars .lcars-panel-status,
 .theme-lcars .lcars-panel-footer {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
-    background: var(--panel-accent, var(--c-transport));
+    background: transparent;
     color: #000;
     padding: 0 14px;
-    margin: 0 3px !important; /* 3px black gap left + right */
-    height: 24px !important;
+    margin: 0 !important;
+    border-left: 3px solid #000;
+    border-right: 3px solid #000;
+    height: 32px !important;
     box-sizing: border-box;
     border-radius: 0;
     font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
@@ -1024,12 +1028,26 @@ body:not(.theme-lcars) #pane-integrity { display: none !important; }
     position: relative;
     z-index: 2;
 }
+/* Empty footer — spacer only, no visible pill. Reserves 24px for SVG
+   footer bar without rendering a colored box. */
+.theme-lcars .lcars-panel-footer:empty {
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0;
+}
+/* Footer row containing only empty children — transparent so the SVG
+   footer bar color shows through. :has(:empty) + :not(:has(text))
+   approximation: use JS class instead for broad compat. */
+.theme-lcars .lcars-panel-footer-row.footer-row-empty {
+    background: transparent;
+}
+
 /* Fallback positioning when no footer-row wrapper exists */
 .theme-lcars .lcars-panel > .lcars-panel-status,
 .theme-lcars .lcars-panel > .lcars-panel-footer {
     position: absolute;
     bottom: 0;
-    left: 20px;
+    left: 32px;
 }
 .theme-lcars .lcars-panel-footer-num {
     margin-left: 6px;
@@ -1444,193 +1462,142 @@ body[data-affect-mode="triage"] {
 .lcars-subsystem-grid { overflow-x: auto; }
 
 /* ── LCARS Alert Condition System (Trek Alert Levels) ────── */
-/* Everything goes alert color — full TNG emergency override. */
+/* CSS custom property architecture — 3 body-level vars propagate
+   alert colors to all structural elements via :is() selectors.
+   Flash uses filter:brightness() (color modulation, not opacity)
+   to match TNG's actual visual language. Session 100 rewrite. */
 
-/* Yellow alert (level 3) — everything gold */
-body[data-alert-level="3"] .lcars-sidebar-cap-top,
-body[data-alert-level="3"] .lcars-sidebar-cap-bottom,
-body[data-alert-level="3"] .lcars-sidebar-arm,
-body[data-alert-level="3"] .lcars-sidebar-spacer,
-body[data-alert-level="3"] .lcars-sidebar-drop,
-/* Override panel accent so SVG JS reads alert color on next redraw */
-body[data-alert-level="3"] .lcars-sidebar-btn,
-body[data-alert-level="3"] .lcars-sidebar-exit,
-body[data-alert-level="3"] .lcars-hdr-arm,
-body[data-alert-level="3"] .lcars-hdr-endcap,
-body[data-alert-level="3"] .lcars-header-seg,
-body[data-alert-level="3"] .lcars-footer-seg,
-body[data-alert-level="3"] .lcars-subpanel-bar,
-body[data-alert-level="3"] .lcars-panel-header,
-body[data-alert-level="3"] .pill-tristate-wrap {
-    background: var(--alert-yellow-med, #CD870E) !important;
-    color: #000 !important;
+/* ── Alert custom properties (one rule per level) ──────── */
+body[data-alert-level="3"] {
+    --alert-chrome: var(--alert-yellow-med, #CD870E);
+    --alert-chrome-text: #000;
+    --alert-chrome-bright: var(--alert-yellow-bright, #FFA90E);
+    --alert-title-color: var(--lcars-title);
 }
-body[data-alert-level="3"] .lcars-panel-footer,
-body[data-alert-level="3"] .lcars-panel-status {
-    background: #000 !important;
-    color: var(--alert-yellow-bright, #FFA90E) !important;
+body[data-alert-level="2"] {
+    --alert-chrome: var(--alert-red-dark, #990000);
+    --alert-chrome-text: #fff;
+    --alert-chrome-bright: var(--alert-red-light, #FF9190);
+    --alert-title-color: #ff4444;
 }
-body[data-alert-level="3"] .panel-elbow-svg path { fill: var(--alert-yellow-med, #CD870E) !important; }
-body[data-alert-level="3"] .panel-title-pill { background: #000 !important; color: var(--alert-yellow-bright, #FFA90E) !important; }
-body[data-alert-level="3"] .lcars-panel-footer-row { background: var(--alert-yellow-med, #CD870E) !important; }
-body[data-alert-level="3"] .panel-tristate > .lcars-panel-body, body[data-alert-level="3"] .panel-tristate.panel-expanded > .lcars-panel-body { overflow: hidden !important; max-height: 280px !important; }
-body[data-alert-level="3"] .lcars-elbow-connector-top {
-    background: radial-gradient(circle at 100% 100%, transparent var(--elbow-inner, 24px), var(--alert-yellow-med, #CD870E) var(--elbow-inner, 24px)) !important;
-}
-body[data-alert-level="3"] .lcars-elbow-connector-bottom {
-    background: radial-gradient(circle at 100% 0%, transparent var(--elbow-inner, 24px), var(--alert-yellow-med, #CD870E) var(--elbow-inner, 24px)) !important;
-}
-/* Yellow alert slow flash — ALL structural elements pulse 1→1/φ */
-body[data-alert-level="3"] .lcars-sidebar-cap-top,
-body[data-alert-level="3"] .lcars-sidebar-cap-bottom,
-body[data-alert-level="3"] .lcars-sidebar-arm,
-body[data-alert-level="3"] .lcars-sidebar-spacer,
-body[data-alert-level="3"] .lcars-sidebar-drop,
-body[data-alert-level="3"] .lcars-sidebar-exit,
-body[data-alert-level="3"] .lcars-hdr-arm,
-body[data-alert-level="3"] .lcars-hdr-endcap,
-body[data-alert-level="3"] .lcars-elbow-connector-top,
-body[data-alert-level="3"] .lcars-elbow-connector-bottom,
-body[data-alert-level="3"] .lcars-subpanel-bar,
-body[data-alert-level="3"] .lcars-panel-header,
-body[data-alert-level="3"] .pill-tristate-wrap,
-body[data-alert-level="3"] .lcars-panel-footer,
-body[data-alert-level="3"] .lcars-panel-status,
-body[data-alert-level="3"] .panel-elbow-svg,
-body[data-alert-level="3"] .lcars-panel-footer-row {
-    animation: alert-slow-flash 3.236s ease-in-out infinite;
-}
-/* Title pills stay readable during yellow alert */
-body[data-alert-level="3"] .lcars-hdr-title {
-    background: transparent !important;
-    color: var(--lcars-title) !important;
+body[data-alert-level="1"] {
+    --alert-chrome: var(--alert-black-med, #0E3A9B);
+    --alert-chrome-text: var(--alert-black-cyan, #64FFFF);
+    --alert-chrome-bright: var(--alert-black-cyan, #64FFFF);
+    --alert-title-color: var(--alert-black-cyan, #64FFFF);
 }
 
-/* Red alert (level 2) — dark maroon per TNG canonical (Red display reference)
-   Two colors only: dark red structural + white text */
-body[data-alert-level="2"] .lcars-sidebar-cap-top,
-body[data-alert-level="2"] .lcars-sidebar-cap-bottom,
-body[data-alert-level="2"] .lcars-sidebar-arm,
-body[data-alert-level="2"] .lcars-sidebar-spacer,
-body[data-alert-level="2"] .lcars-sidebar-drop,
-body[data-alert-level="2"] .lcars-sidebar-btn,
-body[data-alert-level="2"] .lcars-sidebar-exit,
-body[data-alert-level="2"] .lcars-hdr-arm,
-body[data-alert-level="2"] .lcars-hdr-endcap,
-body[data-alert-level="2"] .lcars-header-seg,
-body[data-alert-level="2"] .lcars-footer-seg,
-body[data-alert-level="2"] .lcars-subpanel-bar,
-body[data-alert-level="2"] .lcars-panel-header,
-body[data-alert-level="2"] .pill-tristate-wrap {
-    background: var(--alert-red-dark, #990000) !important;
-    color: #fff !important;
+/* ── Structural chrome override ────────────────────────── */
+/* All frame, sidebar, subpanel elements go alert color.
+   .lcars-panel-header stays transparent — the SVG behind it (z:1)
+   carries the alert color. Keeping the header transparent prevents
+   filter:brightness() from compositing through to title pills. */
+body[data-alert-level] :is(
+    .lcars-sidebar-cap-top,
+    .lcars-sidebar-cap-bottom,
+    .lcars-sidebar-arm,
+    .lcars-sidebar-spacer,
+    .lcars-sidebar-drop,
+    .lcars-sidebar-btn,
+    .lcars-sidebar-exit,
+    .lcars-hdr-arm,
+    .lcars-hdr-endcap,
+    .lcars-header-seg,
+    .lcars-footer-seg,
+    .lcars-subpanel-bar,
+    .pill-tristate-wrap
+) {
+    background: var(--alert-chrome) !important;
+    color: var(--alert-chrome-text) !important;
 }
-body[data-alert-level="2"] .lcars-panel-footer,
-body[data-alert-level="2"] .lcars-panel-status {
-    background: #000 !important;
-    color: var(--alert-red-light, #FF9190) !important;
-}
-body[data-alert-level="2"] .panel-elbow-svg path { fill: var(--alert-red-dark, #990000) !important; }
-body[data-alert-level="2"] .panel-title-pill { background: #000 !important; color: var(--alert-red-light, #FF9190) !important; }
-body[data-alert-level="2"] .lcars-panel-footer-row { background: var(--alert-red-dark, #990000) !important; }
-body[data-alert-level="2"] .panel-tristate > .lcars-panel-body, body[data-alert-level="2"] .panel-tristate.panel-expanded > .lcars-panel-body { overflow: hidden !important; max-height: 280px !important; }
-body[data-alert-level="2"] .lcars-sidebar-cap-top,
-body[data-alert-level="2"] .lcars-sidebar-cap-bottom,
-body[data-alert-level="2"] .lcars-sidebar-arm,
-body[data-alert-level="2"] .lcars-sidebar-spacer,
-body[data-alert-level="2"] .lcars-sidebar-drop,
-body[data-alert-level="2"] .lcars-sidebar-exit,
-body[data-alert-level="2"] .lcars-hdr-arm,
-body[data-alert-level="2"] .lcars-hdr-endcap,
-body[data-alert-level="2"] .lcars-elbow-connector-top,
-body[data-alert-level="2"] .lcars-elbow-connector-bottom,
-body[data-alert-level="2"] .lcars-subpanel-bar,
-body[data-alert-level="2"] .lcars-panel-header,
-body[data-alert-level="2"] .pill-tristate-wrap,
-body[data-alert-level="2"] .lcars-panel-footer,
-body[data-alert-level="2"] .lcars-panel-status,
-body[data-alert-level="2"] .panel-elbow-svg,
-body[data-alert-level="2"] .lcars-panel-footer-row {
-    animation: alert-slow-flash 3.236s ease-in-out infinite;
-}
-body[data-alert-level="2"] .lcars-elbow-connector-top {
-    background: radial-gradient(circle at 100% 100%, transparent var(--elbow-inner, 24px), var(--alert-red-dark, #990000) var(--elbow-inner, 24px)) !important;
-}
-body[data-alert-level="2"] .lcars-elbow-connector-bottom {
-    background: radial-gradient(circle at 100% 0%, transparent var(--elbow-inner, 24px), var(--alert-red-dark, #990000) var(--elbow-inner, 24px)) !important;
-}
-/* Title pills stay readable during red alert */
-body[data-alert-level="2"] .lcars-hdr-title {
+/* Footer row stays transparent — SVG bar provides the color */
+body[data-alert-level] .lcars-panel-footer-row {
     background: transparent !important;
-    color: #ff4444 !important;
 }
-@keyframes red-alert-pulse {
+/* Panel header: color only (text + panel-id), background stays transparent */
+body[data-alert-level] .lcars-panel-header {
+    color: var(--alert-chrome-text) !important;
+}
+body[data-alert-level] .lcars-panel-id {
+    color: var(--alert-chrome-text) !important;
+}
+
+/* Footer pills — transparent on SVG bar. Text follows alert palette. */
+body[data-alert-level] :is(
+    .lcars-panel-footer,
+    .lcars-panel-status
+) {
+    background: transparent !important;
+    color: var(--alert-chrome-text) !important;
+}
+
+/* SVG elbow paths + elbow connectors */
+body[data-alert-level] .panel-elbow-svg path {
+    fill: var(--alert-chrome) !important;
+}
+body[data-alert-level] .lcars-elbow-connector-top {
+    background: radial-gradient(circle at 100% 100%, transparent var(--elbow-inner, 24px), var(--alert-chrome) var(--elbow-inner, 24px)) !important;
+}
+body[data-alert-level] .lcars-elbow-connector-bottom {
+    background: radial-gradient(circle at 100% 0%, transparent var(--elbow-inner, 24px), var(--alert-chrome) var(--elbow-inner, 24px)) !important;
+}
+
+/* Empty footer row — transparent so SVG bar shows through (both normal + alert) */
+body[data-alert-level] .lcars-panel-footer-row.footer-row-empty {
+    background: transparent !important;
+}
+
+/* Title pills — black cutout, readable during any alert level */
+body[data-alert-level] .panel-title-pill {
+    background: #000 !important;
+    color: var(--alert-chrome-bright) !important;
+}
+body[data-alert-level] .lcars-hdr-title {
+    background: transparent !important;
+    color: var(--alert-title-color) !important;
+}
+
+/* ── Panel body overflow during alerts ──────────────────── */
+/* Default tristate body caps (300px fixed, none expanded) apply.
+   Alert mode only adds scrollbar theming — no cap override needed.
+   The SVG ResizeObserver redraws the L-shape to match panel height.
+   Previous 400px cap extended 24px past the SVG inner radii (2×ri=24). */
+body[data-alert-level] .panel-tristate > .lcars-panel-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--alert-chrome) #0a0a14;
+}
+
+/* ── Alert flash — brightness modulation (Bug 1 fix) ──── */
+/* filter:brightness() modulates the color itself (darker/lighter
+   chrome), unlike opacity which fades the entire composited element
+   and degrades text legibility. 3.236s = 2s × φ — distinct from
+   offline-cell flash (2s). */
+@keyframes alert-flash {
     0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.4); }
+    50%      { filter: brightness(0.618); }
 }
-/* Alert flash: 3.236s (2s × φ) — different phase from offline cell flash (2s) */
-@keyframes alert-slow-flash {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.618; }
-}
-
-/* Black alert (level 1) — deep blue/cyan (trekcolors canon)
-   Used for maintenance windows, upgrades, deployments.
-   Two colors: navy structural + cyan text/accents */
-body[data-alert-level="1"] .lcars-sidebar-cap-top,
-body[data-alert-level="1"] .lcars-sidebar-cap-bottom,
-body[data-alert-level="1"] .lcars-sidebar-arm,
-body[data-alert-level="1"] .lcars-sidebar-spacer,
-body[data-alert-level="1"] .lcars-sidebar-drop,
-body[data-alert-level="1"] .lcars-sidebar-btn,
-body[data-alert-level="1"] .lcars-sidebar-exit,
-body[data-alert-level="1"] .lcars-hdr-arm,
-body[data-alert-level="1"] .lcars-hdr-endcap,
-body[data-alert-level="1"] .lcars-header-seg,
-body[data-alert-level="1"] .lcars-footer-seg,
-body[data-alert-level="1"] .lcars-subpanel-bar,
-body[data-alert-level="1"] .lcars-panel-header,
-body[data-alert-level="1"] .pill-tristate-wrap {
-    background: var(--alert-black-med, #0E3A9B) !important;
-    color: var(--alert-black-cyan, #64FFFF) !important;
-}
-body[data-alert-level="1"] .lcars-panel-footer,
-body[data-alert-level="1"] .lcars-panel-status {
-    background: #000 !important;
-    color: var(--alert-black-cyan, #64FFFF) !important;
-}
-body[data-alert-level="1"] .panel-elbow-svg path { fill: var(--alert-black-med, #0E3A9B) !important; }
-body[data-alert-level="1"] .panel-title-pill { background: #000 !important; color: var(--alert-black-cyan, #64FFFF) !important; }
-body[data-alert-level="1"] .lcars-panel-footer-row { background: var(--alert-black-med, #0E3A9B) !important; }
-body[data-alert-level="1"] .panel-tristate > .lcars-panel-body, body[data-alert-level="1"] .panel-tristate.panel-expanded > .lcars-panel-body { overflow: hidden !important; max-height: 280px !important; }
-body[data-alert-level="1"] .lcars-elbow-connector-top {
-    background: radial-gradient(circle at 100% 100%, transparent var(--elbow-inner, 24px), var(--alert-black-med, #0E3A9B) var(--elbow-inner, 24px)) !important;
-}
-body[data-alert-level="1"] .lcars-elbow-connector-bottom {
-    background: radial-gradient(circle at 100% 0%, transparent var(--elbow-inner, 24px), var(--alert-black-med, #0E3A9B) var(--elbow-inner, 24px)) !important;
-}
-body[data-alert-level="1"] .lcars-sidebar-cap-top,
-body[data-alert-level="1"] .lcars-sidebar-cap-bottom,
-body[data-alert-level="1"] .lcars-sidebar-arm,
-body[data-alert-level="1"] .lcars-sidebar-spacer,
-body[data-alert-level="1"] .lcars-sidebar-drop,
-body[data-alert-level="1"] .lcars-sidebar-exit,
-body[data-alert-level="1"] .lcars-hdr-arm,
-body[data-alert-level="1"] .lcars-hdr-endcap,
-body[data-alert-level="1"] .lcars-elbow-connector-top,
-body[data-alert-level="1"] .lcars-elbow-connector-bottom,
-body[data-alert-level="1"] .lcars-subpanel-bar,
-body[data-alert-level="1"] .lcars-panel-header,
-body[data-alert-level="1"] .pill-tristate-wrap,
-body[data-alert-level="1"] .lcars-panel-footer,
-body[data-alert-level="1"] .lcars-panel-status,
-body[data-alert-level="1"] .panel-elbow-svg,
-body[data-alert-level="1"] .lcars-panel-footer-row {
-    animation: alert-slow-flash 3.236s ease-in-out infinite;
-}
-body[data-alert-level="1"] .lcars-hdr-title {
-    background: transparent !important;
-    color: var(--alert-black-cyan, #64FFFF) !important;
+/* Apply flash to structural elements + SVG.
+   .lcars-panel-header excluded — stays transparent, SVG beneath
+   provides the visible flash. Prevents brightness filter from
+   compositing through to title pills and panel-id text. */
+body[data-alert-level] :is(
+    .lcars-sidebar-cap-top,
+    .lcars-sidebar-cap-bottom,
+    .lcars-sidebar-arm,
+    .lcars-sidebar-spacer,
+    .lcars-sidebar-drop,
+    .lcars-sidebar-exit,
+    .lcars-hdr-arm,
+    .lcars-hdr-endcap,
+    .lcars-elbow-connector-top,
+    .lcars-elbow-connector-bottom,
+    .lcars-subpanel-bar,
+    .pill-tristate-wrap,
+    .lcars-panel-footer,
+    .lcars-panel-status,
+    .panel-elbow-svg
+) {
+    animation: alert-flash 3.236s ease-in-out infinite;
 }
 
 /* ── LCARS Blinkies (Activity Indicators) ──────────────── */
@@ -4020,9 +3987,8 @@ a.activity-link:hover {
     .lcars-sidebar-drop { min-height: var(--gap-l, 13px); }
 }
 
-/* Alert: sidebar drop follows structural chrome color (matches main alert block) */
-body[data-alert-level="3"] .lcars-sidebar-drop { background: var(--alert-yellow-med, #CD870E) !important; }
-body[data-alert-level="2"] .lcars-sidebar-drop { background: var(--alert-red-dark, #990000) !important; }
+/* Alert: sidebar drop follows structural chrome color (via custom property) */
+body[data-alert-level] .lcars-sidebar-drop { background: var(--alert-chrome) !important; }
 
 /* Connectors use grid placement — no mobile hide needed */
 
@@ -4411,10 +4377,35 @@ body[data-alert-level="2"] .lcars-sidebar-drop { background: var(--alert-red-dar
 .lcars-subpanel-bar-accent { background: var(--panel-accent, var(--lcars-accent)); }
 .lcars-subpanel-bar-t2 { background: var(--lcars-tertiary); }
 .lcars-subpanel-bar-t3 { background: var(--lcars-secondary); }
-/* Bottom bar: thinner, no text */
+/* Bottom bar: thinner strip — can hold data pills (like panel footers) */
 .lcars-subpanel-bar-bottom {
     min-height: var(--gap-s);
     padding: 0;
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+}
+/* Data pills inside subpanel bottom bars — black cutout segments */
+.lcars-subpanel-bar-bottom .subpanel-pill {
+    background: #000;
+    color: var(--subpanel-color, var(--lcars-readout, #cc9966));
+    font-family: 'Oswald', 'Antonio', 'Arial Narrow', 'Helvetica Neue', sans-serif;
+    font-size: 0.6em;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+}
+/* First pill: left margin auto pushes pills to the right end */
+.lcars-subpanel-bar-bottom .subpanel-pill:first-child {
+    margin-left: auto;
+}
+/* Alert mode: pills follow alert bright text color */
+body[data-alert-level] .lcars-subpanel-bar-bottom .subpanel-pill {
+    color: var(--alert-chrome-bright) !important;
 }
 
 /* ── LCARS Data Grid (Button 52 pattern — dense chunky rectangles) ── */
@@ -4479,10 +4470,11 @@ body[data-alert-level="2"] .lcars-sidebar-drop { background: var(--alert-red-dar
 .lcars-data-grid .dg-t3 { background: var(--lcars-title); }
 .lcars-data-grid .dg-accent { background: var(--lcars-accent); }
 .lcars-data-grid .dg-frame { background: var(--lcars-frame); }
-/* Alert overrides */
-body[data-alert-level="3"] .lcars-data-grid .dg-cell { background: var(--alert-yellow-med, #CD870E) !important; }
-body[data-alert-level="2"] .lcars-data-grid .dg-cell { background: var(--alert-red-dark, #990000) !important; color: #fff !important; }
-body[data-alert-level="1"] .lcars-data-grid .dg-cell { background: var(--alert-black-med, #0E3A9B) !important; color: var(--alert-black-cyan, #64FFFF) !important; }
+/* Alert overrides — data grid cells follow chrome color */
+body[data-alert-level] .lcars-data-grid .dg-cell {
+    background: var(--alert-chrome) !important;
+    color: var(--alert-chrome-text) !important;
+}
 
 /* ── Ohniaka Summary Row (mesh totals) ───────────────────── */
 .ohniaka-summary {

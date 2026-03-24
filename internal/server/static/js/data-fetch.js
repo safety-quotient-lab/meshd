@@ -166,6 +166,7 @@ function renderAll() {
     if (document.body.classList.contains("theme-lcars")) {
         updateLcarsHeaderData();
         evaluateAlertLevel();
+        try { updateSubpanelFooters(); } catch(e) {}
     }
 }
 

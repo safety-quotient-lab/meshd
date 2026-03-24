@@ -229,7 +229,7 @@
     --panel-accent: var(--c-transport);
 }
 .agent-card[data-agent="psychology-agent"] { --panel-accent: var(--c-psychology); }
-.agent-card[data-agent="psq-agent"] { --panel-accent: var(--c-psq); }
+.agent-card[data-agent="safety-quotient-agent"] { --panel-accent: var(--c-psq); }
 .agent-card[data-agent="unratified-agent"] { --panel-accent: var(--c-unratified); }
 .agent-card[data-agent="observatory-agent"] { --panel-accent: var(--c-observatory); }
 .agent-card:hover {

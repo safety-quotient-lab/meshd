@@ -24,6 +24,17 @@ window.switchGovSubsystem = switchGovSubsystem;
     const savedTheme = localStorage.getItem("theme") || "lcars";
     setTheme(savedTheme);
 
+    // DOM repair — browser HTML parser ejects some panels from their tab-pane
+    // due to nesting quirks (unclosed inline elements). Move orphaned panels
+    // back into pane-analysis where they belong.
+    const analysisPane = document.getElementById("pane-analysis");
+    if (analysisPane) {
+        const content = document.querySelector(".lcars-content");
+        for (const orphan of content.querySelectorAll(":scope > .kb-section, :scope > .lcars-zone-c, :scope > .sci-panel")) {
+            analysisPane.appendChild(orphan);
+        }
+    }
+
     // Restore tab from URL hash — AFTER theme, so it overrides any default
     const hashTab = location.hash.replace("#", "");
     const urlSub = new URLSearchParams(location.search).get("sub");

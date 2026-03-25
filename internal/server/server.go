@@ -505,7 +505,7 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			"default-src 'self'",
 			"script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
 			"style-src 'self' 'unsafe-inline'",
-			fmt.Sprintf("connect-src 'self' https://*.safety-quotient.dev https://*.unratified.org wss://mesh.safety-quotient.dev https://localhost:%d", s.Config.Port+1000),
+			fmt.Sprintf("connect-src 'self' https://*.safety-quotient.dev https://*.unratified.org wss://mesh.safety-quotient.dev https://localhost:%d https://127.0.0.1:%d", s.Config.Port+1000, s.Config.Port+1000),
 		}, "; "))
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 

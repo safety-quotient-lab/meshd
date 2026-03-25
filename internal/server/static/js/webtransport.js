@@ -16,7 +16,13 @@ async function connectWebTransport() {
     try {
         // mkcert CA trusted by the system — no serverCertificateHashes needed
         const transport = new WebTransport(url);
-        await transport.ready;
+        // Timeout: Safari 26.4 exposes the API but connections fail silently.
+        // Abort after 5s to avoid infinite pending state.
+        const ready = await Promise.race([
+            transport.ready,
+            new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000)),
+        ]);
+        void ready;
 
         wtSession = transport;
         wtConnected = true;
@@ -56,8 +62,16 @@ async function connectWebTransport() {
     } catch (err) {
         wtConnected = false;
         updateWtIndicator(false);
-        // Silent retry — WebTransport optional, WebSocket/fetch still work
-        setTimeout(connectWebTransport, 10000);
+        // Back off aggressively — if the browser's WT implementation doesn't
+        // work (Safari 26.4 exposes API but connections fail), stop retrying
+        // after 3 failures to avoid console noise.
+        if (!connectWebTransport._failures) connectWebTransport._failures = 0;
+        connectWebTransport._failures++;
+        if (connectWebTransport._failures >= 3) {
+            // Give up — WebSocket/SSE/fetch continue to work
+            return;
+        }
+        setTimeout(connectWebTransport, 15000);
     }
 }
 

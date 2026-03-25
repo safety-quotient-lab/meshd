@@ -14,13 +14,30 @@ async function connectWebTransport() {
     const url = `https://localhost:${wtPort}/mesh`;
 
     try {
-        // mkcert CA trusted by the system — no serverCertificateHashes needed
-        const transport = new WebTransport(url);
-        // Timeout: Safari 26.4 exposes the API but connections fail silently.
-        // Abort after 5s to avoid infinite pending state.
+        // Fetch cert hash from main HTTP server, then connect with
+        // serverCertificateHashes — works with short-lived self-signed certs
+        // (≤14 days) without needing CA trust in the browser.
+        let options = {};
+        try {
+            const hashResp = await fetch("/api/webtransport/certhash");
+            const hashData = await hashResp.json();
+            if (hashData.hash) {
+                const hashBytes = new Uint8Array(
+                    hashData.hash.match(/.{2}/g).map(b => parseInt(b, 16))
+                );
+                options.serverCertificateHashes = [{
+                    algorithm: "sha-256",
+                    value: hashBytes.buffer,
+                }];
+            }
+        } catch { /* proceed without hash — try CA trust fallback */ }
+
+        const transport = new WebTransport(url, options);
+        // Timeout: Safari 26.4 exposes the API but connections may fail.
+        // Abort after 8s to avoid infinite pending state.
         const ready = await Promise.race([
             transport.ready,
-            new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000)),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
         ]);
         void ready;
 

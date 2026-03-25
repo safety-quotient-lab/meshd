@@ -630,8 +630,14 @@ func main() {
 
 	// ── WebTransport server (QUIC/HTTP3, separate port) ─────────
 	wtAddr := fmt.Sprintf(":%d", cfg.Port+1000) // e.g., 8081 → 9081
-	wtCert := filepath.Join(cfg.RepoRoot, "certs", "localhost+2.pem")
-	wtKey := filepath.Join(cfg.RepoRoot, "certs", "localhost+2-key.pem")
+	// Prefer short-lived cert (≤14 days) for browser serverCertificateHashes compat.
+	// Fall back to mkcert long-lived cert, then self-signed.
+	wtCert := filepath.Join(cfg.RepoRoot, "certs", "wt-cert.pem")
+	wtKey := filepath.Join(cfg.RepoRoot, "certs", "wt-key.pem")
+	if _, err := os.Stat(wtCert); err != nil {
+		wtCert = filepath.Join(cfg.RepoRoot, "certs", "localhost+2.pem")
+		wtKey = filepath.Join(cfg.RepoRoot, "certs", "localhost+2-key.pem")
+	}
 	// Fall back to self-signed if mkcert certs not present
 	if _, err := os.Stat(wtCert); err != nil {
 		wtCert, wtKey = "", ""

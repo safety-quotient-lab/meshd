@@ -14,32 +14,38 @@ async function connectWebTransport() {
     const url = `https://localhost:${wtPort}/mesh`;
 
     try {
-        // Fetch cert hash from main HTTP server, then connect with
-        // serverCertificateHashes — works with short-lived self-signed certs
-        // (≤14 days) without needing CA trust in the browser.
-        let options = {};
+        // Strategy: try CA trust first (Safari needs this — no serverCertificateHashes).
+        // If that fails within 5s, retry with serverCertificateHashes (Chrome).
+        let transport;
         try {
+            transport = new WebTransport(url);
+            await Promise.race([
+                transport.ready,
+                new Promise((_, reject) => setTimeout(() => reject(new Error("ca-timeout")), 5000)),
+            ]);
+        } catch (caErr) {
+            // CA trust failed or timed out — try serverCertificateHashes (Chrome path)
+            try { transport.close(); } catch {}
             const hashResp = await fetch("/api/webtransport/certhash");
             const hashData = await hashResp.json();
             if (hashData.hash) {
                 const hashBytes = new Uint8Array(
                     hashData.hash.match(/.{2}/g).map(b => parseInt(b, 16))
                 );
-                options.serverCertificateHashes = [{
-                    algorithm: "sha-256",
-                    value: hashBytes.buffer,
-                }];
+                transport = new WebTransport(url, {
+                    serverCertificateHashes: [{
+                        algorithm: "sha-256",
+                        value: hashBytes.buffer,
+                    }],
+                });
+                await Promise.race([
+                    transport.ready,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("hash-timeout")), 5000)),
+                ]);
+            } else {
+                throw caErr; // no hash available, propagate original error
             }
-        } catch { /* proceed without hash — try CA trust fallback */ }
-
-        const transport = new WebTransport(url, options);
-        // Timeout: Safari 26.4 exposes the API but connections may fail.
-        // Abort after 8s to avoid infinite pending state.
-        const ready = await Promise.race([
-            transport.ready,
-            new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
-        ]);
-        void ready;
+        }
 
         wtSession = transport;
         wtConnected = true;

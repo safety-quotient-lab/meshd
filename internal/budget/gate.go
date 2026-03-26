@@ -107,15 +107,37 @@ type BudgetState struct {
 }
 
 // NewGate constructs a Gate with the given database path and agent identity.
+// Creates the autonomy_budget table and default row if they don't exist.
 func NewGate(dbPath, agentID string, logger *slog.Logger) *Gate {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Gate{
+	g := &Gate{
 		DBPath:  dbPath,
 		AgentID: agentID,
 		logger:  logger,
 	}
+	// Ensure table + default row exist (idempotent)
+	g.ensureSchema()
+	return g
+}
+
+// ensureSchema creates the autonomy_budget table and a default row for this agent.
+func (g *Gate) ensureSchema() {
+	schema := `CREATE TABLE IF NOT EXISTS autonomy_budget (
+		agent_id TEXT PRIMARY KEY,
+		budget_spent INTEGER DEFAULT 0,
+		budget_cutoff INTEGER DEFAULT 0,
+		sleep_mode INTEGER DEFAULT 0,
+		max_concurrent_spawns INTEGER DEFAULT 3,
+		updated_at TEXT DEFAULT (datetime('now'))
+	);`
+	g.execSQL(schema)
+	insert := fmt.Sprintf(
+		"INSERT OR IGNORE INTO autonomy_budget (agent_id) VALUES ('%s');",
+		sanitizeID(g.AgentID),
+	)
+	g.execSQL(insert)
 }
 
 // Check reads the full budget state: SQLite row, mesh-pause sentinel,

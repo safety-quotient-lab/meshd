@@ -94,6 +94,8 @@ func (d *Dispatcher) HandleEvent(ctx context.Context, evt Event) {
 		"priority", evt.Priority.String(),
 		"source", evt.Source,
 		"id", evt.ID,
+		"path", evt.Payload["path"],
+		"session", evt.Payload["session"],
 	)
 
 	// Gc layer — try crystallized intelligence first (no LLM cost)
@@ -101,6 +103,7 @@ func (d *Dispatcher) HandleEvent(ctx context.Context, evt Event) {
 		d.logger.Info("event handled by Gc layer (no spawn)",
 			"type", evt.Type,
 			"id", evt.ID,
+			"path", evt.Payload["path"],
 		)
 		d.mu.Lock()
 		d.batched++ // reuse batched counter for Gc-handled events
@@ -117,6 +120,8 @@ func (d *Dispatcher) HandleEvent(ctx context.Context, evt Event) {
 			"type", evt.Type,
 			"cost", cost,
 			"reason", reason,
+			"path", evt.Payload["path"],
+			"session", evt.Payload["session"],
 		)
 		d.mu.Lock()
 		d.dropped++

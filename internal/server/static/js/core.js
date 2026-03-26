@@ -615,8 +615,8 @@ function renderSubpanelPills(containerId, pills) {
 
 // Populate all station subpanel footers from current data
 function updateSubpanelFooters() {
-    const online = Object.values(agentData).filter(a => a?.status === "online");
-    const total = Object.keys(agentData).length;
+    const online = Object.values(agentData).filter(a => a?.status === "online" && a.id !== "mesh");
+    const total = AGENTS.length;
     const alertNames = { 5: "GREEN", 4: "BLUE", 3: "YELLOW", 2: "RED", 1: "BLACK" };
 
     // Governance footer: agent count + alert level

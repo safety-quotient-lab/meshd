@@ -351,6 +351,11 @@ func (s *Server) emitAgentTriples(agents []AgentInfo) {
 	var allTriples []triplestore.Triple
 
 	for _, agent := range agents {
+		if agent.ID == "" {
+			s.logger.Warn("skipping agent with empty ID in triple emission",
+				"name", agent.Name, "card_url", agent.CardURL)
+			continue
+		}
 		triples := triplestore.EmitAgent(
 			agent.ID,
 			agent.Name,

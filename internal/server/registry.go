@@ -136,8 +136,9 @@ func (r *AgentRegistry) Refresh() {
 				"url", cardURL,
 				"err", err,
 			)
-			// Add unavailable placeholder
+			// Add unavailable placeholder — derive ID from card URL
 			agents = append(agents, AgentInfo{
+				ID:          agentIDFromCardURL(cardURL),
 				CardURL:     cardURL,
 				Unavailable: true,
 			})
@@ -348,6 +349,9 @@ func (r *AgentRegistry) fetchCard(cardURL string) (AgentInfo, error) {
 	if info.ID == "" {
 		info.ID = jsonStr(raw, "name")
 	}
+	if info.ID == "" {
+		info.ID = agentIDFromCardURL(cardURL)
+	}
 	info.Name = jsonStr(raw, "name")
 	info.Role = jsonStr(raw, "role")
 	if info.Role == "" {
@@ -421,4 +425,34 @@ func countAvailable(agents []AgentInfo) int {
 		}
 	}
 	return n
+}
+
+// agentIDFromCardURL derives an agent ID from the card URL hostname.
+// Example: "https://psychology-agent.safety-quotient.dev/.well-known/agent-card.json"
+//       → "psychology-agent"
+// Fallback for agents whose card JSON lacks an id/name field, or whose
+// card fetch failed (unavailable placeholder).
+func agentIDFromCardURL(cardURL string) string {
+	// Extract hostname
+	u, err := url.Parse(cardURL)
+	if err != nil || u.Host == "" {
+		return "unknown"
+	}
+	host := u.Hostname()
+	// Strip the common suffix to get the agent name
+	for _, suffix := range []string{".safety-quotient.dev", ".unratified.org"} {
+		if strings.HasSuffix(host, suffix) {
+			return strings.TrimSuffix(host, suffix)
+		}
+	}
+	// Localhost URLs: extract from path or port
+	if strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.") {
+		// Try path-based: /agents/{id}/card
+		parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+		if len(parts) >= 2 && parts[0] == "agents" {
+			return parts[1]
+		}
+		return "localhost-" + u.Port()
+	}
+	return host
 }

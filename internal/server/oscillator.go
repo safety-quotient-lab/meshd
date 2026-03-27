@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/safety-quotient-lab/meshd/internal/db"
@@ -51,83 +51,112 @@ type FireEvent struct {
 	Trigger    string  `json:"trigger"`
 }
 
+// signalResult carries the latest value from an asynchronous signal producer.
+type signalResult struct {
+	name  string
+	value float64
+}
+
 // Oscillator implements the self-oscillation event loop (Phase 1: shadow mode).
+//
+// Lock-free design: the current state lives behind an atomic.Pointer. The main
+// loop builds a complete new OscillatorState snapshot (doing all slow work —
+// DB queries, file reads, git fetch — freely), then publishes it with a single
+// atomic store. HTTP handlers call Load() and get a consistent, immutable
+// snapshot in ~1ns with zero contention.
+//
+// Signal producers run as independent goroutines, each at its own cadence.
+// They write results to a buffered channel. The main loop drains whatever
+// arrived since last cycle. A slow git fetch blocks only its own goroutine.
 type Oscillator struct {
-	mu               sync.RWMutex
+	snapshot         atomic.Pointer[OscillatorState] // lock-free read path
 	agentID          string
 	dbPath           string
 	projectRoot      string
-	state            OscillatorState
 	refractoryUntil  time.Time
-	running          bool
+	running          bool // only accessed from Start(), guarded by startOnce
+	startOnce        atomic.Bool
 	stopCh           chan struct{}
+	signalCh         chan signalResult
+	latestSignals    map[string]float64   // owned by loop goroutine only
+	signalTimestamps map[string]time.Time // owned by loop goroutine only
 }
 
-// NewOscillator creates a shadow-mode oscillator.
+// NewOscillator creates a shadow-mode oscillator with asynchronous signal producers.
 func NewOscillator(agentID, dbPath, projectRoot string) *Oscillator {
-	return &Oscillator{
-		agentID:     agentID,
-		dbPath:      dbPath,
-		projectRoot: projectRoot,
-		stopCh:      make(chan struct{}),
-		state: OscillatorState{
-			State:           "monitoring",
-			SleepMode:      true,
-			SignalBreakdown: make(map[string]float64),
-			FireHistory:     make([]FireEvent, 0, 20),
-		},
+	o := &Oscillator{
+		agentID:          agentID,
+		dbPath:           dbPath,
+		projectRoot:      projectRoot,
+		stopCh:           make(chan struct{}),
+		signalCh:         make(chan signalResult, 32), // buffered — producers never block
+		latestSignals:    make(map[string]float64),
+		signalTimestamps: make(map[string]time.Time),
 	}
+	// Publish initial snapshot
+	initial := &OscillatorState{
+		State:           "monitoring",
+		SleepMode:       true,
+		SignalBreakdown: make(map[string]float64),
+		FireHistory:     make([]FireEvent, 0, 20),
+	}
+	o.snapshot.Store(initial)
+	return o
 }
 
-// Start launches the oscillator goroutine. Safe to call once.
+// Start launches the oscillator loop and all signal producer goroutines.
+// Each signal runs independently — a slow git fetch never blocks the cycle.
+// Safe to call multiple times; only the first call starts the loop.
 func (o *Oscillator) Start() {
-	o.mu.Lock()
-	if o.running {
-		o.mu.Unlock()
-		return
+	if !o.startOnce.CompareAndSwap(false, true) {
+		return // already started
 	}
-	o.running = true
-	o.mu.Unlock()
+
+	// Signal producers — each runs its own loop at its own cadence.
+	// Slow signals (git fetch) use longer intervals; fast signals poll frequently.
+	go o.signalProducer("new_commits", 120*time.Second, o.checkNewCommits)
+	go o.signalProducer("unprocessed_messages", 30*time.Second, o.checkUnprocessedMessages)
+	go o.signalProducer("gate_approaching_timeout", 30*time.Second, o.checkGateTimeout)
+	go o.signalProducer("peer_heartbeat_stale", 60*time.Second, o.checkPeerHeartbeatStale)
+	go o.signalProducer("escalation_present", 15*time.Second, o.checkEscalation)
 
 	go o.loop()
 }
 
-// Stop halts the oscillator.
-func (o *Oscillator) Stop() {
-	o.mu.Lock()
-	defer o.mu.Unlock()
-	if o.running {
-		close(o.stopCh)
-		o.running = false
+// signalProducer runs a signal check function in its own goroutine at the given
+// cadence and writes results to signalCh. If the check function blocks (e.g.,
+// git fetch over a slow network), it only blocks THIS goroutine — the oscillator
+// cycle continues reading stale values for this signal.
+func (o *Oscillator) signalProducer(name string, interval time.Duration, check func() float64) {
+	// Fire immediately on first cycle, then at interval
+	for {
+		value := check()
+		select {
+		case o.signalCh <- signalResult{name: name, value: value}:
+		default:
+			// Channel full — drop this sample. The oscillator will use the
+			// previous value. Dropping represents backpressure, not data loss.
+		}
+
+		select {
+		case <-o.stopCh:
+			return
+		case <-time.After(interval):
+		}
 	}
 }
 
-// Snapshot returns a copy of the current state.
+// Stop halts the oscillator and all signal producers.
+func (o *Oscillator) Stop() {
+	if o.startOnce.Load() {
+		close(o.stopCh)
+	}
+}
+
+// Snapshot returns the current state. Lock-free — ~1ns atomic pointer load.
+// The returned struct represents an immutable snapshot; never modified after publication.
 func (o *Oscillator) Snapshot() OscillatorState {
-	o.mu.RLock()
-	defer o.mu.RUnlock()
-
-	// Compute refractory remaining
-	remaining := 0
-	if time.Now().Before(o.refractoryUntil) {
-		remaining = int(time.Until(o.refractoryUntil).Seconds())
-	}
-
-	snap := o.state
-	snap.RefractoryRemainS = remaining
-
-	// Copy slices to avoid races
-	hist := make([]FireEvent, len(o.state.FireHistory))
-	copy(hist, o.state.FireHistory)
-	snap.FireHistory = hist
-
-	signals := make(map[string]float64, len(o.state.SignalBreakdown))
-	for k, v := range o.state.SignalBreakdown {
-		signals[k] = v
-	}
-	snap.SignalBreakdown = signals
-
-	return snap
+	return *o.snapshot.Load()
 }
 
 // loop runs the monitor cycle at adaptive intervals.
@@ -145,76 +174,148 @@ func (o *Oscillator) loop() {
 }
 
 // cycle runs one monitor → activation → threshold check.
+// All slow work (DB queries, file I/O) completes before the atomic snapshot
+// publication. No locks held at any point.
 func (o *Oscillator) cycle() {
-	signals := o.checkSignals()
+	// Drain all pending signal results (non-blocking channel read)
+	o.drainSignals()
+
+	// Compute everything BEFORE publishing — slow work happens here
+	signals := o.decayedSignals()
 	activation := o.computeActivation(signals)
 	threshold := o.computeThreshold()
 
-	o.mu.Lock()
-	o.state.Activation = math.Round(activation*1000) / 1000
-	o.state.Threshold = math.Round(threshold*1000) / 1000
-	o.state.SignalBreakdown = signals
-	o.state.CycleCount++
+	// Load previous snapshot to carry forward history and counters
+	prev := o.snapshot.Load()
+
+	// Build new immutable snapshot
+	snap := &OscillatorState{
+		Activation:        math.Round(activation*1000) / 1000,
+		Threshold:         math.Round(threshold*1000) / 1000,
+		SignalBreakdown:   signals,
+		CycleCount:        prev.CycleCount + 1,
+		WouldFireCount:    prev.WouldFireCount,
+		SleepMode:         prev.SleepMode,
+		LastFireAt:        prev.LastFireAt,
+		LastTier:          prev.LastTier,
+	}
+
+	// Copy fire history (immutable — never modify after publication)
+	history := make([]FireEvent, len(prev.FireHistory))
+	copy(history, prev.FireHistory)
 
 	// Check refractory
 	inRefractory := time.Now().Before(o.refractoryUntil)
 	if inRefractory {
-		o.state.State = "refractory"
+		snap.State = "refractory"
 		threshold += 0.15 // elevate during refractory
 	} else {
-		o.state.State = "monitoring"
+		snap.State = "monitoring"
 	}
 
 	wouldFire := activation > threshold
 	if wouldFire {
-		o.state.WouldFireCount++
-		o.state.State = "firing"
-		o.state.LastFireAt = time.Now().UTC().Format(time.RFC3339)
+		snap.WouldFireCount++
+		snap.State = "firing"
+		snap.LastFireAt = time.Now().UTC().Format(time.RFC3339)
 
-		// Compute what tier would have been selected
+		// Compute tier — does DB queries, but no lock held
 		tier := ComputeTier(o.agentID, o.dbPath, MessageMeta{}).RecommendedTier
-		o.state.LastTier = tier
+		snap.LastTier = tier
 
 		// Refractory period based on tier
 		refractorySec := computeRefractory(tier)
 		o.refractoryUntil = time.Now().Add(time.Duration(refractorySec) * time.Second)
 
-		// Record in fire history (keep last 20)
+		// Append to fire history (keep last 20)
 		trigger := o.dominantSignal(signals)
 		event := FireEvent{
-			At:         o.state.LastFireAt,
-			Activation: o.state.Activation,
+			At:         snap.LastFireAt,
+			Activation: snap.Activation,
 			Tier:       tier,
 			Trigger:    trigger,
 		}
-		if len(o.state.FireHistory) >= 20 {
-			o.state.FireHistory = o.state.FireHistory[1:]
+		if len(history) >= 20 {
+			history = history[1:]
 		}
-		o.state.FireHistory = append(o.state.FireHistory, event)
+		history = append(history, event)
 	}
 
-	intervalMs := int(o.computeMonitorInterval().Milliseconds())
-	o.state.MonitorIntervalMs = intervalMs
-	o.mu.Unlock()
+	snap.FireHistory = history
+	snap.RefractoryRemainS = 0
+	if time.Now().Before(o.refractoryUntil) {
+		snap.RefractoryRemainS = int(time.Until(o.refractoryUntil).Seconds())
+	}
+	snap.MonitorIntervalMs = int(o.computeMonitorInterval().Milliseconds())
 
-	// Activation trace (append to JSONL)
+	// Atomic publish — ~1ns, readers see the new snapshot immediately
+	o.snapshot.Store(snap)
+
+	// Side effects (file I/O) — no lock, no contention
 	o.logShadow(activation, threshold, signals, wouldFire)
-
-	// Emit mesh-state file — keeps peer_heartbeat_stale signal fresh.
-	// Peers read this file's mtime to detect liveness (20-minute threshold).
 	o.emitMeshState(activation, threshold, signals)
 }
 
-// checkSignals reads all 6 activation signals.
-func (o *Oscillator) checkSignals() map[string]float64 {
-	return map[string]float64{
-		"new_commits":              o.checkNewCommits(),
-		"unprocessed_messages":     o.checkUnprocessedMessages(),
-		"gate_approaching_timeout": o.checkGateTimeout(),
-		"peer_heartbeat_stale":     o.checkPeerHeartbeatStale(),
-		"escalation_present":       o.checkEscalation(),
-		"scheduled_task_due":       0.0, // placeholder
+// drainSignals reads all pending results from the signal channel without blocking.
+// Updates latestSignals and signalTimestamps for each received result.
+func (o *Oscillator) drainSignals() {
+	for {
+		select {
+		case result := <-o.signalCh:
+			o.latestSignals[result.name] = result.value
+			o.signalTimestamps[result.name] = time.Now()
+		default:
+			return // channel empty — done draining
+		}
 	}
+}
+
+// decayedSignals returns the current signal values with staleness decay.
+// Signals that haven't reported within 3× their expected interval decay
+// linearly toward 0.0. This prevents a stalled producer (e.g., git fetch
+// hanging on DNS) from holding its last value indefinitely.
+func (o *Oscillator) decayedSignals() map[string]float64 {
+	// Expected reporting intervals per signal (must match signalProducer cadences)
+	expectedInterval := map[string]time.Duration{
+		"new_commits":              120 * time.Second,
+		"unprocessed_messages":     30 * time.Second,
+		"gate_approaching_timeout": 30 * time.Second,
+		"peer_heartbeat_stale":     60 * time.Second,
+		"escalation_present":       15 * time.Second,
+	}
+
+	now := time.Now()
+	signals := make(map[string]float64, len(signalWeights))
+	for name := range signalWeights {
+		raw := o.latestSignals[name]
+		lastSeen := o.signalTimestamps[name]
+
+		if lastSeen.IsZero() {
+			signals[name] = 0.0 // never reported yet
+			continue
+		}
+
+		age := now.Sub(lastSeen)
+		staleAfter := expectedInterval[name] * 3
+		if staleAfter == 0 {
+			staleAfter = 3 * time.Minute // default fallback
+		}
+
+		if age > staleAfter {
+			// Linear decay: fully decayed after 2× the stale threshold
+			decayFraction := float64(age-staleAfter) / float64(staleAfter)
+			if decayFraction >= 1.0 {
+				signals[name] = 0.0
+			} else {
+				signals[name] = raw * (1.0 - decayFraction)
+			}
+		} else {
+			signals[name] = raw
+		}
+	}
+	// Placeholder — no producer yet
+	signals["scheduled_task_due"] = 0.0
+	return signals
 }
 
 // computeActivation returns weighted sum of signals, clamped to [0, 1].
@@ -252,10 +353,9 @@ func (o *Oscillator) computeThreshold() float64 {
 }
 
 // computeMonitorInterval returns adaptive poll interval from activation level.
+// Lock-free — reads from the atomic snapshot.
 func (o *Oscillator) computeMonitorInterval() time.Duration {
-	o.mu.RLock()
-	act := o.state.Activation
-	o.mu.RUnlock()
+	act := o.snapshot.Load().Activation
 
 	switch {
 	case act > 0.6:

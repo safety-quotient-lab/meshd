@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/safety-quotient-lab/meshd/internal/triplestore"
 )
@@ -212,6 +213,26 @@ func (s *Server) initTripleStore() {
 
 	s.TripleStore = store
 	s.logger.Info("triplestore initialized", "db", s.Config.BudgetDBPath)
+
+	// Startup GC — purge superseded triples older than 1 hour
+	if deleted, err := store.GarbageCollect(1); err != nil {
+		s.logger.Warn("startup triple GC failed", "error", err)
+	} else if deleted > 0 {
+		s.logger.Info("startup triple GC complete", "deleted", deleted)
+	}
+
+	// Periodic GC — every 30 minutes, purge superseded triples older than 1 hour
+	go func() {
+		ticker := time.NewTicker(30 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			if deleted, err := store.GarbageCollect(1); err != nil {
+				s.logger.Warn("periodic triple GC failed", "error", err)
+			} else if deleted > 0 {
+				s.logger.Info("periodic triple GC", "deleted", deleted)
+			}
+		}
+	}()
 
 	// Wire registry refresh → agent triple emission
 	if s.Registry != nil {

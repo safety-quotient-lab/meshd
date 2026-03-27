@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/quic-go/webtransport-go"
 )
@@ -92,6 +93,10 @@ func (s *Server) Start(ctx context.Context) error {
 			TLSConfig: &tls.Config{
 				Certificates: []tls.Certificate{tlsCert},
 				NextProtos:   []string{"h3"},
+			},
+			QUICConfig: &quic.Config{
+				MaxIdleTimeout:  5 * time.Minute,
+				KeepAlivePeriod: 15 * time.Second, // QUIC-level PING frames prevent idle timeout
 			},
 			Handler:         mux,
 			EnableDatagrams: true,

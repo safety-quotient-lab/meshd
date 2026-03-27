@@ -140,6 +140,7 @@ func (s *Store) AssertBatch(triples []Triple) error {
 		}
 
 		if t.Temporal == "dynamic" {
+			// Supersede previous value before inserting new one
 			fmt.Fprintf(&b,
 				"UPDATE triples SET valid_until = '%s' WHERE subject = '%s' AND predicate = '%s' AND graph = '%s' AND valid_until IS NULL;\n",
 				now,
@@ -147,19 +148,36 @@ func (s *Store) AssertBatch(triples []Triple) error {
 				db.EscapeString(t.Predicate),
 				db.EscapeString(t.Graph),
 			)
+			fmt.Fprintf(&b,
+				"INSERT INTO triples (subject, predicate, object, object_type, datatype, graph, temporal, created_at) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');\n",
+				db.EscapeString(t.Subject),
+				db.EscapeString(t.Predicate),
+				db.EscapeString(t.Object),
+				db.EscapeString(t.ObjectType),
+				db.EscapeString(t.Datatype),
+				db.EscapeString(t.Graph),
+				db.EscapeString(t.Temporal),
+				now,
+			)
+		} else {
+			// Static/event triples: skip if an identical active triple already exists.
+			// This prevents unbounded accumulation on repeated registry refreshes.
+			fmt.Fprintf(&b,
+				"INSERT INTO triples (subject, predicate, object, object_type, datatype, graph, temporal, created_at) SELECT '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' WHERE NOT EXISTS (SELECT 1 FROM triples WHERE subject = '%s' AND predicate = '%s' AND object = '%s' AND graph = '%s' AND valid_until IS NULL);\n",
+				db.EscapeString(t.Subject),
+				db.EscapeString(t.Predicate),
+				db.EscapeString(t.Object),
+				db.EscapeString(t.ObjectType),
+				db.EscapeString(t.Datatype),
+				db.EscapeString(t.Graph),
+				db.EscapeString(t.Temporal),
+				now,
+				db.EscapeString(t.Subject),
+				db.EscapeString(t.Predicate),
+				db.EscapeString(t.Object),
+				db.EscapeString(t.Graph),
+			)
 		}
-
-		fmt.Fprintf(&b,
-			"INSERT INTO triples (subject, predicate, object, object_type, datatype, graph, temporal, created_at) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');\n",
-			db.EscapeString(t.Subject),
-			db.EscapeString(t.Predicate),
-			db.EscapeString(t.Object),
-			db.EscapeString(t.ObjectType),
-			db.EscapeString(t.Datatype),
-			db.EscapeString(t.Graph),
-			db.EscapeString(t.Temporal),
-			now,
-		)
 	}
 
 	b.WriteString("COMMIT;")
@@ -199,4 +217,42 @@ func (s *Store) ReplaceGraph(graph string, triples []Triple) error {
 		return fmt.Errorf("retract graph %s: %w", graph, err)
 	}
 	return s.AssertBatch(triples)
+}
+
+// GarbageCollect removes superseded triples (valid_until IS NOT NULL) older
+// than the retention period. Call periodically to prevent unbounded growth.
+// Returns the number of rows deleted.
+func (s *Store) GarbageCollect(retentionHours int) (int, error) {
+	if retentionHours <= 0 {
+		retentionHours = 24 // default: keep 24h of history
+	}
+
+	// Count before deleting — use execPiped (not QueryScalar) because
+	// the busyPrefix .timeout directive only works via stdin pipe.
+	countSQL := fmt.Sprintf(
+		busyPrefix+"SELECT COUNT(*) FROM triples WHERE valid_until IS NOT NULL AND valid_until < datetime('now', '-%d hours');",
+		retentionHours,
+	)
+	countRows := db.QueryScalar(s.DBPath,
+		fmt.Sprintf("SELECT COUNT(*) FROM triples WHERE valid_until IS NOT NULL AND valid_until < datetime('now', '-%d hours')", retentionHours),
+	)
+
+	if countRows == 0 {
+		return 0, nil
+	}
+	_ = countSQL // busyPrefix version reserved for future piped use
+
+	deleteQuery := fmt.Sprintf(
+		busyPrefix+"DELETE FROM triples WHERE valid_until IS NOT NULL AND valid_until < datetime('now', '-%d hours');",
+		retentionHours,
+	)
+	if err := execPiped(s.DBPath, deleteQuery); err != nil {
+		return 0, fmt.Errorf("triple GC failed: %w", err)
+	}
+
+	s.Logger.Info("triple store garbage collected",
+		"deleted", countRows,
+		"retention_hours", retentionHours,
+	)
+	return countRows, nil
 }

@@ -450,13 +450,23 @@ func (o *Oscillator) checkNewCommits() float64 {
 
 func (o *Oscillator) checkUnprocessedMessages() float64 {
 	count := db.QueryScalar(o.dbPath, "SELECT COUNT(*) FROM transport_messages WHERE processed = 0")
-	return math.Min(1.0, float64(count)/3.0)
+	if count == 0 {
+		return 0.0
+	}
+	// One message = work that needs doing. Signal saturates quickly:
+	// 1 msg → 1.0, 2+ → 1.0. The weight (0.20) determines contribution
+	// to activation — the signal itself represents binary demand presence.
+	return 1.0
 }
 
 func (o *Oscillator) checkGateTimeout() float64 {
 	count := db.QueryScalar(o.dbPath,
-		"SELECT COUNT(*) FROM transport_messages WHERE processed = 0 AND timestamp < datetime('now', '-30 minutes')")
-	return math.Min(1.0, float64(count)/2.0)
+		"SELECT COUNT(*) FROM transport_messages WHERE processed = 0 AND timestamp < datetime('now', '-5 minutes')")
+	if count == 0 {
+		return 0.0
+	}
+	// Any message waiting > 5 minutes represents neglected work.
+	return 1.0
 }
 
 func (o *Oscillator) checkPeerHeartbeatStale() float64 {

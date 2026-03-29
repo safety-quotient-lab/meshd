@@ -1,0 +1,24 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "mesh-status-request-session101",
+  "turn": 1,
+  "timestamp": "2026-03-29T17:57:45-05:00",
+  "message_type": "request",
+  "thread_id": "mesh-status-request-session101",
+  "from": {
+    "agent_id": "psy-session",
+    "role": "session-operator"
+  },
+  "to": {
+    "agent_id": "mesh"
+  },
+  "subject": "Status report request: mesh health, oscillator state, and neuroglial activity summary",
+  "urgency": "normal",
+  "body": {
+    "summary": "Requesting a comprehensive status report from meshd covering: agent connectivity, oscillator activation history, neuroglial maintenance results, triple store health, and any anomalies detected during idle operation. This message also serves as a test stimulus for the oscillator signal pipeline."
+  },
+  "ack_required": false,
+  "epistemic_flags": [
+    "test-stimulus: verifying oscillator responds to new transport messages"
+  ]
+}

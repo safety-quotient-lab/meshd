@@ -501,11 +501,32 @@ func main() {
 	srv.GitHubToken = cfg.GitHubToken
 	srv.OperatorSecret = cfg.OperatorSecret
 
-	// Self-oscillation shadow mode — logs when it would fire, does not trigger
+	// Self-oscillation — Phase 2: oscillator drives deliberations.
+	// When activation exceeds threshold, emits a PollTick event into the
+	// dispatcher pipeline. Gc handles routine ticks; novel stimuli reach
+	// the spawner for claude -p deliberation.
 	osc := server.NewOscillator(cfg.AgentID, cfg.BudgetDBPath, cfg.RepoRoot)
 	srv.Oscillator = osc
+	osc.OnFire(func(activation float64, tier, trigger string) {
+		evt := events.NewEvent(events.EventPollTick, events.PriorityNormal, "oscillator",
+			map[string]string{
+				"activation": fmt.Sprintf("%.3f", activation),
+				"tier":       tier,
+				"trigger":    trigger,
+			})
+		select {
+		case eventChan <- evt:
+			logger.Info("oscillator fired — event emitted",
+				"activation", activation,
+				"tier", tier,
+				"trigger", trigger,
+			)
+		default:
+			logger.Warn("oscillator fired but event channel full — dropped")
+		}
+	})
 	osc.Start()
-	logger.Info("oscillator started (shadow mode)", "agent_id", cfg.AgentID)
+	logger.Info("oscillator started (active)", "agent_id", cfg.AgentID)
 
 	// KV self-observation — write status to Cloudflare KV for compositor fallback
 	kvClient := kvstore.New(cfg.CFAccountID, cfg.KVNamespaceID, cfg.CFAPIToken, logger)

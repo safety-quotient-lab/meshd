@@ -80,6 +80,15 @@ type Oscillator struct {
 	signalCh         chan signalResult
 	latestSignals    map[string]float64   // owned by loop goroutine only
 	signalTimestamps map[string]time.Time // owned by loop goroutine only
+	onFire           func(activation float64, tier, trigger string) // callback when activation exceeds threshold
+}
+
+// OnFire registers a callback invoked when the oscillator fires (activation
+// exceeds threshold). The callback receives the activation level, recommended
+// tier, and dominant trigger signal. Setting this transitions the oscillator
+// from shadow mode (log only) to active mode (trigger deliberation).
+func (o *Oscillator) OnFire(fn func(activation float64, tier, trigger string)) {
+	o.onFire = fn
 }
 
 // NewOscillator creates a shadow-mode oscillator with asynchronous signal producers.
@@ -96,7 +105,7 @@ func NewOscillator(agentID, dbPath, projectRoot string) *Oscillator {
 	// Publish initial snapshot
 	initial := &OscillatorState{
 		State:           "monitoring",
-		SleepMode:       true,
+		SleepMode:       false,
 		SignalBreakdown: make(map[string]float64),
 		FireHistory:     make([]FireEvent, 0, 20),
 	}
@@ -239,6 +248,15 @@ func (o *Oscillator) cycle() {
 			history = history[1:]
 		}
 		history = append(history, event)
+
+		// Fire callback — transitions from shadow mode to active mode.
+		// The callback runs AFTER snapshot publication (below) so the
+		// HTTP endpoint reflects the firing state immediately.
+		defer func() {
+			if o.onFire != nil {
+				o.onFire(snap.Activation, tier, trigger)
+			}
+		}()
 	}
 
 	snap.FireHistory = history

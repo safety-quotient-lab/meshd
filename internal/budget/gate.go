@@ -123,7 +123,10 @@ func NewGate(dbPath, agentID string, logger *slog.Logger) *Gate {
 }
 
 // ensureSchema creates the autonomy_budget table and a default row for this agent.
+// Also enables WAL journal mode to prevent "database is locked" errors from
+// concurrent reads/writes (oscillator + budget gate + GC).
 func (g *Gate) ensureSchema() {
+	g.execSQL("PRAGMA journal_mode=WAL;")
 	schema := `CREATE TABLE IF NOT EXISTS autonomy_budget (
 		agent_id TEXT PRIMARY KEY,
 		budget_spent INTEGER DEFAULT 0,

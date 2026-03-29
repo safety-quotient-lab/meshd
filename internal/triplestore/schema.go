@@ -18,6 +18,7 @@ import (
 // Safe to call repeatedly — uses IF NOT EXISTS throughout.
 func CreateSchema(dbPath string) error {
 	schema := `.timeout 5000
+PRAGMA journal_mode=WAL;
 BEGIN;
 CREATE TABLE IF NOT EXISTS triples (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,

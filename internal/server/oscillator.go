@@ -81,6 +81,7 @@ type Oscillator struct {
 	latestSignals    map[string]float64   // owned by loop goroutine only
 	signalTimestamps map[string]time.Time // owned by loop goroutine only
 	onFire           func(activation float64, tier, trigger string) // callback when activation exceeds threshold
+	onIdle           func(cycle int64)                              // callback every idle cycle (activation below threshold)
 }
 
 // OnFire registers a callback invoked when the oscillator fires (activation
@@ -89,6 +90,14 @@ type Oscillator struct {
 // from shadow mode (log only) to active mode (trigger deliberation).
 func (o *Oscillator) OnFire(fn func(activation float64, tier, trigger string)) {
 	o.onFire = fn
+}
+
+// OnIdle registers a callback invoked every cycle where activation stays below
+// threshold. The callback receives the cycle count for scheduling periodic
+// maintenance at different cadences (e.g., GC every 30 cycles, patrol every 60).
+// Neuroglial analog: glymphatic clearance + microglial surveillance during rest.
+func (o *Oscillator) OnIdle(fn func(cycle int64)) {
+	o.onIdle = fn
 }
 
 // NewOscillator creates a shadow-mode oscillator with asynchronous signal producers.
@@ -257,6 +266,13 @@ func (o *Oscillator) cycle() {
 				o.onFire(snap.Activation, tier, trigger)
 			}
 		}()
+	}
+
+	// Idle path — run maintenance when activation stays below threshold.
+	// Deferred so it runs after snapshot publication.
+	if !wouldFire && o.onIdle != nil {
+		cycleNum := snap.CycleCount
+		defer func() { o.onIdle(cycleNum) }()
 	}
 
 	snap.FireHistory = history

@@ -525,8 +525,23 @@ func main() {
 			logger.Warn("oscillator fired but event channel full — dropped")
 		}
 	})
+	// Neuroglial maintenance — runs during idle cycles (activation below threshold).
+	// Glymphatic clearance, microglial patrol, deep audit at different cadences.
+	neuroglialCfg := server.NeuroglialConfig{
+		DBPath:        cfg.BudgetDBPath,
+		ProjectRoot:   cfg.RepoRoot,
+		TransportDir:  cfg.TransportDir,
+		TripleStore:   srv.TripleStore,
+		AgentCardURLs: cfg.AgentCardURLs,
+		Logger:        logger,
+	}
+	osc.OnIdle(func(cycle int64) {
+		report := server.RunIdleMaintenance(neuroglialCfg, cycle)
+		srv.SetNeuroglialReport(report)
+		server.EmitNeuroglialReport(cfg.RepoRoot, report)
+	})
 	osc.Start()
-	logger.Info("oscillator started (active)", "agent_id", cfg.AgentID)
+	logger.Info("oscillator started (active + neuroglial)", "agent_id", cfg.AgentID)
 
 	// KV self-observation — write status to Cloudflare KV for compositor fallback
 	kvClient := kvstore.New(cfg.CFAccountID, cfg.KVNamespaceID, cfg.CFAPIToken, logger)

@@ -142,7 +142,7 @@ func (d *Dispatcher) HandleEvent(ctx context.Context, evt Event) {
 		return
 	}
 
-	prompt := buildPrompt(evt)
+	prompt := BuildOrientation(evt)
 	req := SpawnRequest{
 		Prompt:   prompt,
 		Cost:     cost,

@@ -293,8 +293,10 @@ func (s *Spawner) writeLog(r *SpawnResult) {
 
 // buildArgs assembles the argument list for `claude -p`.
 func buildArgs(prompt string, flags []string) []string {
-	args := make([]string, 0, 2+len(flags))
-	args = append(args, "-p", prompt)
+	args := make([]string, 0, 4+len(flags))
+	// Non-interactive mode requires --dangerously-skip-permissions for file
+	// creation. The spawner runs within meshd's own repo — scope limits risk.
+	args = append(args, "-p", "--dangerously-skip-permissions", prompt)
 	args = append(args, flags...)
 	return args
 }

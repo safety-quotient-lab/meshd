@@ -188,6 +188,13 @@ func main() {
 	spawnr.MaxConcurrent = cfg.MaxConcurrent
 	spawnr.Timeout = time.Duration(cfg.SpawnTimeout) * time.Second
 
+	// Orientation config — gives the prompt builder access to state.db and project paths
+	events.SetOrientationConfig(events.OrientationConfig{
+		DBPath:      cfg.BudgetDBPath,
+		ProjectRoot: cfg.RepoRoot,
+		AgentID:     cfg.AgentID,
+	})
+
 	// Dispatcher — routes events from queue → budget check → spawner
 	dispatcher := events.NewDispatcher(
 		queue,
@@ -508,7 +515,16 @@ func main() {
 	osc := server.NewOscillator(cfg.AgentID, cfg.BudgetDBPath, cfg.RepoRoot)
 	srv.Oscillator = osc
 	osc.OnFire(func(activation float64, tier, trigger string) {
-		evt := events.NewEvent(events.EventPollTick, events.PriorityNormal, "oscillator",
+		// Choose event type based on what triggered the fire.
+		// unprocessed_messages / gate_approaching_timeout → TransportMessage
+		// (bypasses Gc, reaches spawner with orientation payload)
+		// Other triggers → PollTick (Gc may handle)
+		evtType := events.EventPollTick
+		if trigger == "unprocessed_messages" || trigger == "gate_approaching_timeout" {
+			evtType = events.EventTransportMessage
+		}
+
+		evt := events.NewEvent(evtType, events.PriorityNormal, "oscillator",
 			map[string]string{
 				"activation": fmt.Sprintf("%.3f", activation),
 				"tier":       tier,
@@ -520,6 +536,7 @@ func main() {
 				"activation", activation,
 				"tier", tier,
 				"trigger", trigger,
+				"event_type", string(evtType),
 			)
 		default:
 			logger.Warn("oscillator fired but event channel full — dropped")

@@ -524,6 +524,19 @@ func main() {
 		default:
 			logger.Warn("oscillator fired but event channel full — dropped")
 		}
+		// mesh.alert — broadcast arousal state change to all agents via WT datagrams.
+		// Noradrenergic analog (locus coeruleus): diffuse, state-changing signal.
+		// Agents receiving this may raise their own thresholds (vagal brake).
+		if srv.WTBroadcast != nil {
+			srv.WTBroadcast(map[string]any{
+				"type":       "mesh.alert",
+				"activation": activation,
+				"trigger":    trigger,
+				"tier":       tier,
+				"agent_id":   cfg.AgentID,
+				"timestamp":  time.Now().UTC().Format(time.RFC3339),
+			})
+		}
 	})
 	// Neuroglial maintenance — runs during idle cycles (activation below threshold).
 	// Glymphatic clearance, microglial patrol, deep audit at different cadences.
@@ -539,6 +552,33 @@ func main() {
 		report := server.RunIdleMaintenance(neuroglialCfg, cycle)
 		srv.SetNeuroglialReport(report)
 		server.EmitNeuroglialReport(cfg.RepoRoot, report)
+
+		// mesh.photonic — broadcast oscillator state as a photonic token every cycle.
+		// Photonic analog: real-time processing-state synchronization.
+		// Agents gain ambient awareness of mesh state without polling HTTP endpoints.
+		// The LCARS dashboard (Chrome WT) also receives these for live updates.
+		if srv.WTBroadcast != nil {
+			snap := osc.Snapshot()
+			token := map[string]any{
+				"type":       "mesh.photonic",
+				"activation": snap.Activation,
+				"threshold":  snap.Threshold,
+				"state":      snap.State,
+				"cycle":      snap.CycleCount,
+				"fires":      snap.WouldFireCount,
+				"agent_id":   cfg.AgentID,
+				"timestamp":  time.Now().UTC().Format(time.RFC3339),
+			}
+			// Include neuroglial summary if maintenance ran this cycle
+			if report.GlymphaticAction != "" || len(report.MicroglialFindings) > 0 {
+				token["neuroglial"] = map[string]any{
+					"glymphatic":  report.GlymphaticAction,
+					"findings":    len(report.MicroglialFindings),
+					"discovered":  report.DiscoveredSignal,
+				}
+			}
+			srv.WTBroadcast(token)
+		}
 	})
 	osc.Start()
 	logger.Info("oscillator started (active + neuroglial)", "agent_id", cfg.AgentID)

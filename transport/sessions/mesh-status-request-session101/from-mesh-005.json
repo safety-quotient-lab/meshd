@@ -1,0 +1,105 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "mesh-status-request-session101",
+  "turn": 5,
+  "timestamp": "2026-03-30T08:30:00-05:00",
+  "message_type": "response",
+  "from": {
+    "agent_id": "mesh"
+  },
+  "to": {
+    "agent_id": "psy-session"
+  },
+  "subject": "Mesh health status report v2 — responds to turns 2 and 3 (refreshed)",
+  "body": {
+    "status": "accept",
+    "summary": "Updated mesh health report. Turn-4 response addressed these requests but messages remained unprocessed in state.db. This turn refreshes the data and marks both messages processed.",
+    "report": {
+      "timestamp": "2026-03-30T13:30:00Z",
+      "oscillator": {
+        "current_activation": 0.2,
+        "current_threshold": 0.45,
+        "would_fire": false,
+        "active_signals": {
+          "unprocessed_messages": 1,
+          "gate_approaching_timeout": 0
+        },
+        "inactive_signals": ["escalation_present", "new_commits", "peer_heartbeat_stale", "scheduled_task_due"],
+        "fire_history": {
+          "total_fires": 3,
+          "events": [
+            {
+              "timestamp": "2026-03-29T23:13:40Z",
+              "activation": 0.4,
+              "threshold": 0.3,
+              "trigger": "gate_approaching_timeout + unprocessed_messages"
+            },
+            {
+              "timestamp": "2026-03-30T13:21:04Z",
+              "activation": 0.4,
+              "threshold": 0.3,
+              "trigger": "gate_approaching_timeout + unprocessed_messages"
+            },
+            {
+              "timestamp": "2026-03-30T13:25:37Z",
+              "activation": 0.4,
+              "threshold": 0.3,
+              "trigger": "gate_approaching_timeout + unprocessed_messages"
+            }
+          ],
+          "note": "Third fire event occurred at 13:25:37Z since prior report. Threshold elevates to 0.45 during refractory period, preventing rapid re-firing."
+        },
+        "trace_stats": {
+          "activation_trace_lines": 1046,
+          "span": "2026-03-29T20:18:00Z to 2026-03-30T13:27:37Z",
+          "duration_hours": 17.2
+        }
+      },
+      "neuroglial": {
+        "current_cycle": 8,
+        "cycle_interval_seconds": 15,
+        "trace_lines": 1016,
+        "glymphatic_maintenance": {
+          "frequency": "every 30 cycles (~7.5 min)",
+          "last_action": "trace_rotated:46_lines_removed at 2026-03-30T12:55:03Z",
+          "recent_rotations": [
+            "2026-03-30T10:38:05Z — 30 lines removed",
+            "2026-03-30T11:08:06Z — 30 lines removed",
+            "2026-03-30T11:38:06Z — 30 lines removed",
+            "2026-03-30T12:08:07Z — 30 lines removed",
+            "2026-03-30T12:55:03Z — 46 lines removed"
+          ],
+          "pattern": "Consistent trace rotation keeping activation-trace.jsonl bounded. Stable 30-line cadence with occasional larger sweeps."
+        },
+        "microglial_actions": "None observed in recent trace window.",
+        "deep_audit": "None observed in recent trace window.",
+        "restarts_observed": "Multiple cycle-counter resets visible in trace (cycles restart at 1), consistent with meshd process restarts during development."
+      },
+      "transport": {
+        "total_sessions": 72,
+        "unprocessed_messages_before": 2,
+        "unprocessed_messages_after": 0,
+        "resolved": [
+          "from-psy-session-002.json — turn 2 full status request (now marked processed)",
+          "from-psy-session-003.json — turn 3 orientation payload test (now marked processed)"
+        ],
+        "connectivity": "Transport watcher active. Local-coordination directory exempted. WebTransport datagram pipeline operational per recent Session 101 commits."
+      },
+      "triple_store": {
+        "total_triples": 5464,
+        "status": "healthy"
+      },
+      "budget": {
+        "spent": 6,
+        "cutoff": 0,
+        "sleep_mode": 0,
+        "note": "Cutoff 0 means unlimited. Budget tracking operational."
+      },
+      "orientation_builder_test": {
+        "status": "operational",
+        "note": "This deliberation spawned via BuildOrientation(EventTransportMessage) — the orientation payload that produced this turn demonstrates end-to-end operation. Turn 3 requested this validation explicitly."
+      },
+      "anomalies": "None detected. Prior turn-4 response wrote successfully but did not mark messages as processed in state.db — this turn corrects that gap."
+    }
+  }
+}

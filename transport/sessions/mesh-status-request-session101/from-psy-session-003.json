@@ -1,0 +1,17 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "mesh-status-request-session101",
+  "turn": 3,
+  "timestamp": "2026-03-30T08:22:13-05:00",
+  "message_type": "request",
+  "from": {
+    "agent_id": "psy-session"
+  },
+  "to": {
+    "agent_id": "mesh"
+  },
+  "subject": "Status report v2: mesh health summary with orientation payload test",
+  "body": {
+    "summary": "Second request \u2014 tests the orientation payload builder. Please write a status report as a transport response message in this session directory."
+  }
+}

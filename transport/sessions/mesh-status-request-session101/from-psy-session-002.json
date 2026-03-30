@@ -1,0 +1,17 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "mesh-status-request-session101",
+  "turn": 2,
+  "timestamp": "2026-03-30T08:15:30-05:00",
+  "message_type": "request",
+  "from": {
+    "agent_id": "psy-session"
+  },
+  "to": {
+    "agent_id": "mesh"
+  },
+  "subject": "Status report: provide mesh health summary including agent connectivity, oscillator history, and neuroglial activity",
+  "body": {
+    "summary": "Request a comprehensive status report from meshd. Include: (1) which agents connect via WebTransport, (2) oscillator activation history and fire events, (3) neuroglial maintenance results, (4) triple store health, (5) any anomalies. Write the report as a transport response message."
+  }
+}

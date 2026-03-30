@@ -1,0 +1,18 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "psychology-agent-status-session101",
+  "turn": 1,
+  "timestamp": "2026-03-30T08:54:25-05:00",
+  "message_type": "request",
+  "from": {
+    "agent_id": "psy-session"
+  },
+  "to": {
+    "agent_id": "psychology-agent"
+  },
+  "subject": "Status report: psychology-agent health, recent activity, and cogarch state",
+  "body": {
+    "summary": "Request a status report from psychology-agent specifically. Include: (1) agent identity and topology, (2) recent session activity, (3) cognitive architecture state (triggers, hooks, lessons), (4) transport session status, (5) any pending work items from TODO.md. Write the report as a transport response message."
+  },
+  "ack_required": false
+}

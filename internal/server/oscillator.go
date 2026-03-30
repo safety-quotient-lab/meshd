@@ -132,11 +132,13 @@ func (o *Oscillator) Start() {
 
 	// Signal producers — each runs its own loop at its own cadence.
 	// Slow signals (git fetch) use longer intervals; fast signals poll frequently.
-	go o.signalProducer("new_commits", 120*time.Second, o.checkNewCommits)
-	go o.signalProducer("unprocessed_messages", 30*time.Second, o.checkUnprocessedMessages)
-	go o.signalProducer("gate_approaching_timeout", 30*time.Second, o.checkGateTimeout)
-	go o.signalProducer("peer_heartbeat_stale", 60*time.Second, o.checkPeerHeartbeatStale)
-	go o.signalProducer("escalation_present", 15*time.Second, o.checkEscalation)
+	// Signal producer cadences — coordinator runs faster than agents.
+	// Fastest signals match the idle cycle (15s); slowest (git fetch) at 60s.
+	go o.signalProducer("new_commits", 60*time.Second, o.checkNewCommits)
+	go o.signalProducer("unprocessed_messages", 15*time.Second, o.checkUnprocessedMessages)
+	go o.signalProducer("gate_approaching_timeout", 15*time.Second, o.checkGateTimeout)
+	go o.signalProducer("peer_heartbeat_stale", 30*time.Second, o.checkPeerHeartbeatStale)
+	go o.signalProducer("escalation_present", 10*time.Second, o.checkEscalation)
 
 	go o.loop()
 }
@@ -311,11 +313,11 @@ func (o *Oscillator) drainSignals() {
 func (o *Oscillator) decayedSignals() map[string]float64 {
 	// Expected reporting intervals per signal (must match signalProducer cadences)
 	expectedInterval := map[string]time.Duration{
-		"new_commits":              120 * time.Second,
-		"unprocessed_messages":     30 * time.Second,
-		"gate_approaching_timeout": 30 * time.Second,
-		"peer_heartbeat_stale":     60 * time.Second,
-		"escalation_present":       15 * time.Second,
+		"new_commits":              60 * time.Second,
+		"unprocessed_messages":     15 * time.Second,
+		"gate_approaching_timeout": 15 * time.Second,
+		"peer_heartbeat_stale":     30 * time.Second,
+		"escalation_present":       10 * time.Second,
 	}
 
 	now := time.Now()
@@ -388,18 +390,22 @@ func (o *Oscillator) computeThreshold() float64 {
 
 // computeMonitorInterval returns adaptive poll interval from activation level.
 // Lock-free — reads from the atomic snapshot.
+// computeMonitorInterval returns the adaptive cycle interval.
+// meshd runs faster than agents — the coordinator detects and routes
+// before individual agents need to respond. Brainstem analog: autonomic
+// rhythms (Hz) run faster than cortical processing (seconds).
 func (o *Oscillator) computeMonitorInterval() time.Duration {
 	act := o.snapshot.Load().Activation
 
 	switch {
 	case act > 0.6:
-		return 5 * time.Second
+		return 3 * time.Second  // high arousal — near real-time
 	case act > 0.3:
-		return 15 * time.Second
+		return 5 * time.Second  // active — rapid response
 	case act > 0.1:
-		return 30 * time.Second
+		return 10 * time.Second // low signal — watchful
 	default:
-		return 60 * time.Second
+		return 15 * time.Second // idle — coordinator baseline
 	}
 }
 

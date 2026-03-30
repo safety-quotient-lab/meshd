@@ -48,28 +48,28 @@ type NeuroglialReport struct {
 // cycle, heavier tasks every Nth cycle. Returns a report of actions taken.
 //
 // Cadence design (at 60s idle interval):
-//   Every cycle (60s):  activation trace check (trivial — file stat)
-//   Every 5 cycles (5min): microglial patrol (health checks, state audit)
-//   Every 30 cycles (30min): glymphatic clearance (triple GC, stale cleanup)
-//   Every 60 cycles (1h): deep audit (cross-reference state.db vs filesystem)
+//   Every cycle (15s):    activation trace check (trivial — file stat)
+//   Every 20 cycles (~5min):  microglial patrol (health checks, state audit)
+//   Every 120 cycles (~30min): glymphatic clearance (triple GC, stale cleanup)
+//   Every 240 cycles (~1h):    deep audit (cross-reference state.db vs filesystem)
 func RunIdleMaintenance(cfg NeuroglialConfig, cycle int64) *NeuroglialReport {
 	report := &NeuroglialReport{
 		Cycle:     cycle,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}
 
-	// ── Glymphatic clearance (every 30 cycles / ~30min) ─────────
-	if cycle%30 == 0 && cycle > 0 {
+	// ── Glymphatic clearance (every 120 cycles / ~30min) ─────────
+	if cycle%120 == 0 && cycle > 0 {
 		runGlymphaticClearance(cfg, report)
 	}
 
-	// ── Microglial patrol (every 5 cycles / ~5min) ──────────────
-	if cycle%5 == 0 && cycle > 0 {
+	// ── Microglial patrol (every 20 cycles / ~5min) ──────────────
+	if cycle%20 == 0 && cycle > 0 {
 		runMicroglialPatrol(cfg, report)
 	}
 
-	// ── Deep cross-reference audit (every 60 cycles / ~1h) ──────
-	if cycle%60 == 0 && cycle > 0 {
+	// ── Deep cross-reference audit (every 240 cycles / ~1h) ──────
+	if cycle%240 == 0 && cycle > 0 {
 		runDeepAudit(cfg, report)
 	}
 

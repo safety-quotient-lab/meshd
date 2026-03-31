@@ -337,9 +337,11 @@ func main() {
 		RepoRoot:     cfg.RepoRoot,
 		TransportDir: cfg.TransportDir,
 		AgentID:      cfg.AgentID,
+		DBPath:       cfg.BudgetDBPath,
 		Logger:       logger,
 	})
 	dispatcher.SetGcHandler(gcHandler)
+	dispatcher.SetDBPath(cfg.BudgetDBPath) // enables post-spawn dedup (mark messages processed)
 
 	// GitHub webhook handler
 	webhookHandler := webhook.NewGitHubHandler(cfg.GitHubSecret, eventChan, logger)

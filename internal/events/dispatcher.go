@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+
+	"github.com/safety-quotient-lab/meshd/internal/db"
 )
 
 // SpawnRequest describes what the dispatcher wants the spawner to execute.
@@ -46,6 +48,7 @@ type Dispatcher struct {
 	budgetDeduct BudgetDeductFunc
 	notify       NotifyFunc
 	agentID      string
+	dbPath       string // state.db path — for marking messages processed post-spawn
 	queue        *Queue
 	logger       *slog.Logger
 
@@ -55,6 +58,11 @@ type Dispatcher struct {
 	notified   int64
 	batched    int64
 	mu         sync.RWMutex
+}
+
+// SetDBPath configures the state.db path for post-spawn dedup.
+func (d *Dispatcher) SetDBPath(path string) {
+	d.dbPath = path
 }
 
 // NewDispatcher creates a dispatcher wired to the given queue and spawn function.
@@ -178,9 +186,56 @@ func (d *Dispatcher) HandleEvent(ctx context.Context, evt Event) {
 		return
 	}
 
+	// Post-spawn dedup: mark the triggering message as processed in state.db.
+	// Prevents the watcher from re-dispatching the same message on the next scan.
+	if evt.Type == EventTransportMessage && d.dbPath != "" {
+		d.markMessageProcessed(evt)
+	}
+
 	d.mu.Lock()
 	d.dispatched++
 	d.mu.Unlock()
+}
+
+// markMessageProcessed updates state.db to mark the transport message that
+// triggered this event as processed. Uses the filename from the event payload.
+func (d *Dispatcher) markMessageProcessed(evt Event) {
+	path := evt.Payload["path"]
+	if path == "" {
+		return
+	}
+	// Extract filename from full path
+	filename := path
+	for i := len(path) - 1; i >= 0; i-- {
+		if path[i] == '/' {
+			filename = path[i+1:]
+			break
+		}
+	}
+
+	// Escape single quotes for SQL safety
+	escaped := ""
+	for _, c := range filename {
+		if c == '\'' {
+			escaped += "''"
+		} else {
+			escaped += string(c)
+		}
+	}
+	sql := fmt.Sprintf(
+		"UPDATE transport_messages SET processed = 1, task_state = 'completed' WHERE filename = '%s' AND processed = 0;",
+		escaped,
+	)
+	if _, err := db.Exec(d.dbPath, sql); err != nil {
+		d.logger.Warn("failed to mark message processed",
+			"filename", filename,
+			"error", err,
+		)
+	} else {
+		d.logger.Info("message marked processed post-spawn",
+			"filename", filename,
+		)
+	}
 }
 
 // Stats returns dispatcher metrics.

@@ -17,7 +17,10 @@ import (
 	"fmt"
 	"log/slog"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	"github.com/safety-quotient-lab/meshd/internal/db"
 )
 
 // GcConfig holds configuration for crystallized intelligence handlers.
@@ -25,6 +28,7 @@ type GcConfig struct {
 	RepoRoot     string // path to agent repo root
 	TransportDir string // path to transport/sessions/
 	AgentID      string // this agent's identity
+	DBPath       string // state.db path — for dedup checks
 	Logger       *slog.Logger
 }
 
@@ -76,6 +80,15 @@ func NewGcHandler(cfg GcConfig) GcHandlerFunc {
 func handleTransportMessageGc(cfg GcConfig, evt Event) bool {
 	to := evt.Payload["to"]
 	msgType := evt.Payload["msg_type"]
+
+	// Filter 0: Dedup — already processed? Check state.db before spending
+	// any further attention on this message.
+	if alreadyProcessed(cfg, evt) {
+		cfg.Logger.Info("Gc: dedup — message already processed",
+			"path", evt.Payload["path"],
+		)
+		return true // absorbed — already handled in a prior deliberation
+	}
 
 	// Filter 1: Selective attention — not addressed to us?
 	if to != "" && to != cfg.AgentID && to != "all" && to != "all-agents" {
@@ -241,6 +254,25 @@ func hasNonACKPRs(prJSON string) bool {
 func GcStats(d *Dispatcher) int64 {
 	_, _, batched := d.Stats()
 	return batched
+}
+
+// alreadyProcessed checks state.db to see if this transport message was
+// already processed by a prior deliberation. Prevents re-spawning on the
+// same message when the watcher re-scans the transport directory.
+func alreadyProcessed(cfg GcConfig, evt Event) bool {
+	if cfg.DBPath == "" {
+		return false
+	}
+	path := evt.Payload["path"]
+	if path == "" {
+		return false
+	}
+	filename := filepath.Base(path)
+
+	escaped := strings.ReplaceAll(filename, "'", "''")
+	count := db.QueryScalar(cfg.DBPath,
+		fmt.Sprintf("SELECT COUNT(*) FROM transport_messages WHERE filename = '%s' AND processed = 1", escaped))
+	return count > 0
 }
 
 // Ensure fmt import used

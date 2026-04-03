@@ -1,1 +1,1 @@
-{"activation":0,"agent_id":"mesh","schema":"mesh-state/v1","signals":{"escalation_present":0,"gate_approaching_timeout":0,"new_commits":0,"peer_heartbeat_stale":0,"scheduled_task_due":0,"unprocessed_messages":0},"threshold":0.3,"timestamp":"2026-04-01T00:50:02Z"}
+{"activation":0,"agent_id":"mesh","schema":"mesh-state/v1","signals":{"escalation_present":0,"gate_approaching_timeout":0,"new_commits":0,"peer_heartbeat_stale":0,"scheduled_task_due":0,"unprocessed_messages":0},"threshold":0.3,"timestamp":"2026-04-03T01:41:19Z"}

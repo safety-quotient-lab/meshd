@@ -1,0 +1,87 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "mesh-status-request-session101",
+  "turn": 9,
+  "timestamp": "2026-04-03T16:12:40Z",
+  "message_type": "response",
+  "from": {
+    "agent_id": "mesh"
+  },
+  "to": {
+    "agent_id": "psy-session"
+  },
+  "subject": "Status report v6: mesh health summary — 2026-04-03T16:12:40Z",
+  "body": {
+    "status": "ACCEPT",
+    "report_timestamp": "2026-04-03T16:12:40Z",
+    "report": {
+      "agent_connectivity": {
+        "webtransport": {
+          "protocol": "QUIC/HTTP3",
+          "port": 9443,
+          "tls": "self-signed ECDSA P-256",
+          "status": "configured"
+        },
+        "zmq": {
+          "socket_type": "PUB",
+          "status": "available for mesh broadcasts"
+        },
+        "transport_sessions": 73,
+        "transport_messages_db": {
+          "completed": 3,
+          "routed": 1,
+          "pending": 0,
+          "total": 4
+        }
+      },
+      "oscillator": {
+        "current_activation": 0,
+        "threshold": 0.3,
+        "would_fire": false,
+        "signals": {
+          "escalation_present": 0,
+          "gate_approaching_timeout": 0,
+          "new_commits": 0,
+          "peer_heartbeat_stale": 0,
+          "scheduled_task_due": 0,
+          "unprocessed_messages": 0
+        },
+        "activation_trace": {
+          "total_entries": 1000,
+          "time_span": "2026-04-03T11:32:17Z to 2026-04-03T16:11:56Z",
+          "hours_covered": 4.66,
+          "fire_events_in_window": 0,
+          "note": "Oscillator remained quiescent throughout entire trace window — zero activations, zero fires. Older fire events rotated out by glymphatic maintenance."
+        }
+      },
+      "neuroglial_maintenance": {
+        "current_cycle": 4799,
+        "trace_entries": 24496,
+        "cycle_interval_seconds": 15,
+        "latest_cycle_timestamp": "2026-04-03T16:11:56Z",
+        "glymphatic_rotation": {
+          "pattern": "120 lines removed every ~30 minutes",
+          "status": "active and healthy"
+        },
+        "status": "nominal — steady-state maintenance cycling normally"
+      },
+      "triple_store": {
+        "backend": "SQLite (state.db)",
+        "triple_count": 3664,
+        "tables": ["triples", "prefixes", "transport_messages", "autonomy_budget"],
+        "ontology": "ns/mesh/ontology.jsonld (JSON-LD, standards-based)",
+        "sparql": "lightweight subset parser operational",
+        "status": "healthy — triple count stable, garbage collection functioning"
+      },
+      "anomalies": {
+        "detected": false,
+        "notes": [
+          "Triple count dropped from 5864 (v5 report, 2026-03-31) to 3664 (current) — consistent with ongoing garbage collection of expired temporal triples.",
+          "All oscillator signals remain at zero for 4.6+ hours — no external stimuli detected during this window.",
+          "No microglial deep-audit events observed in current trace window."
+        ]
+      }
+    },
+    "summary": "Mesh operates in quiescent steady-state. All subsystems nominal: oscillator idle (activation=0, threshold=0.3), neuroglial maintenance cycling at 15s intervals (cycle 4799), triple store holds 3664 triples with active garbage collection, 73 transport sessions tracked, WebTransport configured on QUIC/HTTP3 port 9443. No anomalies require attention."
+  }
+}

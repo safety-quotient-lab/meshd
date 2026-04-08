@@ -4,6 +4,10 @@
 // system (Woolley et al., 2010). Not an aggregation of individual agent
 // states but a distinct organism-level measurement.
 //
+// Computes per-agent psychometrics from operational data in each agent's
+// /api/status response, then derives mesh-level emergent properties.
+// No agent-side psychometrics endpoint needed — meshd owns the domain model.
+//
 // Psychology-agent owns the domain model. Operations-agent serves the
 // infrastructure (this endpoint + caching).
 package server
@@ -14,22 +18,30 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"strings"
 	"time"
 )
 
 // handlePsychometricsMesh serves GET /api/psychometrics/mesh.
-// Fetches per-agent psychometrics, computes mesh-level emergent properties.
+// Fetches /api/status from each agent, computes psychometrics from operational
+// data, then derives mesh-level emergent properties.
 func (s *Server) handlePsychometricsMesh(w http.ResponseWriter, r *http.Request) {
 	agents := s.Registry.Agents()
 	client := &http.Client{Timeout: 4 * time.Second}
 
 	type agentPsych struct {
-		AgentID string  `json:"agent_id"`
-		PAD     meshPAD     `json:"emotional_state"`
-		Load    float64 `json:"cognitive_load"`
-		Reserve float64 `json:"cognitive_reserve"`
-		Flow    float64 `json:"flow_index"`
-		Online  bool    `json:"online"`
+		AgentID        string         `json:"agent_id"`
+		PAD            meshPAD        `json:"emotional_state"`
+		AffectCategory string         `json:"affect_category"`
+		Load           float64        `json:"cognitive_load"`
+		Reserve        float64        `json:"cognitive_reserve"`
+		SelfRegulation float64        `json:"self_regulatory_resource"`
+		AllostaticLoad float64        `json:"allostatic_load"`
+		Flow           float64        `json:"flow_index"`
+		BurnoutRisk    float64        `json:"burnout_risk"`
+		Online         bool           `json:"online"`
+		ResourceModel  map[string]any `json:"resource_model,omitempty"`
+		Engagement     map[string]any `json:"engagement,omitempty"`
 	}
 
 	var agentStates []agentPsych
@@ -44,7 +56,8 @@ func (s *Server) handlePsychometricsMesh(w http.ResponseWriter, r *http.Request)
 
 		ap := agentPsych{AgentID: agent.ID}
 
-		resp, err := client.Get(agent.StatusURL + "/../psychometrics")
+		// Fetch /api/status — the endpoint agentd actually serves
+		resp, err := client.Get(agent.StatusURL)
 		if err != nil {
 			agentStates = append(agentStates, ap)
 			continue
@@ -57,39 +70,51 @@ func (s *Server) handlePsychometricsMesh(w http.ResponseWriter, r *http.Request)
 			continue
 		}
 
-		var data map[string]any
-		json.Unmarshal(body, &data)
+		var status map[string]any
+		json.Unmarshal(body, &status)
 
 		ap.Online = true
 		online++
 
-		// Extract PAD
-		if es, ok := data["emotional_state"].(map[string]any); ok {
-			ap.PAD.Pleasure = floatFromAny(es["pleasure"])
-			ap.PAD.Arousal = floatFromAny(es["arousal"])
-			ap.PAD.Dominance = floatFromAny(es["dominance"])
-			totalP += ap.PAD.Pleasure
-			totalA += ap.PAD.Arousal
-			totalD += ap.PAD.Dominance
+		// Derive psychometric metrics from operational status data
+		m := deriveMetricsFromStatus(status)
+		pad := computePAD(m)
+		tlx := computeTLX(m)
+		resources := computeResources(tlx, m)
+		engagement := computeEngagement(m, tlx, resources)
+		flow := computeFlow(m, resources)
+
+		// Extract PAD values
+		ap.PAD.Pleasure = floatFromAny(pad["hedonic_valence"])
+		ap.PAD.Arousal = floatFromAny(pad["activation"])
+		ap.PAD.Dominance = floatFromAny(pad["perceived_control"])
+		if cat, ok := pad["affect_category"].(string); ok {
+			ap.AffectCategory = cat
+		} else {
+			ap.AffectCategory = padLabel(ap.PAD.Pleasure, ap.PAD.Arousal, ap.PAD.Dominance)
 		}
+		totalP += ap.PAD.Pleasure
+		totalA += ap.PAD.Arousal
+		totalD += ap.PAD.Dominance
 
 		// Extract workload
-		if wl, ok := data["workload"].(map[string]any); ok {
-			ap.Load = floatFromAny(wl["cognitive_load"])
-			totalLoad += ap.Load
-		}
+		ap.Load = floatFromAny(tlx["cognitive_load"])
+		totalLoad += ap.Load
 
 		// Extract resources
-		if rm, ok := data["resource_model"].(map[string]any); ok {
-			ap.Reserve = floatFromAny(rm["cognitive_reserve"])
-			totalReserve += ap.Reserve
-		}
+		ap.Reserve = floatFromAny(resources["cognitive_reserve"])
+		ap.SelfRegulation = floatFromAny(resources["self_regulatory_resource"])
+		ap.AllostaticLoad = floatFromAny(resources["allostatic_load"])
+		ap.ResourceModel = resources
+		totalReserve += ap.Reserve
+
+		// Extract engagement
+		ap.BurnoutRisk = floatFromAny(engagement["burnout_risk"])
+		ap.Engagement = engagement
 
 		// Extract flow
-		if fl, ok := data["flow"].(map[string]any); ok {
-			ap.Flow = floatFromAny(fl["flow_index"])
-			totalFlow += ap.Flow
-		}
+		ap.Flow = floatFromAny(flow["flow_index"])
+		totalFlow += ap.Flow
 
 		agentStates = append(agentStates, ap)
 	}
@@ -127,8 +152,8 @@ func (s *Server) handlePsychometricsMesh(w http.ResponseWriter, r *http.Request)
 	affectLabel := padLabel(meshAffect.Pleasure, meshAffect.Arousal, meshAffect.Dominance)
 	narrative := meshNarrative(affectLabel, coherence, avgLoad, online, len(agents))
 
-	resp := map[string]any{
-		"mesh_id":     "safety-quotient-mesh",
+	result := map[string]any{
+		"mesh_id":       "safety-quotient-mesh",
 		"agents_online": online,
 		"agents_total":  len(agents),
 		"collected_at":  time.Now().UTC().Format(time.RFC3339),
@@ -146,11 +171,11 @@ func (s *Server) handlePsychometricsMesh(w http.ResponseWriter, r *http.Request)
 		},
 
 		"collective_intelligence": map[string]any{
-			"c_factor":     round2(collectiveIQ),
-			"avg_load":     round2(avgLoad),
-			"avg_reserve":  round2(avgReserve),
-			"avg_flow":     round2(avgFlow),
-			"reference":    "Woolley et al., 2010 — collective intelligence factor",
+			"c_factor":    round2(collectiveIQ),
+			"avg_load":    round2(avgLoad),
+			"avg_reserve": round2(avgReserve),
+			"avg_flow":    round2(avgFlow),
+			"reference":   "Woolley et al., 2010 — collective intelligence factor",
 		},
 
 		"narrative": narrative,
@@ -159,7 +184,57 @@ func (s *Server) handlePsychometricsMesh(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Cache-Control", "public, max-age=30")
-	writeJSON(w, http.StatusOK, resp, s.logger)
+	writeJSON(w, http.StatusOK, result, s.logger)
+}
+
+// deriveMetricsFromStatus extracts PsychMetrics from an agent's /api/status response.
+// Maps the operational fields in the status JSON to the sensor inputs that
+// computePAD/computeTLX/etc. expect.
+func deriveMetricsFromStatus(status map[string]any) PsychMetrics {
+	m := PsychMetrics{}
+
+	// Unprocessed messages count
+	if msgs, ok := status["unprocessed_messages"].([]any); ok {
+		m.UnprocessedMessages = len(msgs)
+	}
+
+	// Total messages from totals
+	if totals, ok := status["totals"].(map[string]any); ok {
+		m.TotalMessages = intFromAny(totals["messages"])
+	}
+
+	// Active gates count
+	if gates, ok := status["active_gates"].([]any); ok {
+		m.ActiveGates = len(gates)
+	}
+
+	// Autonomy budget
+	if budget, ok := status["autonomy_budget"].(map[string]any); ok {
+		m.BudgetSpent = floatFromAny(budget["budget_spent"])
+		m.BudgetCutoff = floatFromAny(budget["budget_cutoff"])
+		m.ConsecutiveBlocks = intFromAny(budget["consecutive_blocks"])
+		m.SleepMode = intFromAny(budget["sleep_mode"])
+	}
+
+	// Recent actions as proxy for actions_last_hour
+	if actions, ok := status["recent_actions"].([]any); ok {
+		m.ActionsLastHour = len(actions)
+	}
+
+	// Recent messages — count errors by scanning for error-like types
+	if msgs, ok := status["recent_messages"].([]any); ok {
+		for _, raw := range msgs {
+			if msg, ok := raw.(map[string]any); ok {
+				if msgType, ok := msg["message_type"].(string); ok {
+					if strings.Contains(msgType, "error") || strings.Contains(msgType, "problem") {
+						m.ErrorsLastHour++
+					}
+				}
+			}
+		}
+	}
+
+	return m
 }
 
 type meshPAD struct {
@@ -195,6 +270,21 @@ func floatFromAny(v any) float64 {
 		return val
 	case int:
 		return float64(val)
+	case int64:
+		return float64(val)
+	default:
+		return 0
+	}
+}
+
+func intFromAny(v any) int {
+	switch val := v.(type) {
+	case float64:
+		return int(val)
+	case int:
+		return val
+	case int64:
+		return int(val)
 	default:
 		return 0
 	}

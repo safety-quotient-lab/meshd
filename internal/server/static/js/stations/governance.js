@@ -1,5 +1,7 @@
 // ═══ RENDER: GOVERNANCE ══════════════════════════════════════
 function renderGovernance() {
+    // Pre-fetch emergent psychometrics (mood, resources) — async, populates before next cycle
+    fetchPsychForGov();
     // Symmetric capsule bars (Ohniaka A1 §5.4)
     renderGovCapsuleBars();
     // Zone A: dense number grid (three-zone layout §1.2)
@@ -162,8 +164,19 @@ async function fetchPsychForGov() {
     if (_psychCache && _psychCache._fetchedAt && Date.now() - _psychCache._fetchedAt < 30000) return;
     _psychFetchPromise = (async () => {
         try {
-            const resp = await fetch("/api/psychometrics", { signal: AbortSignal.timeout(5000) });
-            if (resp.ok) { _psychCache = await resp.json(); _psychCache._fetchedAt = Date.now(); }
+            const resp = await fetch("/api/psychometrics/emergent", { signal: AbortSignal.timeout(8000) });
+            if (resp.ok) {
+                const data = await resp.json();
+                data._fetchedAt = Date.now();
+                // Build keyed agent map from per_agent array for resource model panel
+                const agents = {};
+                for (const ap of (data.per_agent || [])) {
+                    if (!ap.online) continue;
+                    agents[ap.agent_id] = ap;
+                }
+                data.agents = agents;
+                _psychCache = data;
+            }
         } catch {} finally { _psychFetchPromise = null; }
     })();
     return _psychFetchPromise;
@@ -278,9 +291,9 @@ function renderGovBudget() {
         const b = online ? (d.data?.autonomy_budget || {}) : {};
         const deliberations = getDeliberations(b);
         const health = d?.data?.health || "\u2014";
-        const psych = d?.data?.psychometrics || {};
-        const es = psych.emotional_state || {};
-        const mood = es.affect_category || "";
+        // Per-agent affect from emergent psychometrics endpoint
+        const agentPsych = _psychCache?.agents?.[agent.id];
+        const mood = agentPsych?.affect_category || "";
         const pending = online ? (d.data?.unprocessed_messages || []).length : 0;
         const gc = online ? (d.data?.gc_metrics?.gc_handled_total || 0) : 0;
         // Operation type — from oscillator dominant_band or heuristic
@@ -390,7 +403,7 @@ function renderMobilePills() {
         const healthStr = rawHealth === "healthy" ? "NOMINAL" : rawHealth.toUpperCase();
         const hColor = online ? healthColor(rawHealth) : "var(--text-dim)";
         const pending = online ? (d.data?.unprocessed_messages || []).length : 0;
-        const mood = d?.data?.psychometrics?.emotional_state?.affect_category || "";
+        const mood = _psychCache?.agents?.[agent.id]?.affect_category || "";
         const mSleepMode = d.data?.autonomy_budget?.sleep_mode;
         const mIsSleeping = mSleepMode === true || mSleepMode === 1 || mSleepMode === "1";
         const mSessionActive = d.data?.session_active;

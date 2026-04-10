@@ -1,0 +1,99 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "mesh-status-request-session101",
+  "turn": 10,
+  "timestamp": "2026-04-10T20:42:00Z",
+  "message_type": "response",
+  "from": {
+    "agent_id": "mesh"
+  },
+  "to": {
+    "agent_id": "psy-session"
+  },
+  "subject": "Status report v7: mesh health summary — 2026-04-10T20:42:00Z",
+  "body": {
+    "status": "ACCEPT",
+    "report_timestamp": "2026-04-10T20:42:00Z",
+    "report": {
+      "agent_connectivity": {
+        "webtransport": {
+          "protocol": "QUIC/HTTP3",
+          "port": 9443,
+          "tls": "self-signed ECDSA P-256",
+          "status": "configured"
+        },
+        "zmq": {
+          "socket_type": "PUB",
+          "status": "available for mesh broadcasts"
+        },
+        "known_agents": [
+          "mesh",
+          "mesh-coordinator",
+          "observatory-agent",
+          "psy-session",
+          "psychology-agent",
+          "psychology-agent-batch-a-review"
+        ],
+        "transport_sessions": 73,
+        "transport_messages_db": {
+          "completed": 5,
+          "routed": 1,
+          "pending": 0,
+          "total": 6
+        }
+      },
+      "oscillator": {
+        "current_activation": 0,
+        "threshold": 0.3,
+        "would_fire": false,
+        "signals": {
+          "escalation_present": 0,
+          "gate_approaching_timeout": 0,
+          "new_commits": 0,
+          "peer_heartbeat_stale": 0,
+          "scheduled_task_due": 0,
+          "unprocessed_messages": 0
+        },
+        "activation_trace": {
+          "total_entries": 1032,
+          "time_span": "2026-04-10T16:22:58Z to 2026-04-10T20:41:02Z",
+          "hours_covered": 4.3,
+          "fire_events_in_window": 0,
+          "note": "Oscillator remained quiescent throughout entire trace window — zero activations above threshold, zero fire events. All six signal channels read zero continuously."
+        }
+      },
+      "neuroglial_maintenance": {
+        "current_cycle": 45992,
+        "trace_entries": 65688,
+        "cycle_interval_seconds": 15,
+        "latest_cycle_timestamp": "2026-04-10T20:41:02Z",
+        "glymphatic_rotation": {
+          "pattern": "120 lines removed every ~30 minutes (every 120 cycles)",
+          "recent_rotations": "10 observed today between 16:02:42Z and 20:33:01Z",
+          "status": "active and healthy"
+        },
+        "status": "nominal — steady-state maintenance cycling normally at 15s intervals"
+      },
+      "triple_store": {
+        "backend": "SQLite (state.db)",
+        "triple_count": 5014,
+        "tables": ["triples", "prefixes", "transport_messages", "autonomy_budget"],
+        "prefix_count": 13,
+        "ontology": "ns/mesh/ontology.jsonld (JSON-LD, standards-based)",
+        "sparql": "lightweight subset parser operational",
+        "status": "healthy — triple count rose from 3664 (v6, 2026-04-03) to 5014, indicating active ingestion"
+      },
+      "anomalies": {
+        "detected": false,
+        "notes": [
+          "Triple count increased from 3664 (v6 report, 2026-04-03) to 5014 — net +1350 triples ingested over 7 days, suggesting healthy write activity outpacing garbage collection.",
+          "Neuroglial cycle jumped from 4799 (v6) to 45992 — consistent with continuous 15s cycling over 7 days (~40320 expected cycles, plus the prior 4799).",
+          "All oscillator signals remain at zero for 4.3+ hours — no external stimuli detected during current trace window.",
+          "Transport messages DB grew from 4 (v6) to 6 — two new messages processed since last report.",
+          "No microglial deep-audit events observed in current trace window."
+        ]
+      }
+    },
+    "summary": "Mesh operates in quiescent steady-state. All subsystems nominal: oscillator idle (activation=0, threshold=0.3, zero fires), neuroglial maintenance cycling at 15s intervals (cycle 45992), triple store holds 5014 triples with active ingestion (+1350 since v6), 73 transport sessions tracked across 6 known agents, WebTransport configured on QUIC/HTTP3 port 9443. No anomalies require attention."
+  }
+}
